@@ -186,6 +186,7 @@ EAS_NO_VCS=1 eas submit --platform android --profile production
 ```
 
 Notes:
+
 - Manage credentials via EAS on first run; subsequent runs use stored credentials.
 - For multiple apps, keep a repo per app; parameterize via `app.config.ts` + `.env`.
 
