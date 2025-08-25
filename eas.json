@@ -25,7 +25,7 @@
       },
       "env": {
         "APP_ENV": "preview",
-        "JAVA_HOME": "/usr/lib/jvm/java-17-openjdk",
+        "JAVA_HOME": "$JAVA_HOME_17_X64",
         "GRADLE_OPTS": "-Xmx4096m -XX:MaxMetaspaceSize=512m"
       }
     },
