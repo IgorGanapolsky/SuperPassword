@@ -1070,3 +1070,66 @@ tsconfig.json 1ms (unchanged)
 
 ✖ 3 problems (0 errors, 3 warnings)
 
+[main 707e73d] chore: local hourly autofix (prettier + eslint)
+ 2 files changed, 93 insertions(+)
+Fetching template
+Fetching origin
+
+> superpassword@1.0.0 prepare
+> husky install
+
+
+added 1069 packages in 29m
+
+> superpassword@1.0.0 autofix
+> npm run fmt:fix && npm run lint:fix
+
+
+> superpassword@1.0.0 fmt:fix
+> prettier --write .
+
+.cursor/mcp.json 33ms (unchanged)
+.cursor/rules.json 3ms (unchanged)
+.eslintrc.cjs 14ms (unchanged)
+.github/pull_request_template.md 26ms (unchanged)
+.github/workflows/autofix.yml 23ms (unchanged)
+.github/workflows/ci.yml 4ms (unchanged)
+.trunk/configs/.markdownlint.yaml 2ms (unchanged)
+.trunk/trunk.yaml 3ms (unchanged)
+app.json 4ms (unchanged)
+App.tsx 50ms (unchanged)
+babel.config.js 4ms (unchanged)
+DEPLOYMENT_CHECKLIST.md 24ms (unchanged)
+eas.json 3ms (unchanged)
+package-lock.json 105ms (unchanged)
+package.json 2ms (unchanged)
+PRIVACY_POLICY.md 18ms (unchanged)
+README.md 20ms (unchanged)
+scripts/generate-icon.js 77ms (unchanged)
+src/constants/theme.ts 16ms (unchanged)
+src/contexts/ThemeContext.tsx 25ms (unchanged)
+src/hooks/useTheme.ts 2ms (unchanged)
+src/navigation/AppNavigator.tsx 14ms (unchanged)
+src/screens/HistoryScreen.tsx 48ms (unchanged)
+src/screens/HomeScreen.tsx 76ms (unchanged)
+src/screens/PremiumScreen.tsx 61ms (unchanged)
+src/screens/SettingsScreen.tsx 68ms (unchanged)
+src/services/storage.ts 39ms (unchanged)
+src/types/index.ts 13ms (unchanged)
+src/utils/passwordGenerator.ts 26ms (unchanged)
+store-listings/APP_STORE_LISTING.md 20ms (unchanged)
+tsconfig.json 5ms (unchanged)
+
+> superpassword@1.0.0 lint:fix
+> eslint . --ext .ts,.tsx --fix
+
+
+/Users/igorganapolsky/workspace/git/apps/SuperPassword/src/screens/HomeScreen.tsx
+   66:6  warning  React Hook useEffect has a missing dependency: 'loadUserPreferences'. Either include it or remove the dependency array                     react-hooks/exhaustive-deps
+  125:5  warning  React Hook useCallback has missing dependencies: 'saveToHistory' and 'scaleAnimation'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+
+/Users/igorganapolsky/workspace/git/apps/SuperPassword/src/screens/PremiumScreen.tsx
+  105:6  warning  React Hook useEffect has a missing dependency: 'startPulseAnimation'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+✖ 3 problems (0 errors, 3 warnings)
+
