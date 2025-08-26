@@ -2,14 +2,13 @@ import type { ExpoConfig } from "expo/config";
 import "dotenv/config";
 
 const appName = process.env.APP_NAME ?? "SecurePass - Password Generator";
-const slug = process.env.APP_SLUG ?? "superpassword";
+const slug = process.env.APP_SLUG ?? "securepass-generator";
 const scheme = process.env.APP_SCHEME ?? "securepass";
 const owner = process.env.EXPO_OWNER ?? "igorganapolsky";
 
-const iosBundleId =
-  process.env.IOS_BUNDLE_ID ?? "com.igorganapolsky.superpassword";
+const iosBundleId = process.env.IOS_BUNDLE_ID ?? "com.securepass.generator";
 const androidPackage =
-  process.env.ANDROID_PACKAGE ?? "com.igorganapolsky.superpassword";
+  process.env.ANDROID_PACKAGE ?? "com.securepass.generator";
 const easProjectId =
   process.env.EAS_PROJECT_ID || "9cd42433-a590-418c-82bc-b5f884a1caed";
 const isUuid = (v?: string) =>
@@ -37,6 +36,7 @@ const config: ExpoConfig = {
     supportsTablet: true,
     bundleIdentifier: iosBundleId,
     buildNumber: "1",
+    googleServicesFile: "./GoogleService-Info.plist",
     infoPlist: {
       NSUserTrackingUsageDescription:
         "This identifier will be used to deliver personalized ads to you.",
@@ -51,6 +51,7 @@ const config: ExpoConfig = {
   android: {
     package: androidPackage,
     versionCode: 1,
+    googleServicesFile: "./google-services.json",
     adaptiveIcon: {
       foregroundImage: "./assets/adaptive-icon.png",
       backgroundColor: "#667eea",
@@ -66,13 +67,20 @@ const config: ExpoConfig = {
   plugins: [
     "expo-font",
     [
+      "sentry-expo",
+      {
+        organization: "max-smith-kdp-llc",
+        project: "superpassword",
+      },
+    ],
+    [
       "expo-build-properties",
       {
         android: {
           compileSdkVersion: 34,
           targetSdkVersion: 34,
           buildToolsVersion: "34.0.0",
-          minSdkVersion: 26,
+          minSdkVersion: 24,
         },
         ios: { deploymentTarget: "15.1" },
       },
