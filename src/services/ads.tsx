@@ -1,40 +1,31 @@
 import React from "react";
-import { Platform } from "react-native";
-import mobileAds, {
-  BannerAd,
-  BannerAdSize,
-  InterstitialAd,
-  TestIds,
-} from "react-native-google-mobile-ads";
+import { View, Text } from "react-native";
 
-const isDev = __DEV__;
-
-const ANDROID_BANNER = isDev ? TestIds.BANNER : "ca-app-pub-XXXX/YYYY";
-const IOS_BANNER = isDev ? TestIds.BANNER : "ca-app-pub-XXXX/ZZZZ";
-const ANDROID_INTERSTITIAL = isDev
-  ? TestIds.INTERSTITIAL
-  : "ca-app-pub-XXXX/IIII";
-const IOS_INTERSTITIAL = isDev ? TestIds.INTERSTITIAL : "ca-app-pub-XXXX/JJJJ";
-
+// Stub implementation for ads - replace when adding back react-native-google-mobile-ads
 export const AdsService = {
   async initialize() {
-    await mobileAds().initialize();
+    console.log("Ads service stub: initialize called");
+    return Promise.resolve();
   },
   createInterstitial() {
-    const adUnitId = Platform.select({
-      android: ANDROID_INTERSTITIAL,
-      ios: IOS_INTERSTITIAL,
-    }) as string;
-    return InterstitialAd.createForAdRequest(adUnitId);
+    console.log("Ads service stub: createInterstitial called");
+    return {
+      load: () => Promise.resolve(),
+      show: () => Promise.resolve(),
+      addListener: () => ({ remove: () => {} }),
+    };
   },
 };
 
 export const Banner: React.FC = () => {
-  const adUnitId = Platform.select({
-    android: ANDROID_BANNER,
-    ios: IOS_BANNER,
-  }) as string;
-  return (
-    <BannerAd unitId={adUnitId} size={BannerAdSize.ANCHORED_ADAPTIVE_BANNER} />
-  );
+  if (__DEV__) {
+    return (
+      <View style={{ padding: 10, backgroundColor: "#f0f0f0" }}>
+        <Text style={{ textAlign: "center", color: "#666" }}>
+          Ad Banner Placeholder
+        </Text>
+      </View>
+    );
+  }
+  return null;
 };

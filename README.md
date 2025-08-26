@@ -193,6 +193,17 @@ eas build --platform ios --profile production
 eas build --platform android --profile production
 ```
 
+### Firebase (Auth, Analytics, Crashlytics, Firestore, Remote Config)
+
+1. Download platform configs from Firebase Console and place at project root:
+   - iOS: `GoogleService-Info.plist` (path referenced in `app.config.ts`)
+   - Android: `google-services.json` (path referenced in `app.config.ts`)
+2. Dev client (required for local dev with native SDKs):
+   - iOS: `eas build --profile development --platform ios && eas build:run --platform ios`
+   - Android: `eas build --profile development --platform android && eas build:run --platform android`
+3. Start server: `npx expo start --dev-client`
+4. Verify Crashlytics: trigger `FirebaseService.logError(new Error('test'), { screen: 'Home' })` and check Firebase console.
+
 ### Release flow (fully scripted)
 
 ```bash

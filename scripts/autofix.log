@@ -1403,3 +1403,72 @@ tsconfig.json 1ms (unchanged)
 
 ✖ 4 problems (1 error, 3 warnings)
 
+Fetching template
+Fetching origin
+
+> superpassword@1.0.0 prepare
+> husky install
+
+
+added 1131 packages in 2m
+
+> superpassword@1.0.0 autofix
+> npm run fmt:fix && npm run lint:fix
+
+
+> superpassword@1.0.0 fmt:fix
+> prettier --write .
+
+.cursor/mcp.json 139ms (unchanged)
+.cursor/rules.json 9ms (unchanged)
+.eas/project.json 3ms (unchanged)
+.eslintrc.cjs 28ms (unchanged)
+.github/pull_request_template.md 52ms (unchanged)
+.github/workflows/autofix.yml 35ms (unchanged)
+.github/workflows/ci.yml 9ms (unchanged)
+.trunk/configs/.markdownlint.yaml 2ms (unchanged)
+.trunk/trunk.yaml 4ms (unchanged)
+app.config.ts 58ms (unchanged)
+app.json 5ms (unchanged)
+App.tsx 20ms (unchanged)
+babel.config.js 6ms (unchanged)
+DEPLOYMENT_CHECKLIST.md 22ms (unchanged)
+eas.json 2ms (unchanged)
+metro.config.js 3ms (unchanged)
+package-lock.json 112ms (unchanged)
+package.json 2ms (unchanged)
+PRIVACY_POLICY.md 14ms (unchanged)
+README.md 29ms (unchanged)
+scripts/generate-icon.js 22ms (unchanged)
+src/components/ErrorFallback.tsx 23ms (unchanged)
+src/components/SentryTest.tsx 18ms (unchanged)
+src/constants/theme.ts 10ms (unchanged)
+src/contexts/ThemeContext.tsx 21ms (unchanged)
+src/hooks/useTheme.ts 6ms (unchanged)
+src/navigation/AppNavigator.tsx 13ms (unchanged)
+src/screens/HistoryScreen.tsx 56ms (unchanged)
+src/screens/HomeScreen.tsx 102ms (unchanged)
+src/screens/PremiumScreen.tsx 172ms (unchanged)
+src/screens/SettingsScreen.tsx 51ms (unchanged)
+src/services/ads.tsx 10ms
+src/services/firebase.ts 15ms (unchanged)
+src/services/sentry.ts 9ms
+src/services/storage.ts 38ms (unchanged)
+src/types/index.ts 8ms (unchanged)
+src/utils/passwordGenerator.ts 23ms (unchanged)
+store-listings/APP_STORE_LISTING.md 22ms (unchanged)
+tsconfig.json 2ms (unchanged)
+
+> superpassword@1.0.0 lint:fix
+> eslint . --ext .ts,.tsx --fix
+
+
+/Users/igorganapolsky/workspace/git/apps/SuperPassword/src/screens/HomeScreen.tsx
+   67:6  warning  React Hook useEffect has a missing dependency: 'loadUserPreferences'. Either include it or remove the dependency array                     react-hooks/exhaustive-deps
+  126:5  warning  React Hook useCallback has missing dependencies: 'saveToHistory' and 'scaleAnimation'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+
+/Users/igorganapolsky/workspace/git/apps/SuperPassword/src/screens/PremiumScreen.tsx
+  105:6  warning  React Hook useEffect has a missing dependency: 'startPulseAnimation'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+✖ 3 problems (0 errors, 3 warnings)
+

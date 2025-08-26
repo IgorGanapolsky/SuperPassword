@@ -1,40 +1,53 @@
-import "@react-native-firebase/app";
-import analytics from "@react-native-firebase/analytics";
-import auth from "@react-native-firebase/auth";
-import crashlytics from "@react-native-firebase/crashlytics";
-import firestore from "@react-native-firebase/firestore";
-import remoteConfig from "@react-native-firebase/remote-config";
+// Stub implementation for Firebase - replace when adding back @react-native-firebase packages
 
 export const FirebaseService = {
   get auth() {
-    return auth();
+    return {
+      currentUser: null,
+      signInAnonymously: () => Promise.resolve({ user: null }),
+      signOut: () => Promise.resolve(),
+    };
   },
   get firestore() {
-    return firestore();
+    return {
+      collection: () => ({
+        doc: () => ({
+          get: () => Promise.resolve({ exists: false }),
+          set: () => Promise.resolve(),
+        }),
+      }),
+    };
   },
   get analytics() {
-    return analytics();
+    return {
+      logEvent: (event: string, params?: any) => {
+        console.log(`Analytics event: ${event}`, params);
+        return Promise.resolve();
+      },
+    };
   },
   get crashlytics() {
-    return crashlytics();
+    return {
+      setAttribute: () => Promise.resolve(),
+      recordError: (error: Error) => {
+        console.error("Crashlytics stub:", error);
+        return Promise.resolve();
+      },
+    };
   },
   get remoteConfig() {
-    return remoteConfig();
+    return {
+      getValue: (key: string) => ({ asString: () => "default" }),
+      setDefaults: () => Promise.resolve(),
+      fetchAndActivate: () => Promise.resolve(true),
+    };
   },
   async initRemoteConfig() {
-    await remoteConfig().setDefaults({
-      premium_enabled: true,
-      interstitial_frequency: 5,
-    });
-    await remoteConfig().fetchAndActivate();
+    console.log("Firebase RemoteConfig stub: initialized");
+    return Promise.resolve();
   },
   logError(error: unknown, context?: Record<string, any>) {
     const err = error instanceof Error ? error : new Error(String(error));
-    if (context) {
-      Object.entries(context).forEach(([k, v]) =>
-        crashlytics().setAttribute(k, String(v)),
-      );
-    }
-    crashlytics().recordError(err);
+    console.error("Firebase error log:", err, context);
   },
 };
