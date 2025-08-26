@@ -9,7 +9,8 @@ const owner = process.env.EXPO_OWNER ?? "igorganapolsky";
 const iosBundleId = process.env.IOS_BUNDLE_ID ?? "com.securepass.generator";
 const androidPackage =
   process.env.ANDROID_PACKAGE ?? "com.securepass.generator";
-const easProjectId = process.env.EAS_PROJECT_ID;
+const easProjectId =
+  process.env.EAS_PROJECT_ID || "9cd42433-a590-418c-82bc-b5f884a1caed";
 const isUuid = (v?: string) =>
   !!v &&
   /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/.test(
