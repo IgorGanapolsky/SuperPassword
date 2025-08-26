@@ -1196,3 +1196,210 @@ tsconfig.json 1ms (unchanged)
 
 ✖ 3 problems (0 errors, 3 warnings)
 
+[main 9feb49c] chore: local hourly autofix (prettier + eslint)
+ 3 files changed, 75 insertions(+), 1 deletion(-)
+[Mon Aug 25 14:58:44 EDT 2025] Autofix run completed
+Fetching template
+Fetching origin
+
+> superpassword@1.0.0 prepare
+> husky install
+
+
+added 1116 packages in 22s
+
+> superpassword@1.0.0 autofix
+> npm run fmt:fix && npm run lint:fix
+
+
+> superpassword@1.0.0 fmt:fix
+> prettier --write .
+
+.cursor/mcp.json 23ms (unchanged)
+.cursor/rules.json 2ms (unchanged)
+.eslintrc.cjs 12ms (unchanged)
+.github/pull_request_template.md 13ms (unchanged)
+.github/workflows/autofix.yml 62ms (unchanged)
+.github/workflows/ci.yml 2ms (unchanged)
+.trunk/configs/.markdownlint.yaml 1ms (unchanged)
+.trunk/trunk.yaml 2ms (unchanged)
+app.json 2ms
+App.tsx 32ms (unchanged)
+babel.config.js 4ms (unchanged)
+DEPLOYMENT_CHECKLIST.md 13ms (unchanged)
+eas.json 2ms (unchanged)
+package-lock.json 66ms (unchanged)
+package.json 1ms (unchanged)
+PRIVACY_POLICY.md 9ms (unchanged)
+README.md 14ms (unchanged)
+scripts/generate-icon.js 6ms (unchanged)
+src/components/ErrorFallback.tsx 6ms
+src/constants/theme.ts 3ms (unchanged)
+src/contexts/ThemeContext.tsx 5ms (unchanged)
+src/hooks/useTheme.ts 1ms (unchanged)
+src/navigation/AppNavigator.tsx 3ms (unchanged)
+src/screens/HistoryScreen.tsx 12ms (unchanged)
+src/screens/HomeScreen.tsx 18ms (unchanged)
+src/screens/PremiumScreen.tsx 15ms (unchanged)
+src/screens/SettingsScreen.tsx 14ms (unchanged)
+src/services/storage.ts 11ms (unchanged)
+src/types/index.ts 6ms (unchanged)
+src/utils/passwordGenerator.ts 7ms (unchanged)
+store-listings/APP_STORE_LISTING.md 6ms (unchanged)
+tsconfig.json 1ms (unchanged)
+
+> superpassword@1.0.0 lint:fix
+> eslint . --ext .ts,.tsx --fix
+
+
+/Users/igorganapolsky/workspace/git/apps/SuperPassword/src/components/ErrorFallback.tsx
+  20:11  error  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+
+/Users/igorganapolsky/workspace/git/apps/SuperPassword/src/screens/HomeScreen.tsx
+   66:6  warning  React Hook useEffect has a missing dependency: 'loadUserPreferences'. Either include it or remove the dependency array                     react-hooks/exhaustive-deps
+  125:5  warning  React Hook useCallback has missing dependencies: 'saveToHistory' and 'scaleAnimation'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+
+/Users/igorganapolsky/workspace/git/apps/SuperPassword/src/screens/PremiumScreen.tsx
+  105:6  warning  React Hook useEffect has a missing dependency: 'startPulseAnimation'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+✖ 4 problems (1 error, 3 warnings)
+
+Fetching template
+Fetching origin
+
+> superpassword@1.0.0 prepare
+> husky install
+
+
+added 1116 packages in 20s
+
+> superpassword@1.0.0 autofix
+> npm run fmt:fix && npm run lint:fix
+
+
+> superpassword@1.0.0 fmt:fix
+> prettier --write .
+
+.cursor/mcp.json 231ms (unchanged)
+.cursor/rules.json 3ms (unchanged)
+.eslintrc.cjs 35ms (unchanged)
+.github/pull_request_template.md 46ms (unchanged)
+.github/workflows/autofix.yml 82ms (unchanged)
+.github/workflows/ci.yml 6ms (unchanged)
+.trunk/configs/.markdownlint.yaml 1ms (unchanged)
+.trunk/trunk.yaml 2ms (unchanged)
+app.config.ts 32ms
+App.tsx 12ms
+babel.config.js 4ms
+DEPLOYMENT_CHECKLIST.md 11ms (unchanged)
+eas.json 1ms (unchanged)
+metro.config.js 1ms
+package-lock.json 50ms (unchanged)
+package.json 1ms (unchanged)
+PRIVACY_POLICY.md 6ms (unchanged)
+README.md 11ms (unchanged)
+scripts/generate-icon.js 6ms (unchanged)
+src/components/ErrorFallback.tsx 5ms (unchanged)
+src/components/SentryTest.tsx 5ms
+src/constants/theme.ts 3ms (unchanged)
+src/contexts/ThemeContext.tsx 4ms (unchanged)
+src/hooks/useTheme.ts 1ms (unchanged)
+src/navigation/AppNavigator.tsx 2ms (unchanged)
+src/screens/HistoryScreen.tsx 11ms (unchanged)
+src/screens/HomeScreen.tsx 27ms (unchanged)
+src/screens/PremiumScreen.tsx 22ms (unchanged)
+src/screens/SettingsScreen.tsx 21ms (unchanged)
+src/services/sentry.ts 5ms
+src/services/storage.ts 11ms (unchanged)
+src/types/index.ts 3ms (unchanged)
+src/utils/passwordGenerator.ts 7ms (unchanged)
+store-listings/APP_STORE_LISTING.md 7ms (unchanged)
+tsconfig.json 1ms (unchanged)
+
+> superpassword@1.0.0 lint:fix
+> eslint . --ext .ts,.tsx --fix
+
+
+/Users/igorganapolsky/workspace/git/apps/SuperPassword/src/components/ErrorFallback.tsx
+  20:11  error  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+
+/Users/igorganapolsky/workspace/git/apps/SuperPassword/src/screens/HomeScreen.tsx
+   66:6  warning  React Hook useEffect has a missing dependency: 'loadUserPreferences'. Either include it or remove the dependency array                     react-hooks/exhaustive-deps
+  125:5  warning  React Hook useCallback has missing dependencies: 'saveToHistory' and 'scaleAnimation'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+
+/Users/igorganapolsky/workspace/git/apps/SuperPassword/src/screens/PremiumScreen.tsx
+  105:6  warning  React Hook useEffect has a missing dependency: 'startPulseAnimation'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+✖ 4 problems (1 error, 3 warnings)
+
+Fetching template
+Fetching origin
+
+> superpassword@1.0.0 prepare
+> husky install
+
+
+added 1218 packages in 31s
+
+> superpassword@1.0.0 autofix
+> npm run fmt:fix && npm run lint:fix
+
+
+> superpassword@1.0.0 fmt:fix
+> prettier --write .
+
+.cursor/mcp.json 30ms (unchanged)
+.cursor/rules.json 3ms (unchanged)
+.eas/project.json 1ms (unchanged)
+.eslintrc.cjs 12ms (unchanged)
+.github/pull_request_template.md 25ms (unchanged)
+.github/workflows/autofix.yml 20ms (unchanged)
+.github/workflows/ci.yml 4ms (unchanged)
+.trunk/configs/.markdownlint.yaml 1ms (unchanged)
+.trunk/trunk.yaml 1ms (unchanged)
+app.config.ts 25ms
+App.tsx 8ms (unchanged)
+babel.config.js 5ms (unchanged)
+DEPLOYMENT_CHECKLIST.md 11ms (unchanged)
+eas.json 1ms (unchanged)
+metro.config.js 1ms (unchanged)
+package-lock.json 57ms (unchanged)
+package.json 1ms (unchanged)
+PRIVACY_POLICY.md 4ms (unchanged)
+README.md 9ms (unchanged)
+scripts/generate-icon.js 5ms (unchanged)
+src/components/ErrorFallback.tsx 6ms (unchanged)
+src/components/SentryTest.tsx 4ms (unchanged)
+src/constants/theme.ts 4ms (unchanged)
+src/contexts/ThemeContext.tsx 4ms (unchanged)
+src/hooks/useTheme.ts 1ms (unchanged)
+src/navigation/AppNavigator.tsx 2ms (unchanged)
+src/screens/HistoryScreen.tsx 13ms (unchanged)
+src/screens/HomeScreen.tsx 17ms (unchanged)
+src/screens/PremiumScreen.tsx 18ms (unchanged)
+src/screens/SettingsScreen.tsx 90ms (unchanged)
+src/services/ads.tsx 4ms
+src/services/firebase.ts 3ms
+src/services/sentry.ts 4ms (unchanged)
+src/services/storage.ts 9ms (unchanged)
+src/types/index.ts 3ms (unchanged)
+src/utils/passwordGenerator.ts 7ms (unchanged)
+store-listings/APP_STORE_LISTING.md 7ms (unchanged)
+tsconfig.json 1ms (unchanged)
+
+> superpassword@1.0.0 lint:fix
+> eslint . --ext .ts,.tsx --fix
+
+
+/Users/igorganapolsky/workspace/git/apps/SuperPassword/src/components/ErrorFallback.tsx
+  20:11  error  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+
+/Users/igorganapolsky/workspace/git/apps/SuperPassword/src/screens/HomeScreen.tsx
+   67:6  warning  React Hook useEffect has a missing dependency: 'loadUserPreferences'. Either include it or remove the dependency array                     react-hooks/exhaustive-deps
+  126:5  warning  React Hook useCallback has missing dependencies: 'saveToHistory' and 'scaleAnimation'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+
+/Users/igorganapolsky/workspace/git/apps/SuperPassword/src/screens/PremiumScreen.tsx
+  105:6  warning  React Hook useEffect has a missing dependency: 'startPulseAnimation'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+✖ 4 problems (1 error, 3 warnings)
+

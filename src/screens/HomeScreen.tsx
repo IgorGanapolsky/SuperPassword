@@ -26,6 +26,7 @@ import {
   passwordStrengthColors,
 } from "@/constants/theme";
 import { useTheme } from "@/contexts/ThemeContext";
+import { Banner } from "@/services/ads";
 import { StorageService } from "@/services/storage";
 import { PasswordOptions, PasswordEntry, PasswordStrength } from "@/types";
 import {
@@ -433,6 +434,9 @@ export const HomeScreen: React.FC = () => {
           </View>
 
           <View style={styles.optionsContainer}>
+            <View style={{ marginBottom: spacing.lg }}>
+              <Banner />
+            </View>
             <View style={styles.sliderContainer}>
               <View style={styles.sliderHeader}>
                 <Text style={styles.sliderLabel}>Password Length</Text>

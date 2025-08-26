@@ -173,6 +173,26 @@ Copy `.env.example` to `.env` and set values. Key settings:
 - CI checks: `.github/workflows/ci.yml` runs tsc, expo-doctor, lint, and prettier on PRs.
 - OTA updates (optional): use EAS Update to ship JS-only fixes to channels.
 
+### Sentry (crash and error reporting)
+
+1. Create a Sentry project (React Native) and get DSN.
+2. Set env:
+
+```bash
+echo "SENTRY_DSN=your_sentry_dsn" >> .env
+```
+
+3. For CI/EAS builds, set secrets:
+   - GitHub Actions: `SENTRY_AUTH_TOKEN` (org:project release:write)
+   - EAS Secrets: `SENTRY_AUTH_TOKEN`
+
+4. Build a release with EAS so source maps upload and crashes link to code:
+
+```bash
+eas build --platform ios --profile production
+eas build --platform android --profile production
+```
+
 ### Release flow (fully scripted)
 
 ```bash

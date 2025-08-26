@@ -50,12 +50,20 @@
             "deploymentTarget": "15.1"
           }
         }
+      ],
+      [
+        "sentry-expo",
+        {
+          "organization": "max-smith-kdp-llc",
+          "project": "superpassword"
+        }
       ]
     ],
     "extra": {
       "eas": {
         "projectId": "9cd42433-a590-418c-82bc-b5f884a1caed"
-      }
+      },
+      "SENTRY_DSN": "https://f51e85c3bd8c51d99059d901a5954113@o4509329568235520.ingest.us.sentry.io/4509329571315712"
     },
     "updates": {
       "fallbackToCacheTimeout": 0
