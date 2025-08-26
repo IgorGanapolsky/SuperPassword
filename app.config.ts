@@ -80,9 +80,7 @@ const config: ExpoConfig = {
   ],
   extra: {
     ...(isUuid(easProjectId) ? { eas: { projectId: easProjectId } } : {}),
-    SENTRY_DSN:
-      process.env.EXPO_PUBLIC_SENTRY_DSN ||
-      "https://f51e85c3bd8c51d99059d901a5954113@o4509329568235520.ingest.us.sentry.io/4509329571315712",
+    SENTRY_DSN: process.env.EXPO_PUBLIC_SENTRY_DSN,
     AD_MOB_APP_ID_IOS: process.env.ADMOB_APP_ID_IOS,
     AD_MOB_APP_ID_ANDROID: process.env.ADMOB_APP_ID_ANDROID,
   },
