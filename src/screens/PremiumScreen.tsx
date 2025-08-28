@@ -102,6 +102,7 @@ export const PremiumScreen: React.FC = () => {
   useEffect(() => {
     checkPremiumStatus();
     startPulseAnimation();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const checkPremiumStatus = async () => {
