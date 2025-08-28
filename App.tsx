@@ -97,9 +97,13 @@ export default function App() {
   if (ErrorBoundary) {
     return (
       <ErrorBoundary
-        fallback={({ error, resetError }) => (
-          <ErrorFallback error={error} resetError={resetError} />
-        )}
+        fallback={({
+          error,
+          resetError,
+        }: {
+          error: Error;
+          resetError: () => void;
+        }) => <ErrorFallback error={error} resetError={resetError} />}
         showDialog
       >
         {content}

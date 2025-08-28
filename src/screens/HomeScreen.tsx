@@ -64,6 +64,7 @@ export const HomeScreen: React.FC = () => {
   useEffect(() => {
     loadUserPreferences();
     checkPremiumStatus();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const loadUserPreferences = async () => {
@@ -123,6 +124,7 @@ export const HomeScreen: React.FC = () => {
       // Save to history
       saveToHistory(newPassword, strength, opts);
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [options],
   );
 
