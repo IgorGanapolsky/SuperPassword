@@ -2,9 +2,9 @@ name: CodeQL
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
     types: [opened, synchronize, reopened, ready_for_review]
 
 permissions:
@@ -39,4 +39,3 @@ jobs:
         uses: github/codeql-action/analyze@v3
         with:
           category: "/language:javascript"
-

@@ -2,7 +2,7 @@ name: Repo Guardian
 
 on:
   schedule:
-    - cron: '*/15 * * * *' # every 15 minutes
+    - cron: "*/15 * * * *" # every 15 minutes
   workflow_run:
     workflows: ["CI (Checks)", "Secret Scan (Gitleaks)", "CodeQL"]
     types: [completed]
@@ -28,7 +28,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: "20"
 
       - name: Run Repo Guardian
         env:
@@ -38,4 +38,3 @@ jobs:
           OWNER: ${{ github.repository_owner }}
         run: |
           node .github/scripts/repo-guardian.mjs
-

@@ -57,7 +57,7 @@ jobs:
         run: |
           PR_NUMBER=${{ github.event.issue.number }}
           COMMAND=${{ steps.check.outputs.command }}
-          
+
           case $COMMAND in
             rerun)
               echo "Rerunning failed checks..."
@@ -108,7 +108,7 @@ jobs:
           MERGEABLE=$(echo "$PR_DATA" | jq -r '.mergeable')
           AUTO_MERGE=$(echo "$PR_DATA" | jq -r '.autoMergeRequest')
           IS_DRAFT=$(echo "$PR_DATA" | jq -r '.isDraft')
-          
+
           if [ "$MERGEABLE" == "MERGEABLE" ] && [ "$AUTO_MERGE" == "null" ] && [ "$IS_DRAFT" == "false" ]; then
             echo "Enabling auto-merge for ready PR..."
             gh pr merge ${{ steps.pr.outputs.pr_number }} --repo ${{ github.repository }} --auto --squash

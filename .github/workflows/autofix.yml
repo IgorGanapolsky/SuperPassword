@@ -2,7 +2,7 @@ name: Autofix (Prettier + ESLint)
 
 on:
   schedule:
-    - cron: '0 5 * * *' # daily at 05:00 UTC
+    - cron: "0 5 * * *" # daily at 05:00 UTC
   workflow_dispatch: {}
 
 permissions:
@@ -25,7 +25,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: "20"
 
       - name: Install dependencies
         run: npm ci --no-audit --no-fund
@@ -37,11 +37,11 @@ jobs:
         uses: peter-evans/create-pull-request@v6
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          commit-message: 'chore: automated autofix (prettier + eslint)'
-          title: 'chore: automated autofix (prettier + eslint)'
-          body: 'This PR was created automatically to apply formatting and lint fixes.'
-          branch: 'autofix/${{ github.run_id }}'
-          base: 'main'
-          labels: 'autofix,chore'
+          commit-message: "chore: automated autofix (prettier + eslint)"
+          title: "chore: automated autofix (prettier + eslint)"
+          body: "This PR was created automatically to apply formatting and lint fixes."
+          branch: "autofix/${{ github.run_id }}"
+          base: "main"
+          labels: "autofix,chore"
           delete-branch: true
           signoff: true
