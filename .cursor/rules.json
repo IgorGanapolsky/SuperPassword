@@ -1,0 +1,22 @@
+{
+  "autofix": {
+    "run_on_open": true,
+    "run_on_save": true,
+    "commands": ["npm run autofix"]
+  },
+  "lint": {
+    "commands": ["npm run fmt", "npm run lint"]
+  },
+  "context": {
+    "include": [
+      "app.config.ts",
+      "package.json",
+      "tsconfig.json",
+      "eas.json",
+      "README.md",
+      "src/**",
+      ".trunk/trunk.yaml",
+      ".github/workflows/**"
+    ]
+  }
+}

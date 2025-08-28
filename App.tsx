@@ -6,8 +6,14 @@ import React, { useEffect, useState } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { Provider as PaperProvider } from "react-native-paper";
 
+import { ErrorFallback } from "@/components/ErrorFallback";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { AppNavigator } from "@/navigation/AppNavigator";
+import {
+  initializeSentry,
+  captureException,
+  getErrorBoundary,
+} from "@/services/sentry";
 import { StorageService } from "@/services/storage";
 import { PasswordOptions } from "@/types";
 
@@ -20,6 +26,9 @@ export default function App() {
   useEffect(() => {
     async function prepare() {
       try {
+        // Initialize Sentry first (safe initialization)
+        await initializeSentry();
+
         // Pre-load fonts
         await Font.loadAsync(MaterialCommunityIcons.font);
 
@@ -56,6 +65,8 @@ export default function App() {
         }
       } catch (e) {
         console.warn(e);
+        // Safely capture exception to Sentry
+        captureException(e);
       } finally {
         // Tell the application to render
         setIsReady(true);
@@ -70,7 +81,7 @@ export default function App() {
     return null;
   }
 
-  return (
+  const content = (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <ThemeProvider>
         <PaperProvider>
@@ -80,4 +91,21 @@ export default function App() {
       </ThemeProvider>
     </GestureHandlerRootView>
   );
+
+  // Conditionally wrap with Sentry error boundary if initialized
+  const ErrorBoundary = getErrorBoundary();
+  if (ErrorBoundary) {
+    return (
+      <ErrorBoundary
+        fallback={({ error, resetError }) => (
+          <ErrorFallback error={error} resetError={resetError} />
+        )}
+        showDialog
+      >
+        {content}
+      </ErrorBoundary>
+    );
+  }
+
+  return content;
 }

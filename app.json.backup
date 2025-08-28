@@ -41,14 +41,21 @@
         "expo-build-properties",
         {
           "android": {
-            "compileSdkVersion": 35,
+            "compileSdkVersion": 34,
             "targetSdkVersion": 34,
-            "buildToolsVersion": "35.0.0",
+            "buildToolsVersion": "34.0.0",
             "minSdkVersion": 26
           },
           "ios": {
             "deploymentTarget": "15.1"
           }
+        }
+      ],
+      [
+        "sentry-expo",
+        {
+          "organization": "max-smith-kdp-llc",
+          "project": "superpassword"
         }
       ]
     ],

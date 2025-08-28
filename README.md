@@ -104,13 +104,20 @@ eas build:configure
 3. Build for iOS:
 
 ```bash
-eas build --platform ios
+eas build --platform ios --profile production
 ```
 
 4. Build for Android:
 
 ```bash
-eas build --platform android
+eas build --platform android --profile production
+```
+
+5. Submit to stores (after first credential setup):
+
+```bash
+eas submit --platform ios --profile production
+.eas submit --platform android --profile production
 ```
 
 ## App Store Configuration
@@ -124,7 +131,7 @@ eas build --platform android
 ### Apple App Store
 
 - Bundle ID: `com.securepass.generator`
-- Deployment target: iOS 13.0+
+- Deployment target: iOS 15.1+
 
 ## Firebase Setup (Required for production)
 
@@ -158,6 +165,61 @@ Copy `.env.example` to `.env` and set values. Key settings:
 - EAS_PROJECT_ID
 - ADMOB_APP_ID_IOS, ADMOB_APP_ID_ANDROID
 - SENTRY_DSN
+
+## CI/CD & Autonomous Ops
+
+- Local hourly autofix: LaunchAgent runs `scripts/autofix-local.sh` to format/lint, commit, and push.
+- Cloud hourly autofix: `.github/workflows/autofix.yml` runs Prettier + ESLint and auto-commits.
+- CI checks: `.github/workflows/ci.yml` runs tsc, expo-doctor, lint, and prettier on PRs.
+- OTA updates (optional): use EAS Update to ship JS-only fixes to channels.
+
+### Sentry (crash and error reporting)
+
+1. Create a Sentry project (React Native) and get DSN.
+2. Set env:
+
+```bash
+echo "SENTRY_DSN=your_sentry_dsn" >> .env
+```
+
+3. For CI/EAS builds, set secrets:
+   - GitHub Actions: `SENTRY_AUTH_TOKEN` (org:project release:write)
+   - EAS Secrets: `SENTRY_AUTH_TOKEN`
+
+4. Build a release with EAS so source maps upload and crashes link to code:
+
+```bash
+eas build --platform ios --profile production
+eas build --platform android --profile production
+```
+
+### Firebase (Auth, Analytics, Crashlytics, Firestore, Remote Config)
+
+1. Download platform configs from Firebase Console and place at project root:
+   - iOS: `GoogleService-Info.plist` (path referenced in `app.config.ts`)
+   - Android: `google-services.json` (path referenced in `app.config.ts`)
+2. Dev client (required for local dev with native SDKs):
+   - iOS: `eas build --profile development --platform ios && eas build:run --platform ios`
+   - Android: `eas build --profile development --platform android && eas build:run --platform android`
+3. Start server: `npx expo start --dev-client`
+4. Verify Crashlytics: trigger `FirebaseService.logError(new Error('test'), { screen: 'Home' })` and check Firebase console.
+
+### Release flow (fully scripted)
+
+```bash
+# 1) Set env vars in .env or CI secrets (bundle IDs, EAS_PROJECT_ID, AdMob, Sentry)
+# 2) Build
+EAS_NO_VCS=1 eas build --platform ios --profile production
+EAS_NO_VCS=1 eas build --platform android --profile production
+# 3) Submit
+EAS_NO_VCS=1 eas submit --platform ios --profile production
+EAS_NO_VCS=1 eas submit --platform android --profile production
+```
+
+Notes:
+
+- Manage credentials via EAS on first run; subsequent runs use stored credentials.
+- For multiple apps, keep a repo per app; parameterize via `app.config.ts` + `.env`.
 
 ## Testing
 
