@@ -1,8 +1,17 @@
 module.exports = function (api) {
   api.cache(true);
   return {
-    presets: ["babel-preset-expo"],
+    presets: [
+      [
+        "babel-preset-expo",
+        {
+          jsxImportSource: "react",
+        },
+      ],
+    ],
     plugins: [
+      // Ensure TypeScript helpers are properly imported
+      ["@babel/plugin-transform-runtime", { helpers: true }],
       [
         "module-resolver",
         {
