@@ -1,4 +1,20 @@
 #!/usr/bin/env sh
 . "$(dirname -- "$0")/_/husky.sh"
 
-npx lint-staged
+# Only lint the files that were changed
+changed_files=$(git diff --cached --name-only --diff-filter=d)
+ts_files=$(echo "$changed_files" | grep -E "\\.(ts|tsx)$" || true)
+style_files=$(echo "$changed_files" | grep -E "\\.(ts|tsx|js|jsx|json|md|yml|yaml)$" || true)
+
+if [ -n "$ts_files" ]; then
+  echo "🔍 Running ESLint on changed files..."
+  echo "$ts_files" | xargs npx eslint --fix || exit 1
+fi
+
+if [ -n "$style_files" ]; then
+  echo "💅 Running Prettier on changed files..."
+  echo "$style_files" | xargs npx prettier --write || exit 1
+  echo "$style_files" | xargs git add
+fi
+
+exit 0
