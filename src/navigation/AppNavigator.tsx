@@ -3,6 +3,7 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
 import React from "react";
+import { Platform } from "react-native";
 
 import { useTheme } from "@/contexts/ThemeContext";
 import { HistoryScreen } from "@/screens/HistoryScreen";
@@ -86,7 +87,12 @@ export const AppNavigator: React.FC = () => {
   const { theme } = useTheme();
 
   return (
-    <NavigationContainer>
+    <NavigationContainer
+      documentTitle={{
+        formatter: (options, route) =>
+          Platform.OS === 'web' ? `${options?.title ?? route?.name} - SuperPassword` : undefined,
+      }}
+    >
       <Stack.Navigator
         screenOptions={{
           headerShown: false,

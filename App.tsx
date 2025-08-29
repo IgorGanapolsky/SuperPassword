@@ -3,6 +3,7 @@ import * as Font from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import React, { useEffect, useState } from "react";
+import { Platform } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { Provider as PaperProvider } from "react-native-paper";
 
@@ -30,7 +31,9 @@ export default function App() {
         await initializeSentry();
 
         // Pre-load fonts
-        await Font.loadAsync(MaterialCommunityIcons.font);
+        if (Platform.OS !== 'web') {
+          await Font.loadAsync(MaterialCommunityIcons.font);
+        }
 
         // Initialize user preferences if first launch
         const isFirstLaunch = await StorageService.isFirstLaunch();
