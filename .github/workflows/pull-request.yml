@@ -1,0 +1,198 @@
+name: 🔄 PR Orchestration
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    branches: [main, develop]
+
+jobs:
+  validate:
+    name: 🔍 Validate PR
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check PR Title
+        uses: amannn/action-semantic-pull-request@v5
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          types: |
+            feat
+            fix
+            docs
+            style
+            refactor
+            perf
+            test
+            build
+            ci
+            chore
+            revert
+          requireScope: false
+          subjectPattern: ^(?![A-Z]).+$
+          subjectPatternError: |
+            The subject "{subject}" found in the pull request title "{title}"
+            didn't match the configured pattern. Please ensure that the subject
+            starts with a lowercase character.
+
+      - name: Check Branch Naming
+        run: |
+          BRANCH_NAME=${GITHUB_HEAD_REF#refs/heads/}
+          if ! echo "$BRANCH_NAME" | grep -E "^(feature|fix|docs|refactor|chore)/[a-z0-9-]+$"; then
+            echo "Branch name '$BRANCH_NAME' does not follow convention:"
+            echo "type/kebab-case-description"
+            echo "Types: feature, fix, docs, refactor, chore"
+            exit 1
+          fi
+
+      - name: Validate PR Description
+        run: |
+          PR_BODY="${{ github.event.pull_request.body }}"
+          if [ -z "$PR_BODY" ]; then
+            echo "PR description is empty. Please add a description."
+            exit 1
+          fi
+
+          if ! echo "$PR_BODY" | grep -q "## Changes"; then
+            echo "PR description must have a 'Changes' section"
+            exit 1
+          fi
+
+  code-review:
+    name: 🧐 Code Review
+    needs: validate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get Changed Files
+        id: changed-files
+        uses: tj-actions/changed-files@v43
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Check Code Style
+        if: steps.changed-files.outputs.any_changed == 'true'
+        run: |
+          echo "Running ESLint..."
+          npx eslint ${{ steps.changed-files.outputs.all_changed_files }}
+          echo "Running Prettier..."
+          npx prettier --check ${{ steps.changed-files.outputs.all_changed_files }}
+
+      - name: Run Unit Tests
+        run: npm test -- --coverage
+
+      - name: Run Type Check
+        run: npm run type-check
+
+      - name: Check Dependencies
+        run: |
+          echo "Checking for outdated packages..."
+          npm outdated || true
+          echo "Checking licenses..."
+          npx license-checker --production --onlyAllow "MIT;ISC;Apache-2.0;BSD-2-Clause;BSD-3-Clause"
+
+  security:
+    name: 🔒 Security Check
+    needs: code-review
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run SAST
+        uses: github/codeql-action/init@v3
+        with:
+          languages: javascript, typescript
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+
+      - name: Dependency Audit
+        run: npm audit
+
+  compatibility:
+    name: 🔄 Compatibility Check
+    needs: security
+    uses: ./.github/workflows/compatibility.yml
+
+  ui-test:
+    name: 🎨 UI Tests
+    needs: compatibility
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Build Web
+        run: npx expo build:web --no-pwa
+
+      - name: Run Visual Tests
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-build
+          path: web-build
+
+  performance:
+    name: 📊 Performance Check
+    needs: ui-test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download Web Build
+        uses: actions/download-artifact@v4
+        with:
+          name: web-build
+          path: web-build
+
+      - name: Run Lighthouse CI
+        run: |
+          npm install -g @lhci/cli
+          lhci autorun \
+            --collect.url=file://$(pwd)/web-build/index.html \
+            --collect.numberOfRuns=3
+
+      - name: Check Bundle Size
+        uses: preactjs/compressed-size-action@v2
+        with:
+          pattern: "web-build/**/*.{js,css,html,json}"
+          strip-hash: "\\b[a-f0-9]{8}\\b"
+
+  notify:
+    name: 📣 Notify Team
+    needs:
+      [validate, code-review, security, compatibility, ui-test, performance]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Check Status
+        run: |
+          if [[ "${{ needs.validate.result }}" == "failure" ]] || \
+             [[ "${{ needs.code-review.result }}" == "failure" ]] || \
+             [[ "${{ needs.security.result }}" == "failure" ]] || \
+             [[ "${{ needs.compatibility.result }}" == "failure" ]] || \
+             [[ "${{ needs.ui-test.result }}" == "failure" ]] || \
+             [[ "${{ needs.performance.result }}" == "failure" ]]; then
+            echo "❌ PR Checks Failed"
+            exit 1
+          else
+            echo "✅ All PR Checks Passed"
+          fi
