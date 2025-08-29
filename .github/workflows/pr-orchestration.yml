@@ -22,8 +22,7 @@ jobs:
           
       - name: Update Status Board
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
         run: |
           BOARD_ISSUE=$(gh issue list --label status-board --json number -q '.[0].number')
           
