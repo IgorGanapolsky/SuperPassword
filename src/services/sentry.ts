@@ -51,7 +51,9 @@ export const captureMessage = (
   level?: "info" | "warning" | "error",
 ): void => {
   if (!isInitialized) {
-    console.log(`Sentry not initialized - Message: [${level || "info"}] ${message}`);
+    console.log(
+      `Sentry not initialized - Message: [${level || "info"}] ${message}`,
+    );
     return;
   }
 
@@ -65,7 +67,9 @@ export const captureMessage = (
  */
 export const addBreadcrumb = (message: string, category?: string): void => {
   if (!isInitialized) {
-    console.log(`Sentry not initialized - Breadcrumb: [${category || "custom"}] ${message}`);
+    console.log(
+      `Sentry not initialized - Breadcrumb: [${category || "custom"}] ${message}`,
+    );
     return;
   }
 
