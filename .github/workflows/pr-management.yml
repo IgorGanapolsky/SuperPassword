@@ -1,0 +1,89 @@
+name: 🔄 PR Management
+
+on:
+  schedule:
+    - cron: "0/15 * * * *"
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+  workflow_dispatch:
+
+jobs:
+  manage_prs:
+    name: 🤖 Manage PRs
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      pull-requests: write
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Auto Label PRs
+        if: github.event_name == 'pull_request'
+        uses: actions/labeler@v5
+        with:
+          repo-token: "${{ secrets.GITHUB_TOKEN }}"
+
+      - name: Check Branch Format
+        if: github.event_name == 'pull_request'
+        uses: deepakputhraya/action-branch-name@master
+        with:
+          regex: '(feat|fix|chore|docs|style|refactor|perf|test)\/[a-z0-9-]+$'
+          allowed_prefixes: 'feat,fix,chore,docs,style,refactor,perf,test'
+          ignore: main,develop,staging
+
+      - name: Check PR Title
+        if: github.event_name == 'pull_request'
+        uses: amannn/action-semantic-pull-request@v5
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Mark Stale PRs
+        uses: actions/stale@v9
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          days-before-stale: 14
+          days-before-close: 30
+          stale-pr-message: "This PR has been inactive for 14 days and will be closed in 30 days if there is no activity."
+          close-pr-message: "This PR was closed due to inactivity."
+          stale-pr-label: "stale"
+          exempt-pr-labels: "dependencies,security"
+
+      - name: Cleanup Merged Branches
+        if: github.event_name != 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const branches = await github.rest.repos.listBranches({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              protected: false
+            });
+            
+            const protectedBranches = ['main', 'develop', 'staging'];
+            
+            for (const branch of branches.data) {
+              if (!protectedBranches.includes(branch.name)) {
+                const pr = await github.rest.pulls.list({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  head: `${context.repo.owner}:${branch.name}`,
+                  state: 'closed'
+                });
+                
+                if (pr.data.length > 0 && pr.data[0].merged_at) {
+                  try {
+                    await github.rest.git.deleteRef({
+                      owner: context.repo.owner,
+                      repo: context.repo.repo,
+                      ref: `heads/${branch.name}`
+                    });
+                    console.log(`Deleted merged branch: ${branch.name}`);
+                  } catch (error) {
+                    console.error(`Error deleting branch ${branch.name}:`, error);
+                  }
+                }
+              }
+            }
