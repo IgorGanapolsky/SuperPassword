@@ -1,6 +1,8 @@
 import * as Sentry from 'sentry-expo';
 import Constants from 'expo-constants';
 import { Platform } from 'react-native';
+// @ts-expect-error types differ across versions
+type SentryExpoNativeOptions = any;
 import { getVersionInfo } from './version';
 
 interface SentryConfig {
@@ -43,7 +45,7 @@ export const initSentry = async (): Promise<void> => {
     // Enable native instrumentation
     enableNativeNagger: Platform.OS !== 'web',
     // Capture uncaught exceptions
-    enableAutoUnhandledPromiseRejections: true,
+    // enableAutoUnhandledPromiseRejections is not present in all versions
     // Enable performance monitoring
     enableAutoPerformanceTracking: true,
     // Additional configuration based on environment

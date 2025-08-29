@@ -121,19 +121,28 @@ const config: ExpoConfig = {
     url: "https://u.expo.dev/" + easProjectId
   },
   assetBundlePatterns: ["**/*"],
-  extra: {
-    hooks: {
-    postPublish: [
+  plugins: [
+    "expo-font",
+    [
+      "sentry-expo",
       {
-        file: "sentry-expo/upload-sourcemaps",
-        config: {
-          organization: process.env.SENTRY_ORG,
-          project: process.env.SENTRY_PROJECT,
-          authToken: process.env.SENTRY_AUTH_TOKEN,
+        organization: process.env.SENTRY_ORG,
+        project: process.env.SENTRY_PROJECT,
+        hooks: {
+          postPublish: [
+            {
+              file: "sentry-expo/upload-sourcemaps",
+              config: {
+                organization: process.env.SENTRY_ORG,
+                project: process.env.SENTRY_PROJECT,
+                authToken: process.env.SENTRY_AUTH_TOKEN,
+              },
+            },
+          ],
         },
       },
     ],
-  },
+  ],
 };
 
 export default config;

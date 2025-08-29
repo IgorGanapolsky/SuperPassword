@@ -45,6 +45,9 @@ class PremiumService {
     if (docSnap.exists()) {
       const data = docSnap.data();
       this.subscription = {
+        status: 'active',
+        type: 'premium',
+        features: ['backup', 'sync', 'noAds'],
         ...data,
         startDate: data.startDate.toDate(),
         endDate: data.endDate?.toDate(),

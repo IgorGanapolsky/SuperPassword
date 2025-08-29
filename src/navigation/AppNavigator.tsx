@@ -39,7 +39,7 @@ const TabNavigator: React.FC = () => {
         component={HomeScreen}
         options={{
           tabBarLabel: "Generate",
-          tabBarIcon: ({ color, size }) => (
+          tabBarIcon: ({ color, size }: { color: string; size: number }) => (
             <MaterialCommunityIcons
               name="key-variant"
               size={size}
@@ -53,7 +53,7 @@ const TabNavigator: React.FC = () => {
         component={HistoryScreen}
         options={{
           tabBarLabel: "History",
-          tabBarIcon: ({ color, size }) => (
+          tabBarIcon: ({ color, size }: { color: string; size: number }) => (
             <MaterialCommunityIcons name="history" size={size} color={color} />
           ),
         }}
@@ -63,7 +63,7 @@ const TabNavigator: React.FC = () => {
         component={SettingsScreen}
         options={{
           tabBarLabel: "Settings",
-          tabBarIcon: ({ color, size }) => (
+          tabBarIcon: ({ color, size }: { color: string; size: number }) => (
             <MaterialCommunityIcons name="cog" size={size} color={color} />
           ),
         }}
@@ -73,7 +73,7 @@ const TabNavigator: React.FC = () => {
         component={PremiumScreen}
         options={{
           tabBarLabel: "Premium",
-          tabBarIcon: ({ color, size }) => (
+          tabBarIcon: ({ color, size }: { color: string; size: number }) => (
             <MaterialCommunityIcons name="crown" size={size} color={color} />
           ),
         }}

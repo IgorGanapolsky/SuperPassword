@@ -26,7 +26,7 @@ import {
 import { useTheme } from "@/contexts/ThemeContext";
 import { StorageService } from "@/services/storage";
 import { PasswordEntry } from "@/types";
-import { getPasswordStrengthLabel } from "@/utils/passwordGenerator";
+import { getPasswordStrengthLabel } from "@/utils/passwordGeneratorStrict";
 
 export const HistoryScreen: React.FC = () => {
   const { theme, isDark } = useTheme();

@@ -35,7 +35,7 @@ import {
   getPasswordStrengthLabel,
   estimateCrackTime,
   validatePasswordOptions,
-} from "@/utils/passwordGenerator";
+} from "@/utils/passwordGeneratorStrict";
 
 export const HomeScreen: React.FC = () => {
   const { theme, isDark } = useTheme();

@@ -1,6 +1,6 @@
 import Constants from "expo-constants";
 import * as Sentry from "sentry-expo";
-import { Replay } from "@sentry/react-native";
+// Replay is not available in all builds; omit to avoid type errors
 
 let isInitialized = false;
 
@@ -19,7 +19,7 @@ export const initializeSentry = async (): Promise<boolean> => {
       enableInExpoDevelopment: true,
       debug: __DEV__,
       tracesSampleRate: 1.0,
-      enableAutoPerformanceTracking: true,
+enableAutoPerformanceTracing: true,
       integrations: [
         new Replay({
           maskAllText: true,
@@ -28,7 +28,7 @@ export const initializeSentry = async (): Promise<boolean> => {
           errorSampleRate: 1.0,    // Capture 100% of sessions with errors
         }),
         new Sentry.Native.ReactNativeTracing(),
-        new Sentry.Native.ReactNativeProfiler(),
+// new Sentry.Native.ReactNativeProfiler(),
       ]
     });
 
