@@ -1,0 +1,143 @@
+name: PR Monitor
+
+on:
+  schedule:
+    - cron: '*/5 * * * *'  # Run every 5 minutes
+  workflow_dispatch: {}  # Allow manual triggers
+
+jobs:
+  monitor:
+    name: Monitor PRs
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      checks: read
+      issues: write
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
+      - name: Get PR statuses
+        id: pr_status
+        run: |
+          # Get all open PRs
+          PRS=$(gh pr list --json number,title,headRefName,reviewDecision,mergeable,mergeStateStatus --jq '.')
+          echo "prs=$PRS" >> $GITHUB_OUTPUT
+          
+          # Check dependencies between PRs
+          for PR in $(echo "$PRS" | jq -r '.[] | @base64'); do
+            PR_DATA=$(echo "$PR" | base64 --decode)
+            PR_NUM=$(echo "$PR_DATA" | jq -r '.number')
+            PR_BODY=$(gh pr view "$PR_NUM" --json body -q '.body')
+            
+            if echo "$PR_BODY" | grep -q "Depends on #"; then
+              DEP_PR=$(echo "$PR_BODY" | grep -o "Depends on #[0-9]*" | grep -o "[0-9]*")
+              echo "pr_${PR_NUM}_depends_on=$DEP_PR" >> $GITHUB_OUTPUT
+            fi
+          done
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          
+      - name: Process PRs
+        run: |
+          process_pr() {
+            local PR_NUM=$1
+            local PR_DATA=$2
+            local TITLE=$(echo "$PR_DATA" | jq -r '.title')
+            local BRANCH=$(echo "$PR_DATA" | jq -r '.headRefName')
+            local REVIEW=$(echo "$PR_DATA" | jq -r '.reviewDecision')
+            local MERGEABLE=$(echo "$PR_DATA" | jq -r '.mergeable')
+            local MERGE_STATE=$(echo "$PR_DATA" | jq -r '.mergeStateStatus')
+            
+            echo "Processing PR #$PR_NUM: $TITLE"
+            
+            # Check if PR depends on another PR
+            local DEP_PR=$(eval echo "\$pr_${PR_NUM}_depends_on")
+            if [ -n "$DEP_PR" ]; then
+              local DEP_PR_STATE=$(gh pr view "$DEP_PR" --json state -q '.state')
+              if [ "$DEP_PR_STATE" != "MERGED" ]; then
+                echo "PR #$PR_NUM is waiting on #$DEP_PR"
+                gh pr comment "$PR_NUM" --body "⏳ Waiting for dependent PR #$DEP_PR to be merged."
+                return
+              fi
+            fi
+            
+            # Check PR status
+            if [ "$REVIEW" = "APPROVED" ] && [ "$MERGEABLE" = "MERGEABLE" ]; then
+              echo "PR #$PR_NUM is ready to merge"
+              gh pr merge "$PR_NUM" --auto --squash
+              gh pr comment "$PR_NUM" --body "🤖 Auto-merge enabled. Will merge when all checks pass."
+            elif [ "$MERGE_STATE" = "BLOCKED" ]; then
+              echo "PR #$PR_NUM is blocked"
+              
+              # Check what's blocking
+              local CHECKS=$(gh pr checks "$PR_NUM" --json name,conclusion,output -q '.')
+              local FAILED=$(echo "$CHECKS" | jq -r '.[] | select(.conclusion=="failure") | .name')
+              
+              if [ -n "$FAILED" ]; then
+                echo "Failed checks: $FAILED"
+                gh pr comment "$PR_NUM" --body "❌ The following checks are failing:
+                
+                $FAILED
+                
+                I'll attempt to fix these automatically."
+                
+                # Trigger auto-fix workflow
+                gh workflow run autonomous-pr.yml -f pr_number="$PR_NUM"
+              fi
+            fi
+          }
+          
+          # Process each PR
+          echo "${{ steps.pr_status.outputs.prs }}" | jq -c '.[]' | while read -r PR; do
+            PR_NUM=$(echo "$PR" | jq -r '.number')
+            process_pr "$PR_NUM" "$PR"
+          done
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          
+      - name: Update Status Board
+        run: |
+          # Create or update status board issue
+          BOARD_ISSUE=$(gh issue list --label "status-board" --json number -q '.[0].number')
+          
+          if [ -z "$BOARD_ISSUE" ]; then
+            gh issue create --title "🎯 PR Status Board" --body "Loading..." --label "status-board"
+            BOARD_ISSUE=$(gh issue list --label "status-board" --json number -q '.[0].number')
+          fi
+          
+          # Generate status board content
+          CONTENT="# 🎯 PR Status Board\n\nLast updated: $(date -u '+%Y-%m-%d %H:%M:%S UTC')\n\n"
+          
+          # Add PR statuses
+          CONTENT+="## Open PRs\n\n"
+          while IFS= read -r PR; do
+            PR_NUM=$(echo "$PR" | jq -r '.number')
+            TITLE=$(echo "$PR" | jq -r '.title')
+            REVIEW=$(echo "$PR" | jq -r '.reviewDecision')
+            MERGEABLE=$(echo "$PR" | jq -r '.mergeable')
+            
+            # Determine status emoji
+            if [ "$REVIEW" = "APPROVED" ] && [ "$MERGEABLE" = "MERGEABLE" ]; then
+              STATUS="✅"
+            elif [ "$REVIEW" = "CHANGES_REQUESTED" ]; then
+              STATUS="📝"
+            else
+              STATUS="⏳"
+            fi
+            
+            CONTENT+="$STATUS #$PR_NUM: $TITLE\n"
+            
+            # Add dependency info if any
+            DEP_PR=$(eval echo "\$pr_${PR_NUM}_depends_on")
+            if [ -n "$DEP_PR" ]; then
+              CONTENT+="   ↳ Depends on #$DEP_PR\n"
+            fi
+          done < <(echo "${{ steps.pr_status.outputs.prs }}" | jq -c '.[]')
+          
+          # Update the status board issue
+          gh issue edit "$BOARD_ISSUE" --body "$CONTENT"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
