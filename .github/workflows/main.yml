@@ -1,207 +1,143 @@
-name: Quantum-Enhanced CI/CD Pipeline
+name: 🚀 CI/CD Pipeline
 
 on:
   push:
-    branches: [main, develop, feature/**, fix/**]
+    branches: [main, develop]
   pull_request:
     branches: [main, develop]
   workflow_dispatch:
-  schedule:
-    - cron: '*/15 * * * *'  # Run quantum health checks
-
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+    inputs:
+      deploy:
+        description: "Deploy to production"
+        type: boolean
+        default: false
 
 jobs:
-  quantum_validation:
-    name: 🔍 Quantum Validation
+  validate:
+    name: 🔍 Validate & Test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: "20"
           cache: "npm"
 
-      - name: Install enhanced dependencies
-        run: |
-          npm ci
-          npm install @quantum/test-suite @neural/analyzer @ai/code-review
+      - name: Install Dependencies
+        run: npm ci
 
-      - name: Neural Type Analysis
+      - name: Lint & Format
+        run: |
+          npm run lint
+          npm run fmt
+
+      - name: Type Check
         run: npm run type-check
 
-      - name: AI-Enhanced Lint
-        run: npm run lint
+      - name: Run Tests
+        run: npm test -- --coverage
 
-      - name: Quantum Test Suite
-        run: npm run test --coverage --quantum-enhanced
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
-      - name: Upload Coverage to Neural Network
-        uses: codecov/codecov-action@v4
-        with:
-          neural_analysis: true
-          quantum_verification: true
-
-  quantum_security:
-    name: 🔒 Quantum Security
+  security:
+    name: 🔒 Security Checks
+    needs: validate
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Quantum Security Analysis
-        uses: quantum-sec/analyzer@v3
+      - name: Run SAST
+        uses: github/codeql-action/init@v3
         with:
-          qubits: 128
-          error-correction: true
-          post-quantum-crypto: true
+          languages: javascript, typescript
 
-      - name: AI Threat Detection
-        uses: neural-sec/detector@v4
-        with:
-          model: threat-gpt-7
-          real-time: true
-          adaptive-learning: true
-
-      - name: Quantum CodeQL Analysis
+      - name: Run CodeQL Analysis
         uses: github/codeql-action/analyze@v3
-        with:
-          quantum_enhanced: true
-          ai_suggestions: true
 
-      - name: Neural Dependency Review
-        uses: actions/dependency-review-action@v3
-        with:
-          neural_analysis: true
-
-  quantum_build:
-    name: 🏗️ Quantum Build
-    needs: [quantum_validation, quantum_security]
-    runs-on: quantum-builder-v3
-    if: github.event_name == 'push' || github.event.pull_request.merged == true
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Quantum EAS
-      - name: GitGuardian scan
-        uses: GitGuardian/ggshield-action@master
-        env:
-          GITHUB_PUSH_BEFORE_SHA: ${{ github.event.before }}
-          GITHUB_PUSH_BASE_SHA: ${{ github.event.base }}
-          GITHUB_PULL_BASE_SHA: ${{ github.event.pull_request.base.sha }}
-          GITHUB_DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
-          GITGUARDIAN_API_KEY: ${{ secrets.GITGUARDIAN_API_KEY }}
-
-      - name: Dependency audit
-        run: npm audit
+      - name: Dependency Audit
+        run: |
+          npm audit
+          npx license-checker --production --onlyAllow "MIT;ISC;Apache-2.0;BSD-2-Clause;BSD-3-Clause"
 
   build:
-    name: 🏗️ Build
+    name: 📱 Build Apps
     needs: [validate, security]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+
+      - name: Setup Node.js & Expo
+        uses: actions/setup-node@v4
         with:
           node-version: "20"
           cache: "npm"
 
-      - name: Setup Expo
->>>>>>> fix/dependency-compatibility
+      - name: Install Dependencies
+        run: |
+          npm ci
+          npm install -g eas-cli
+
+      - name: Build Web
+        run: |
+          npx expo build:web
+
+      - name: Run Lighthouse
+        run: |
+          npm install -g @lhci/cli
+          lhci autorun
+
+      - name: Build Mobile (if release)
+        if: github.event_name == 'workflow_dispatch' && inputs.deploy
         uses: expo/expo-github-action@v8
         with:
           eas-version: latest
           token: ${{ secrets.EXPO_TOKEN }}
-
-<<<<<<< HEAD
-      - name: Build
         run: |
-          npm ci
-          eas build --platform all --non-interactive --no-wait
-
-  auto-merge:
-    name: Auto-merge Dependencies
-    needs: [validate, security]
-    runs-on: ubuntu-latest
-    if: github.actor == 'dependabot[bot]' && github.event_name == 'pull_request'
-    steps:
-      - uses: fastify/github-action-merge-dependabot@v3
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          target: minor
-=======
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Build web
-        run: npx expo build:web
-
-      - name: Build Android
-        if: github.ref == 'refs/heads/main'
-        run: eas build --platform android --profile preview --non-interactive
-
-      - name: Build iOS
-        if: github.ref == 'refs/heads/main'
-        run: eas build --platform ios --profile preview --non-interactive
-
-      - name: Upload web artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: web-build
-          path: web-build
+          eas build --platform all --non-interactive
 
   deploy:
     name: 🚀 Deploy
-    if: github.ref == 'refs/heads/main'
     needs: build
+    if: github.event_name == 'workflow_dispatch' && inputs.deploy
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-          cache: "npm"
+      - name: Deploy Web
+        run: |
+          # Add web deployment steps
+          echo "Deploying web version..."
 
-      - name: Download web build
-        uses: actions/download-artifact@v4
-        with:
-          name: web-build
-          path: web-build
-
-      - name: Deploy web
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: web-build
-
-      - name: Setup Expo
+      - name: Submit to Stores
         uses: expo/expo-github-action@v8
         with:
           eas-version: latest
           token: ${{ secrets.EXPO_TOKEN }}
-
-      - name: Submit to stores
         run: |
           eas submit -p ios --latest
           eas submit -p android --latest
 
   notify:
-    name: 📢 Notify
-    needs: [build, deploy]
-    if: always()
+    name: 📣 Notify Team
+    needs: [validate, security, build, deploy]
     runs-on: ubuntu-latest
+    if: always()
     steps:
-      - name: Notify status
+      - name: Send Status
         uses: slackapi/slack-github-action@v1.24.0
         with:
           channel-id: "deployments"
           slack-message: |
-            *${{ github.repository }}* deployment status:
+            *Build Status Update*
+            - Validation: ${{ needs.validate.result }}
+            - Security: ${{ needs.security.result }}
             - Build: ${{ needs.build.result }}
-            - Deploy: ${{ needs.deploy.result || 'skipped' }}
-            - Commit: ${{ github.sha }}
-            - Branch: ${{ github.ref }}
-            - Author: ${{ github.actor }}
+            - Deploy: ${{ needs.deploy.result || 'not run' }}
+
+            ${{ github.event_name == 'pull_request' && format('PR: {0}', github.event.pull_request.html_url) || format('Commit: {0}', github.event.head_commit.url) }}
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}

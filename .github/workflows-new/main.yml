@@ -1,0 +1,205 @@
+name: 🚀 CI/CD Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+  checks: write
+  issues: write
+  security-events: write
+
+jobs:
+  validate:
+    name: 🔍 Validate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: npm
+
+      - name: Install Dependencies
+        run: |
+          npm ci
+          npm install -g jest typescript eslint prettier
+
+      - name: Type Check
+        run: tsc --noEmit
+
+      - name: Lint
+        run: eslint . --ext .ts,.tsx
+
+      - name: Format Check
+        run: prettier --check "**/*.{ts,tsx,js,jsx,json,md}"
+
+      - name: Run Tests
+        run: jest --coverage --ci
+
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+  security:
+    name: 🔒 Security
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: GitGuardian scan
+        uses: GitGuardian/gg-shield-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITGUARDIAN_API_KEY: ${{ secrets.GITGUARDIAN_API_KEY }}
+
+      - name: Run Snyk to check for vulnerabilities
+        uses: snyk/actions/node@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+
+      - name: Run CodeQL Analysis
+        uses: github/codeql-action/analyze@v2
+
+  build:
+    name: 📦 Build
+    needs: [validate, security]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: npm
+
+      - name: Install EAS CLI
+        run: npm install -g eas-cli
+
+      - name: Build Web
+        run: |
+          npm ci
+          npm run build:web
+
+      - name: Build Android
+        if: github.event_name == "pull_request"
+        run: eas build --platform android --profile preview --non-interactive
+
+      - name: Build iOS
+        if: github.event_name == "pull_request"
+        run: eas build --platform ios --profile preview --non-interactive
+
+  orchestrate:
+    name: 🎯 Orchestrate
+    needs: [build]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Update Status Board
+        run: |
+          BOARD_NUMBER=$(gh issue list -l status-board --json number -q ".[0].number")
+          
+          # Generate status update
+          STATUS="## 🚀 Pipeline Status Update
+
+"
+          STATUS+="### 🔄 Latest Run
+"
+          STATUS+="- **Run**: [${{ github.run_id }}](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
+"
+          STATUS+="- **Triggered by**: ${GITHUB_EVENT_NAME}
+"
+          STATUS+="- **Branch**: ${GITHUB_REF#refs/heads/}
+
+"
+          
+          STATUS+="### 📊 Health Metrics
+"
+          STATUS+="- **Coverage**: $(jq -r ".totals.percent_covered" coverage/coverage-summary.json)%
+"
+          STATUS+="- **Build Status**: ✅ Passing
+"
+          STATUS+="- **Security**: ✅ Verified
+
+"
+          
+          STATUS+="### 🎯 Action Items
+"
+          if [[ $(jq -r ".totals.percent_covered" coverage/coverage-summary.json) < 80 ]]; then
+            STATUS+="- ⚠️ Coverage below 80% - needs improvement
+"
+          fi
+          
+          # Post update
+          gh issue comment $BOARD_NUMBER -b "$STATUS"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Process PRs
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const prs = await github.rest.pulls.list({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: "open"
+            });
+            
+            for (const pr of prs.data) {
+              if (pr.draft) continue;
+              
+              const checks = await github.rest.checks.listForRef({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                ref: pr.head.sha
+              });
+              
+              const reviews = await github.rest.pulls.listReviews({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: pr.number
+              });
+              
+              const checksPass = checks.data.check_runs.every(c => 
+                c.conclusion === "success" || c.conclusion === "skipped"
+              );
+              const hasApproval = reviews.data.some(r => r.state === "APPROVED");
+              
+              if (checksPass && hasApproval && pr.mergeable) {
+                await github.rest.pulls.merge({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  pull_number: pr.number,
+                  merge_method: "squash"
+                });
+              }
+            }
+
+  notify:
+    name: 📢 Notify
+    needs: [orchestrate]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Notify Status
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const status = context.job.status;
+            const emoji = status === "success" ? "✅" : status === "failure" ? "❌" : "⚠️";
+            
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: `${emoji} Pipeline ${status}
+
+Run: [${context.runId}](${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})`
+            });
