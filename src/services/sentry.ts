@@ -1,7 +1,5 @@
-/**
- * Sentry error tracking service - STUB IMPLEMENTATION
- * Replace when adding back sentry-expo package
- */
+import Constants from "expo-constants";
+import * as Sentry from "sentry-expo";
 
 let isInitialized = false;
 
@@ -14,10 +12,21 @@ export const initializeSentry = async (): Promise<boolean> => {
     return true;
   }
 
-  // Stub implementation
-  console.log("Sentry stub: initialization called");
-  isInitialized = true;
-  return true;
+  try {
+    Sentry.init({
+      dsn: Constants.expoConfig?.extra?.SENTRY_DSN as string,
+      enableInExpoDevelopment: true,
+      debug: __DEV__,
+      tracesSampleRate: 1.0,
+      enableAutoPerformanceTracking: true,
+    });
+
+    isInitialized = true;
+    return true;
+  } catch (error) {
+    console.error("Failed to initialize Sentry:", error);
+    return false;
+  }
 };
 
 /**
@@ -25,7 +34,12 @@ export const initializeSentry = async (): Promise<boolean> => {
  * Safe to call even if Sentry is not initialized
  */
 export const captureException = (error: Error | unknown): void => {
-  console.error("Sentry stub - Error:", error);
+  if (!isInitialized) {
+    console.error("Sentry not initialized - Error:", error);
+    return;
+  }
+
+  Sentry.Native.captureException(error);
 };
 
 /**
@@ -36,14 +50,29 @@ export const captureMessage = (
   message: string,
   level?: "info" | "warning" | "error",
 ): void => {
-  console.log(`Sentry stub - Message: [${level || "info"}] ${message}`);
+  if (!isInitialized) {
+    console.log(`Sentry not initialized - Message: [${level || "info"}] ${message}`);
+    return;
+  }
+
+  Sentry.Native.captureMessage(message, {
+    level: level || "info",
+  });
 };
 
 /**
  * Add breadcrumb for better error context
  */
 export const addBreadcrumb = (message: string, category?: string): void => {
-  console.log(`Sentry stub - Breadcrumb: [${category || "custom"}] ${message}`);
+  if (!isInitialized) {
+    console.log(`Sentry not initialized - Breadcrumb: [${category || "custom"}] ${message}`);
+    return;
+  }
+
+  Sentry.Native.addBreadcrumb({
+    message,
+    category: category || "custom",
+  });
 };
 
 /**
@@ -51,7 +80,11 @@ export const addBreadcrumb = (message: string, category?: string): void => {
  * Returns null if Sentry is not initialized
  */
 export const getErrorBoundary = (): React.ComponentType<any> | null => {
-  return null;
+  if (!isInitialized) {
+    return null;
+  }
+
+  return Sentry.Native.ErrorBoundary;
 };
 
 /**

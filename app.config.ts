@@ -66,6 +66,13 @@ const config: ExpoConfig = {
   plugins: [
     "expo-font",
     [
+      "sentry-expo",
+      {
+        organization: process.env.SENTRY_ORG,
+        project: process.env.SENTRY_PROJECT,
+      }
+    ],
+    [
       "expo-build-properties",
       {
         android: {
@@ -86,6 +93,18 @@ const config: ExpoConfig = {
   },
   updates: { fallbackToCacheTimeout: 0 },
   assetBundlePatterns: ["**/*"],
+  hooks: {
+    postPublish: [
+      {
+        file: "sentry-expo/upload-sourcemaps",
+        config: {
+          organization: process.env.SENTRY_ORG,
+          project: process.env.SENTRY_PROJECT,
+          authToken: process.env.SENTRY_AUTH_TOKEN
+        }
+      }
+    ]
+  },
 };
 
 export default config;
