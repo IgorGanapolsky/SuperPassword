@@ -2,7 +2,7 @@ name: Update Status Badges
 
 on:
   schedule:
-    - cron: '*/10 * * * *'  # Update every 10 minutes
+    - cron: "*/10 * * * *" # Update every 10 minutes
   push:
     branches: [main]
   workflow_dispatch:
@@ -13,31 +13,31 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-      
+
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Get SonarCloud Metrics
         id: sonar
         run: |
           METRICS="alert_status coverage security_rating sqale_rating reliability_rating sqale_index"
           JSON="{"
-          
+
           for METRIC in $METRICS; do
             RESPONSE=$(curl -s "https://sonarcloud.io/api/measures/component?component=IgorGanapolsky_SuperPassword&metricKeys=$METRIC")
             VALUE=$(echo $RESPONSE | jq -r '.component.measures[0].value')
             JSON="$JSON\"$METRIC\":\"$VALUE\","
           done
-          
+
           JSON="${JSON%,}}"
           echo "metrics=$JSON" >> $GITHUB_OUTPUT
-      
+
       - name: Get Coverage Badge
         uses: action-badges/cobertura-coverage-xml-badges@v0.3.0
         with:
           file-name: coverage/cobertura-coverage.xml
           badge-branch: badges
-          
+
       - name: Get Dependencies Status
         id: deps
         run: |
@@ -46,7 +46,7 @@ jobs:
           TOTAL=$(echo $RESPONSE | jq -r '. | length')
           echo "outdated=$OUTDATED" >> $GITHUB_OUTPUT
           echo "total=$TOTAL" >> $GITHUB_OUTPUT
-      
+
       - name: Update README Badges
         run: |
           # Function to create badge markdown
@@ -57,13 +57,13 @@ jobs:
             local LINK=$4
             echo "[![$LABEL](https://img.shields.io/badge/$LABEL-$MESSAGE-$COLOR)]($LINK)"
           }
-          
+
           # Create badges section
           BADGES="# SecurePass - Password Generator\n\n"
-          
+
           # Build Status
           BADGES+="[![Build Status](https://github.com/IgorGanapolsky/SuperPassword/actions/workflows/eas-build.yml/badge.svg)](https://github.com/IgorGanapolsky/SuperPassword/actions/workflows/eas-build.yml)\n"
-          
+
           # SonarCloud Badges
           SONAR_METRICS=${{ steps.sonar.outputs.metrics }}
           for METRIC in $(echo $SONAR_METRICS | jq -r 'keys[]'); do
@@ -72,19 +72,19 @@ jobs:
             LINK_URL="https://sonarcloud.io/summary/new_code?id=IgorGanapolsky_SuperPassword"
             BADGES+="[![$(echo $METRIC | tr '_' ' ' | awk '{for(i=1;i<=NF;i++)sub(/./,toupper(substr($i,1,1)),$i)}1')](${BADGE_URL})](${LINK_URL})\n"
           done
-          
+
           # Dependencies Badge
           DEPS_STATUS="${{ steps.deps.outputs.outdated }}/${{ steps.deps.outputs.total }} outdated"
           BADGES+=$(create_badge "Dependencies" "$DEPS_STATUS" "blue" "https://libraries.io/github/IgorGanapolsky/SuperPassword")
           BADGES+="\n"
-          
+
           # Monitoring Badges
           BADGES+="[![Sentry](https://img.shields.io/badge/Sentry-monitoring-purple)](https://sentry.io)\n"
           BADGES+="[![GitGuardian](https://img.shields.io/badge/GitGuardian-protected-blue)](https://www.gitguardian.com/)\n"
-          
+
           # Update README
           sed -i "1c\\${BADGES}" README.md
-          
+
       - name: Commit and Push Changes
         run: |
           git config --local user.email "action@github.com"
@@ -92,26 +92,26 @@ jobs:
           git add README.md
           git commit -m "chore: Update status badges" || exit 0
           git push
-        
+
       - name: Update PR Dashboard
         run: |
           gh issue create --title "📊 Status Dashboard" --body "## Project Status
-          
+
           ### Quality Metrics
           - Quality Gate: ${{ fromJson(steps.sonar.outputs.metrics).alert_status }}
           - Coverage: ${{ fromJson(steps.sonar.outputs.metrics).coverage }}%
           - Security Rating: ${{ fromJson(steps.sonar.outputs.metrics).security_rating }}
           - Maintainability: ${{ fromJson(steps.sonar.outputs.metrics).sqale_rating }}
           - Reliability: ${{ fromJson(steps.sonar.outputs.metrics).reliability_rating }}
-          
+
           ### Dependencies
           - Total: ${{ steps.deps.outputs.total }}
           - Outdated: ${{ steps.deps.outputs.outdated }}
-          
+
           ### Build Status
           - Last Build: ✅ Passing
           - Deploy Status: 🚀 Live
-          
+
           _Last updated: $(date -u)_" --label "status" || true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

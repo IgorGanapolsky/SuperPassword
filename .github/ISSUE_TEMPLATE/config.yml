@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 📚 Documentation
+    url: https://github.com/IgorGanapolsky/SuperPassword/wiki
+    about: Check our documentation before creating an issue
+  - name: 💬 Discussions
+    url: https://github.com/IgorGanapolsky/SuperPassword/discussions
+    about: Ask questions and discuss with other community members
+  - name: 📧 Security Contact
+    url: mailto:security@securepass.app
+    about: Please report critical security vulnerabilities here

@@ -10,12 +10,12 @@ pr_management:
       - no_conflicts
     merge_method: squash
     delete_branch: true
-  
+
   dependencies:
     check_interval: 180
     auto_rebase: true
     block_merge: true
-  
+
   auto_review:
     enabled: true
     reviewers:
@@ -46,7 +46,7 @@ monitoring:
   dashboard:
     update_interval: 180
     show_metrics: true
-  
+
   notifications:
     slack:
       enabled: true
