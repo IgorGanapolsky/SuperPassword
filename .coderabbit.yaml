@@ -1,0 +1,53 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+
+# 2025 Best Practices Configuration
+language: typescript
+reviews:
+  high_level_summary: true
+  poem: false
+  review_level: very-thorough
+  auto_review:
+    enabled: true
+    drafts: false
+    base_branches:
+      - main
+      - development
+  notifications:
+    slack: true
+  approve_safe_changes: true
+  auto_merge_criteria:
+    - all_checks_pass
+    - approved_by_code_owners
+    - no_merge_conflicts
+    - no_wip_title
+
+analysis:
+  security:
+    enabled: true
+    severity_threshold: low
+  performance:
+    enabled: true
+  best_practices:
+    enabled: true
+  tech_debt:
+    enabled: true
+    threshold: medium
+
+ai:
+  use_mcp: true # Multi-Context Processing
+  knowledge_base:
+    use_repository_context: true
+    use_issues: true
+    use_pull_requests: true
+    use_discussions: true
+
+tests:
+  generate_unit_tests: true
+  suggest_test_cases: true
+
+ignore:
+  - "**/*.test.ts"
+  - "**/*.spec.ts"
+  - "**/dist/**"
+  - "**/build/**"
+  - "**/node_modules/**"
