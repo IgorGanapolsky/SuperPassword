@@ -4,6 +4,8 @@ on:
   schedule:
     - cron: "*/15 * * * *"  # Run every 15 minutes
   workflow_dispatch:
+  pull_request:
+    types: [opened, synchronize, reopened]
 
 jobs:
   manage:
@@ -12,11 +14,142 @@ jobs:
     permissions:
       pull-requests: write
       contents: write
+      issues: write
+      repository-projects: write
     
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: |
+          npm install -g github-project-automation-plus
+          npm install -g code-complexity-report
+
+      - name: Auto-label PR
+        run: |
+          # Get PR details
+          pr_files=$(gh pr view ${{ github.event.pull_request.number }} --json files --jq '.files[].path')
+          
+          # Initialize labels array
+          labels=()
+          
+          # Component-based labels
+          if echo "$pr_files" | grep -q "^src/"; then
+            labels+=("area: source")
+          fi
+          if echo "$pr_files" | grep -q "^tests/"; then
+            labels+=("area: tests")
+          fi
+          if echo "$pr_files" | grep -q "^.github/"; then
+            labels+=("area: ci")
+          fi
+          if echo "$pr_files" | grep -q "^docs/"; then
+            labels+=("area: docs")
+          fi
+          
+          # Change type labels
+          if echo "$pr_files" | grep -q "package.json\|package-lock.json"; then
+            labels+=("dependencies")
+          fi
+          if echo "$pr_files" | grep -q ".github/workflows/"; then
+            labels+=("ci")
+          fi
+          
+          # Analyze code complexity
+          complexity=$(code-complexity-report "$pr_files" --format json)
+          files_changed=$(echo "$complexity" | jq '.totalFiles')
+          lines_changed=$(echo "$complexity" | jq '.totalLines')
+          complexity_score=$(echo "$complexity" | jq '.complexityScore')
+          
+          # Size labels based on changes
+          if [ $files_changed -le 3 ] && [ $lines_changed -le 50 ]; then
+            labels+=("size: xs")
+          elif [ $files_changed -le 5 ] && [ $lines_changed -le 200 ]; then
+            labels+=("size: s")
+          elif [ $files_changed -le 10 ] && [ $lines_changed -le 500 ]; then
+            labels+=("size: m")
+          elif [ $files_changed -le 20 ] && [ $lines_changed -le 1000 ]; then
+            labels+=("size: l")
+          else
+            labels+=("size: xl")
+          fi
+          
+          # Complexity labels
+          if [ $complexity_score -gt 50 ]; then
+            labels+=("high-complexity")
+          fi
+          
+          # Apply labels
+          for label in "${labels[@]}"; do
+            gh pr edit ${{ github.event.pull_request.number }} --add-label "$label"
+          done
+
+      - name: Set review requirements
+        run: |
+          # Get PR labels
+          labels=$(gh pr view ${{ github.event.pull_request.number }} --json labels --jq '.labels[].name')
+          
+          # Set required reviewers based on size and complexity
+          required_reviews=1
+          if echo "$labels" | grep -q "size: xl"; then
+            required_reviews=3
+          elif echo "$labels" | grep -q "size: l"; then
+            required_reviews=2
+          fi
+          if echo "$labels" | grep -q "high-complexity"; then
+            required_reviews=$((required_reviews + 1))
+          fi
+          
+          # Update branch protection
+          gh api /repos/${{ github.repository }}/branches/develop/protection \
+            -X PUT \
+            -H "Accept: application/vnd.github.v3+json" \
+            -F required_pull_request_reviews[required_approving_review_count]=$required_reviews
+
+      - name: Group dependency updates
+        if: contains(github.event.pull_request.title, 'deps')
+        run: |
+          # Get all dependency PRs
+          dep_prs=$(gh pr list --json number,title,headRefName --jq '.[] | select(.title | contains("deps"))')
+          
+          # Group by type
+          groups=$(echo "$dep_prs" | jq -r '.title' | grep -oP '(?<=\[).*?(?=\])')
+          for group in $groups; do
+            similar_prs=$(echo "$dep_prs" | jq -r "select(.title | contains(\"[$group]\")) | .number")
+            if [ $(echo "$similar_prs" | wc -l) -gt 1 ]; then
+              # Create consolidated PR
+              base_pr=$(echo "$similar_prs" | head -1)
+              gh pr comment "$base_pr" --body "💡 Similar dependency updates found. Consider consolidating these PRs:
+              $(echo "$similar_prs" | sed 's/^/#/')"
+            fi
+          done
+
+      - name: Project board automation
+        run: |
+          # Get project details
+          project_id=$(gh api /repos/${{ github.repository }}/projects --jq '.[0].id')
+          
+          # Define columns
+          TODO_COLUMN="To Do"
+          REVIEW_COLUMN="In Review"
+          DONE_COLUMN="Done"
+          
+          # Move PR based on status
+          if [[ "${{ github.event.action }}" == "opened" ]]; then
+            gh-pa move --project $project_id --card ${{ github.event.pull_request.number }} --column "$TODO_COLUMN"
+          elif [[ "${{ github.event.action }}" == "review_requested" ]]; then
+            gh-pa move --project $project_id --card ${{ github.event.pull_request.number }} --column "$REVIEW_COLUMN"
+          elif [[ "${{ github.event.pull_request.merged }}" == "true" ]]; then
+            gh-pa move --project $project_id --card ${{ github.event.pull_request.number }} --column "$DONE_COLUMN"
+          fi
 
       - name: Verify branch cleanup
         run: |
@@ -44,7 +177,9 @@ jobs:
               title=$(echo "$pr" | jq -r .title)
               
               echo "Adding reminder to PR #$number: $title"
-              gh pr comment "$number" --body "⏰ **Reminder:** This PR needs review."
+              gh pr comment "$number" --body "⏰ **Reminder:** This PR needs review.
+              
+              Required reviews based on size and complexity. Please check labels for details."
             done
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -58,6 +193,10 @@ jobs:
               # Check if PR exists
               if ! gh pr list --head "$branch" --json number | grep -q number; then
                 echo "Creating PR for branch: $branch"
+                # Get type from branch name
+                type=$(echo "$branch" | cut -d'/' -f1)
+                
+                # Create PR with appropriate labels
                 gh pr create \
                   --base develop \
                   --head "$branch" \
@@ -65,7 +204,14 @@ jobs:
                   --body "Automated PR creation for branch $branch
 
 ## Changes
-$(git log develop..origin/"$branch" --pretty=format:'- %s')"
+$(git log develop..origin/"$branch" --pretty=format:'- %s')
+
+## Audit
+- [ ] Code review required
+- [ ] Tests added/updated
+- [ ] Documentation updated
+- [ ] Security implications considered" \
+                  --label "auto-created,needs-review,$type"
               fi
             done
         env:
@@ -112,9 +258,38 @@ $(git log develop..origin/"$branch" --pretty=format:'- %s')"
                 
                 # Comment on each PR
                 echo "$similar" | while read -r number; do
-                  gh pr comment "$number" --body "ℹ️ Found multiple '$type' PRs. Consider consolidating changes."
+                  gh pr comment "$number" --body "ℹ️ Found multiple '$type' PRs. Consider consolidating changes.
+
+You can use \`git cherry-pick\` to combine changes, or coordinate with other PR authors for a unified approach."
                 done
               fi
             done
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Generate PR report
+        if: github.event_name == 'schedule'
+        run: |
+          # Get PR statistics
+          total_prs=$(gh pr list --json number | jq length)
+          need_review=$(gh pr list --json number,reviewDecision --jq '.[] | select(.reviewDecision == "REVIEW_REQUIRED")' | jq length)
+          stale_prs=$(gh pr list --json number,updatedAt --jq '.[] | select((.updatedAt | fromdate) < now - 14*24*60*60)' | jq length)
+          
+          # Create report issue
+          gh issue create \
+            --title "📊 PR Status Report - $(date +%Y-%m-%d)" \
+            --body "## PR Statistics
+          - Total open PRs: $total_prs
+          - PRs needing review: $need_review
+          - Stale PRs: $stale_prs
+
+          ## Action Items
+          $(gh pr list --json number,title,reviewDecision,updatedAt --jq '.[] | \"- #\" + (.number | tostring) + \": \" + .title + \" (\" + .reviewDecision + \")\"')
+
+          ## Recommendations
+          $([ $need_review -gt 5 ] && echo "- 🚨 High number of PRs needing review")
+          $([ $stale_prs -gt 0 ] && echo "- ⚠️ Consider closing stale PRs")
+          $([ $total_prs -gt 20 ] && echo "- 📝 Consider consolidating related PRs")" \
+            --label "report,automation"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
