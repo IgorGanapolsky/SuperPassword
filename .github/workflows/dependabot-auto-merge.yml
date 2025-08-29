@@ -1,7 +1,7 @@
 name: Dependabot Auto-Merge
 
 on:
-  pull_request_target:
+  pull_request:
     types: [opened, synchronize]
 
 permissions:
@@ -19,29 +19,29 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.ref }}
-          
+
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          cache: 'npm'
-          
+          node-version: "20"
+          cache: "npm"
+
       - name: Install dependencies
         run: npm ci --no-audit --no-fund
-        
+
       - name: Run CI checks
         id: checks
         continue-on-error: true
         run: |
           echo "Running TypeScript check..."
           npx tsc --noEmit || echo "tsc_failed=true" >> $GITHUB_OUTPUT
-          
+
           echo "Running ESLint..."
           npm run lint || echo "lint_failed=true" >> $GITHUB_OUTPUT
-          
+
           echo "Running Prettier..."
           npm run fmt || echo "fmt_failed=true" >> $GITHUB_OUTPUT
-          
+
       - name: Create check run
         uses: actions/github-script@v7
         with:
@@ -49,7 +49,7 @@ jobs:
             const checksFailed = '${{ steps.checks.outputs.tsc_failed }}' === 'true' ||
                                '${{ steps.checks.outputs.lint_failed }}' === 'true' ||
                                '${{ steps.checks.outputs.fmt_failed }}' === 'true';
-            
+
             await github.rest.checks.create({
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -62,13 +62,13 @@ jobs:
                 summary: checksFailed ? 'Some checks failed. Please review the logs.' : 'All checks passed successfully!'
               }
             });
-            
+
       - name: Run Gitleaks
         uses: gitleaks/gitleaks-action@v2
         continue-on-error: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          
+
       - name: Create gitleaks check
         uses: actions/github-script@v7
         with:
@@ -90,7 +90,7 @@ jobs:
         continue-on-error: true
         run: |
           echo "Skipping CodeQL for dependency updates"
-          
+
       - name: Create CodeQL check
         uses: actions/github-script@v7
         with:
@@ -107,13 +107,13 @@ jobs:
                 summary: 'CodeQL analysis is skipped for dependency updates'
               }
             });
-      
+
       - name: Auto-approve
         if: steps.checks.outputs.tsc_failed != 'true' && steps.checks.outputs.lint_failed != 'true' && steps.checks.outputs.fmt_failed != 'true'
         uses: hmarr/auto-approve-action@v4
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          
+
       - name: Enable auto-merge
         if: steps.checks.outputs.tsc_failed != 'true' && steps.checks.outputs.lint_failed != 'true' && steps.checks.outputs.fmt_failed != 'true'
         run: |
