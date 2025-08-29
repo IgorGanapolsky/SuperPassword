@@ -1,4 +1,42 @@
-name: 2025 Compatibility Layer
+name: Compatibility Check
+
+on:
+  pull_request:
+    branches: [develop, main]
+  push:
+    branches: [develop, main]
+
+jobs:
+  initialize_compatibility:
+    name: Initialize Compatibility Layer
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Check TypeScript compatibility
+        run: npx tsc --noEmit
+        
+      - name: Check React Native compatibility
+        run: |
+          npx expo doctor
+          npx react-native doctor
+          
+      - name: Run compatibility tests
+        run: npm test -- --coverage
+        
+      - name: Check package versions
+        run: |
+          npx npm-check-updates --errorLevel 2
+          npx license-checker --production --onlyAllow "MIT;ISC;Apache-2.0;BSD-2-Clause;BSD-3-Clause"
 
 on:
   workflow_call:
