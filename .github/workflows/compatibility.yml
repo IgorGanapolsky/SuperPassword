@@ -5,17 +5,16 @@ on:
     branches: [develop, main]
   push:
     branches: [develop, main]
-    paths:
-      - ".github/workflows/**"
-      - ".github/neural-config.yml"
-      - ".github/workflow-manifest.yml"
-  workflow_call:
-  workflow_dispatch:
+    paths-ignore:
+      - "**.md"
+      - "docs/**"
+      - ".github/*.yml"
 
 jobs:
-  initialize_compatibility:
-    name: Initialize Compatibility Layer
+  compatibility:
+    name: Check Compatibility
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v4
 
@@ -31,209 +30,15 @@ jobs:
       - name: Check TypeScript compatibility
         run: npx tsc --noEmit
 
-      - name: Check React Native compatibility
+      - name: Check Expo compatibility
         run: |
+          npm install -g expo-cli
           npx expo doctor
-          npx react-native doctor
 
-      - name: Run compatibility tests
-        run: npm test -- --coverage
+      - name: Run tests
+        run: npm test
 
-      - name: Check package versions
+      - name: Check dependencies
         run: |
-          npx npm-check-updates --errorLevel 2
+          npm audit
           npx license-checker --production --onlyAllow "MIT;ISC;Apache-2.0;BSD-2-Clause;BSD-3-Clause"
-
-      - name: Setup Python for Neural Emulation
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-          cache: "pip"
-
-      - name: Install Dependencies
-        run: |
-          pip install --upgrade pip
-          pip install torch transformers sklearn fastapi uvicorn
-          pip install python-jose cryptography python-multipart
-          pip install pytest pytest-cov pylint mypy
-
-      - name: Configure Neural Bridge
-        run: |
-          python <<EOF
-          import json
-          import os
-          from datetime import datetime, timezone
-
-          class CompatibilityBridge:
-              def __init__(self):
-                  self.quantum_emulated = True
-                  self.neural_ready = True
-                  
-              def create_config(self):
-                  return {
-                      "timestamp": datetime.now(timezone.utc).isoformat(),
-                      "compatibility_mode": "2025_emulation",
-                      "features": {
-                          "quantum_computing": "emulated",
-                          "neural_networks": "enhanced",
-                          "ai_capabilities": "advanced"
-                      },
-                      "mappings": {
-                          "quantum-runner-v3": "ubuntu-latest",
-                          "ai-optimized-runner": "ubuntu-latest",
-                          "neural-runner-v4": "ubuntu-latest",
-                          "quantum-builder-v3": "ubuntu-latest"
-                      }
-                  }
-                  
-          bridge = CompatibilityBridge()
-          config = bridge.create_config()
-
-          with open('.github/compatibility-config.json', 'w') as f:
-              json.dump(config, f, indent=2)
-          EOF
-
-      - name: Setup Action Mappings
-        run: |
-          mkdir -p .github/action-mappings
-          cat > .github/action-mappings/quantum-sec.json <<EOF
-          {
-            "analyzer@v3": {
-              "runs": {
-                "using": "composite",
-                "steps": [
-                  {
-                    "run": "python -m pytest --cov=. --cov-report=xml",
-                    "shell": "bash"
-                  },
-                  {
-                    "run": "pylint . || true",
-                    "shell": "bash"
-                  },
-                  {
-                    "run": "mypy . || true",
-                    "shell": "bash"
-                  }
-                ]
-              }
-            }
-          }
-          EOF
-
-      - name: Initialize Neural Monitoring
-        run: |
-          python <<EOF
-          import json
-          import time
-          from datetime import datetime, timezone
-
-          class NeuralMonitor:
-              def __init__(self):
-                  self.metrics = {
-                      "performance": {},
-                      "security": {},
-                      "reliability": {}
-                  }
-                  
-              def collect_metrics(self):
-                  self.metrics["performance"] = {
-                      "cpu_usage": 45.2,
-                      "memory_usage": 62.8,
-                      "response_time": 0.123
-                  }
-                  self.metrics["security"] = {
-                      "threat_level": "low",
-                      "vulnerabilities": 0,
-                      "quantum_ready": True
-                  }
-                  self.metrics["reliability"] = {
-                      "uptime": 99.999,
-                      "error_rate": 0.001,
-                      "recovery_time": 0.5
-                  }
-                  return self.metrics
-                  
-          monitor = NeuralMonitor()
-          metrics = monitor.collect_metrics()
-
-          with open('.github/neural-metrics.json', 'w') as f:
-              json.dump(metrics, f, indent=2)
-          EOF
-
-      - name: Configure Auto-Recovery
-        run: |
-          mkdir -p .github/recovery-procedures
-          cat > .github/recovery-procedures/auto-recovery.json <<EOF
-          {
-            "procedures": [
-              {
-                "name": "workflow_recovery",
-                "triggers": ["failure", "timeout"],
-                "actions": [
-                  "retry_job",
-                  "notify_maintainers",
-                  "collect_diagnostics"
-                ]
-              },
-              {
-                "name": "performance_recovery",
-                "triggers": ["high_latency", "resource_exhaustion"],
-                "actions": [
-                  "scale_resources",
-                  "optimize_execution",
-                  "clear_caches"
-                ]
-              }
-            ]
-          }
-          EOF
-
-      - name: Setup Monitoring Bridge
-        run: |
-          cat > .github/workflows/monitoring-bridge.yml <<EOF
-          name: Monitoring Bridge
-          on:
-            workflow_call:
-            schedule:
-              - cron: '*/5 * * * *'
-
-          jobs:
-            monitor:
-              runs-on: ubuntu-latest
-              steps:
-                - uses: actions/checkout@v4
-                - uses: actions/setup-python@v5
-                  with:
-                    python-version: '3.12'
-                - name: Run Monitoring
-                  run: |
-                    python -m pip install psutil requests
-                    python -m pip install numpy pandas
-                    
-                    python <<EOF2
-                    import psutil
-                    import json
-                    import datetime
-                    
-                    metrics = {
-                        'timestamp': datetime.datetime.now().isoformat(),
-                        'system': {
-                            'cpu': psutil.cpu_percent(),
-                            'memory': psutil.virtual_memory().percent,
-                            'disk': psutil.disk_usage('/').percent
-                        },
-                        'status': 'healthy'
-                    }
-                    
-                    with open('metrics.json', 'w') as f:
-                        json.dump(metrics, f)
-                    EOF2
-          EOF
-
-      - name: Commit Configuration
-        run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          git add .github/
-          git commit -m "chore: update compatibility layer [skip ci]" || echo "No changes to commit"
-          git push
