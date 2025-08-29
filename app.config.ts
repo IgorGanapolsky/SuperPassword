@@ -121,7 +121,8 @@ const config: ExpoConfig = {
     url: "https://u.expo.dev/" + easProjectId
   },
   assetBundlePatterns: ["**/*"],
-  hooks: {
+  extra: {
+    hooks: {
     postPublish: [
       {
         file: "sentry-expo/upload-sourcemaps",
