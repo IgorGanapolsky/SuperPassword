@@ -4,9 +4,7 @@
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=IgorGanapolsky_SuperPassword&metric=alert_status)](https://sonarcloud.io/dashboard?id=IgorGanapolsky_SuperPassword)
 [![codecov](https://codecov.io/gh/IgorGanapolsky/SuperPassword/branch/main/graph/badge.svg)](https://codecov.io/gh/IgorGanapolsky/SuperPassword)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](http://makeapullrequest.com)
 [![Known Vulnerabilities](https://snyk.io/test/github/IgorGanapolsky/SuperPassword/badge.svg)](https://snyk.io/test/github/IgorGanapolsky/SuperPassword)
-[![Maintainability](https://api.codeclimate.com/v1/badges/your-repo-id/maintainability)](https://codeclimate.com/github/IgorGanapolsky/SuperPassword)
 A professional password generator React Native Expo app with Material Design, ready for deployment to Google Play Store and Apple App Store.
 
 ## Features
