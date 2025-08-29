@@ -1,0 +1,109 @@
+name: 📊 Status Board
+
+on:
+  # Update every 5 minutes
+  schedule:
+    - cron: "*/5 * * * *"
+  
+  # Update on relevant events
+  push:
+    branches: [main, develop]
+  pull_request:
+    types: [opened, closed, reopened]
+  issues:
+    types: [opened, closed, reopened]
+  workflow_dispatch:  # Allow manual trigger
+
+jobs:
+  update-status:
+    name: 📈 Update Status Board
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      pull-requests: read
+      contents: read
+    
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Get metrics
+        id: metrics
+        run: |
+          # Get PR stats
+          OPEN_PRS=$(gh pr list --json number --jq length)
+          REVIEW_NEEDED=$(gh pr list --json number,reviewDecision --jq '.[] | select(.reviewDecision == "REVIEW_REQUIRED")' | jq length)
+          APPROVED_PRS=$(gh pr list --json number,reviewDecision --jq '.[] | select(.reviewDecision == "APPROVED")' | jq length)
+          
+          # Get issue stats
+          OPEN_ISSUES=$(gh issue list --json number --jq length)
+          HIGH_PRIORITY=$(gh issue list --json labels --jq '.[] | select(.labels[].name == "high-priority")' | jq length)
+          
+          # Get build status
+          LATEST_BUILD=$(gh run list --json conclusion,name --jq '.[] | select(.name == "🚀 CI/CD Pipeline") | .conclusion' | head -n1)
+          
+          # Get dependency status
+          OUTDATED_DEPS=$(npm outdated --json | jq length)
+          
+          # Save metrics
+          echo "open_prs=$OPEN_PRS" >> $GITHUB_OUTPUT
+          echo "review_needed=$REVIEW_NEEDED" >> $GITHUB_OUTPUT
+          echo "approved_prs=$APPROVED_PRS" >> $GITHUB_OUTPUT
+          echo "open_issues=$OPEN_ISSUES" >> $GITHUB_OUTPUT
+          echo "high_priority=$HIGH_PRIORITY" >> $GITHUB_OUTPUT
+          echo "build_status=$LATEST_BUILD" >> $GITHUB_OUTPUT
+          echo "outdated_deps=$OUTDATED_DEPS" >> $GITHUB_OUTPUT
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Update status board
+        run: |
+          # Get existing issue number
+          BOARD_NUMBER=$(gh issue list --json number,title --jq '.[] | select(.title == "📊 SuperPassword Status Board") | .number')
+          
+          # Create status summary
+          STATUS="# 📊 SuperPassword Status Board
+          *Last updated: $(date -u +'%Y-%m-%d %H:%M UTC')*
+          
+          ## 🚀 Project Status
+          - **Build Status:** ${{ steps.metrics.outputs.build_status }}
+          - **Dependencies:** ${{ steps.metrics.outputs.outdated_deps }} updates available
+          
+          ## 📦 Pull Requests
+          - **Open PRs:** ${{ steps.metrics.outputs.open_prs }}
+          - **Needs Review:** ${{ steps.metrics.outputs.review_needed }}
+          - **Approved:** ${{ steps.metrics.outputs.approved_prs }}
+          
+          ## 🎯 Issues
+          - **Open Issues:** ${{ steps.metrics.outputs.open_issues }}
+          - **High Priority:** ${{ steps.metrics.outputs.high_priority }}
+          
+          ## 📈 Recent Activity
+          $(gh pr list --limit 5 --json number,title,author,reviewDecision --jq '.[] | \"- #\" + (.number|tostring) + \" \" + .title + \" (\" + .reviewDecision + \")\"')
+          
+          ## 🚨 High Priority Items
+          $(gh issue list --json number,title,labels --jq '.[] | select(.labels[].name == \"high-priority\") | \"- #\" + (.number|tostring) + \" \" + .title')
+          
+          ## 🔄 Recent Merges
+          $(gh pr list --state merged --limit 5 --json number,title,mergedAt --jq '.[] | \"- #\" + (.number|tostring) + \" \" + .title + \" (\" + .mergedAt + \")\"')"
+          
+          if [ -z "$BOARD_NUMBER" ]; then
+            # Create new status board issue
+            gh issue create \
+              --title "📊 SuperPassword Status Board" \
+              --body "$STATUS" \
+              --label "status-board,pinned"
+          else
+            # Update existing status board
+            gh issue edit "$BOARD_NUMBER" \
+              --body "$STATUS"
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Pin status board
+        run: |
+          BOARD_NUMBER=$(gh issue list --json number,title --jq '.[] | select(.title == "📊 SuperPassword Status Board") | .number')
+          gh api -X PATCH /repos/${{ github.repository }}/issues/$BOARD_NUMBER \
+            -f pinned=true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
