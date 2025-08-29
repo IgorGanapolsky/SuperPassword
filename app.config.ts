@@ -27,7 +27,7 @@ const config: ExpoConfig = {
   userInterfaceStyle: "automatic",
   scheme,
   owner,
-  platforms: ["ios", "android"],
+  platforms: ["ios", "android", "web"],
   splash: {
     image: "./assets/splash.png",
     resizeMode: "cover",

@@ -3,6 +3,7 @@ import * as Font from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import React, { useEffect, useState } from "react";
+import { Platform } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { Provider as PaperProvider } from "react-native-paper";
 
@@ -18,7 +19,9 @@ import { StorageService } from "@/services/storage";
 import { PasswordOptions } from "@/types";
 
 // Keep the splash screen visible while we fetch resources
-SplashScreen.preventAutoHideAsync();
+if (Platform.OS !== 'web') {
+  SplashScreen.preventAutoHideAsync();
+}
 
 export default function App() {
   const [isReady, setIsReady] = useState(false);
@@ -30,7 +33,9 @@ export default function App() {
         await initializeSentry();
 
         // Pre-load fonts
-        await Font.loadAsync(MaterialCommunityIcons.font);
+        if (Platform.OS !== 'web') {
+          await Font.loadAsync(MaterialCommunityIcons.font);
+        }
 
         // Initialize user preferences if first launch
         const isFirstLaunch = await StorageService.isFirstLaunch();
@@ -70,7 +75,9 @@ export default function App() {
       } finally {
         // Tell the application to render
         setIsReady(true);
-        await SplashScreen.hideAsync();
+        if (Platform.OS !== 'web') {
+          await SplashScreen.hideAsync();
+        }
       }
     }
 
