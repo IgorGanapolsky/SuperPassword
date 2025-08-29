@@ -1,0 +1,120 @@
+name: 🔄 PR Orchestration
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"  # Run every 15 minutes
+  workflow_dispatch:
+
+jobs:
+  manage:
+    name: 🎯 Manage PRs
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      contents: write
+    
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify branch cleanup
+        run: |
+          # Get all merged branches
+          git branch -r --merged origin/develop | \
+            grep -vE 'main$|develop$|HEAD' | \
+            while IFS= read -r branch; do
+              # Extract branch name without origin/
+              branch_name=${branch#origin/}
+              
+              # Skip protected branches
+              if [[ "$branch_name" != "main" && "$branch_name" != "develop" ]]; then
+                echo "Deleting merged branch: $branch_name"
+                git push origin --delete "$branch_name" || true
+              fi
+            done
+
+      - name: Remind about pending reviews
+        run: |
+          # Find PRs needing review
+          gh pr list --json number,title,headRefName,reviewDecision \
+            --jq '.[] | select(.reviewDecision == "REVIEW_REQUIRED")' | \
+            while IFS= read -r pr; do
+              number=$(echo "$pr" | jq -r .number)
+              title=$(echo "$pr" | jq -r .title)
+              
+              echo "Adding reminder to PR #$number: $title"
+              gh pr comment "$number" --body "⏰ **Reminder:** This PR needs review."
+            done
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create missing PRs
+        run: |
+          # Get all remote branches
+          git branch -r | grep -vE 'main$|develop$|HEAD' | \
+            sed 's/origin\///' | \
+            while IFS= read -r branch; do
+              # Check if PR exists
+              if ! gh pr list --head "$branch" --json number | grep -q number; then
+                echo "Creating PR for branch: $branch"
+                gh pr create \
+                  --base develop \
+                  --head "$branch" \
+                  --title "$(git log -1 --pretty=%B origin/"$branch")" \
+                  --body "Automated PR creation for branch $branch
+
+## Changes
+$(git log develop..origin/"$branch" --pretty=format:'- %s')"
+              fi
+            done
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Check stale PRs
+        run: |
+          # Mark PRs as stale after 14 days
+          gh pr list --json number,updatedAt,labels \
+            --jq '.[] | select((.updatedAt | fromdate) < now - 14*24*60*60 and (.labels | map(.name) | index("stale") | not))' | \
+            while IFS= read -r pr; do
+              number=$(echo "$pr" | jq -r .number)
+              
+              echo "Marking PR #$number as stale"
+              gh pr comment "$number" --body "⚠️ This PR has been inactive for 14 days and will be marked as stale."
+              gh pr edit "$number" --add-label "stale"
+            done
+
+          # Close PRs after 30 days of inactivity
+          gh pr list --json number,updatedAt,labels \
+            --jq '.[] | select((.updatedAt | fromdate) < now - 30*24*60*60)' | \
+            while IFS= read -r pr; do
+              number=$(echo "$pr" | jq -r .number)
+              
+              echo "Closing stale PR #$number"
+              gh pr close "$number" --comment "Closing due to 30 days of inactivity"
+            done
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Find similar PRs
+        run: |
+          # Get all PRs with type prefixes
+          prs=$(gh pr list --json number,title,headRefName)
+
+          # Find PRs with same type prefix
+          echo "$prs" | jq -r '.[] | .title' | \
+            grep -E '^(feat|fix|chore|docs|style|refactor|perf|test|build|ci|revert):' | \
+            cut -d: -f1 | sort | uniq -c | \
+            while read -r count type; do
+              if [ "$count" -gt 1 ]; then
+                # Get PR numbers for this type
+                similar=$(echo "$prs" | jq -r ".[] | select(.title | startswith(\"$type:\")) | .number")
+                
+                # Comment on each PR
+                echo "$similar" | while read -r number; do
+                  gh pr comment "$number" --body "ℹ️ Found multiple '$type' PRs. Consider consolidating changes."
+                done
+              fi
+            done
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
