@@ -35,9 +35,9 @@ jobs:
             const { data: prs } = await github.rest.pulls.list({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              state: 'open',
-              sort: 'updated',
-              direction: 'desc'
+              state: "open",
+              sort: "updated",
+              direction: "desc"
             });
 
             const prData = await Promise.all(prs.map(async pr => {
@@ -60,28 +60,73 @@ jobs:
                 headBranch: pr.head.ref,
                 draft: pr.draft,
                 mergeable: pr.mergeable,
+                hasConflicts: pr.mergeable_state === "dirty",
                 reviews: reviews.map(r => ({ state: r.state, user: r.user.login })),
                 checks: checks.check_runs.map(c => ({ name: c.name, conclusion: c.conclusion }))
               };
             }));
 
-            // Analyze dependencies between PRs
-            const dependencyGraph = prData.map(pr => {
-              const depMatch = pr.title.match(/depends on #(\d+)/i);
-              return {
-                ...pr,
-                dependsOn: depMatch ? parseInt(depMatch[1]) : null
-              };
-            });
+            core.setOutput("prs", JSON.stringify(prData));
 
-            // Sort PRs by dependency order
-            const sortedPRs = [...dependencyGraph].sort((a, b) => {
-              if (a.dependsOn === b.number) return 1;
-              if (b.dependsOn === a.number) return -1;
-              return 0;
-            });
-
-            core.setOutput('prs', JSON.stringify(sortedPRs));
+      - name: Handle Conflicts
+        if: ${{ always() }}
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const prs = JSON.parse(process.env.PRS);
+            
+            for (const pr of prs) {
+              if (pr.hasConflicts) {
+                console.log(`PR #${pr.number} has conflicts - attempting resolution`);
+                
+                // Fetch latest changes
+                await exec.exec("git", ["fetch", "origin"]);
+                await exec.exec("git", ["checkout", pr.headBranch]);
+                
+                try {
+                  // Try to merge base branch
+                  await exec.exec("git", ["merge", pr.baseBranch]);
+                  
+                  // Push changes if successful
+                  await exec.exec("git", ["push", "origin", pr.headBranch]);
+                  
+                  await github.rest.issues.createComment({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    issue_number: pr.number,
+                    body: "✅ Conflicts resolved automatically"
+                  });
+                } catch (error) {
+                  console.log(`Could not auto-resolve conflicts: ${error}`);
+                  
+                  // Create conflict resolution guide
+                  const guide = `## Conflict Resolution Needed
+                  
+                  This PR has conflicts that need manual resolution. Here's how to fix them:
+                  
+                  \`\`\`bash
+                  git checkout ${pr.headBranch}
+                  git pull origin ${pr.headBranch}
+                  git merge ${pr.baseBranch}
+                  # Resolve conflicts in your editor
+                  git add .
+                  git commit -m "chore: resolve merge conflicts"
+                  git push origin ${pr.headBranch}
+                  \`\`\`
+                  
+                  Or use GitHub's web editor to resolve conflicts.`;
+                  
+                  await github.rest.issues.createComment({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    issue_number: pr.number,
+                    body: guide
+                  });
+                }
+              }
+            }
+        env:
+          PRS: ${{ steps.analyze.outputs.prs }}
 
       - name: Process PRs
         uses: actions/github-script@v7
@@ -92,74 +137,55 @@ jobs:
             for (const pr of prs) {
               console.log(`Processing PR #${pr.number}: ${pr.title}`);
 
-              // Skip if PR is a draft
-              if (pr.draft) {
-                console.log('PR is draft - skipping');
+              // Skip if PR has conflicts
+              if (pr.hasConflicts) {
+                console.log("PR has conflicts - skipping");
                 continue;
               }
 
-              // Check dependencies
-              if (pr.dependsOn) {
-                const depPR = prs.find(p => p.number === pr.dependsOn);
-                if (depPR && !depPR.merged) {
-                  console.log(`Waiting for dependency PR #${pr.dependsOn}`);
-                  await github.rest.issues.createComment({
-                    owner: context.repo.owner,
-                    repo: context.repo.repo,
-                    issue_number: pr.number,
-                    body: `⏳ This PR is blocked by #${pr.dependsOn}`
-                  });
-                  continue;
-                }
+              // Skip if PR is a draft
+              if (pr.draft) {
+                console.log("PR is draft - skipping");
+                continue;
               }
 
               // Check CI status
-              const failingChecks = pr.checks.filter(c => c.conclusion === 'failure');
+              const failingChecks = pr.checks.filter(c => c.conclusion === "failure");
               if (failingChecks.length > 0) {
-                console.log('CI checks failing - skipping');
+                console.log("CI checks failing - skipping");
                 await github.rest.issues.createComment({
                   owner: context.repo.owner,
                   repo: context.repo.repo,
                   issue_number: pr.number,
-                  body: `❌ CI checks failing:\n${failingChecks.map(c => `- ${c.name}`).join('\n')}`
+                  body: `❌ CI checks failing:
+${failingChecks.map(c => `- ${c.name}`).join("
+")}`
                 });
                 continue;
               }
 
               // Check reviews
-              const approvals = pr.reviews.filter(r => r.state === 'APPROVED').length;
+              const approvals = pr.reviews.filter(r => r.state === "APPROVED").length;
               if (approvals < 1) {
-                console.log('Needs review - requesting');
+                console.log("Needs review - requesting");
                 await github.rest.pulls.requestReviewers({
                   owner: context.repo.owner,
                   repo: context.repo.repo,
                   pull_number: pr.number,
-                  reviewers: ['IgorGanapolsky']
+                  reviewers: ["IgorGanapolsky"]
                 });
                 continue;
               }
 
               // All checks passed - merge PR
               if (pr.mergeable) {
-                console.log('All checks passed - merging');
+                console.log("All checks passed - merging");
                 await github.rest.pulls.merge({
                   owner: context.repo.owner,
                   repo: context.repo.repo,
                   pull_number: pr.number,
-                  merge_method: 'squash'
+                  merge_method: "squash"
                 });
-
-                // If this was a PR to develop, create PR to main
-                if (pr.baseBranch === 'develop') {
-                  await github.rest.pulls.create({
-                    owner: context.repo.owner,
-                    repo: context.repo.repo,
-                    title: `chore(release): sync main with develop`,
-                    body: `This PR syncs main with the latest changes from develop.\n\nOriginal PR: #${pr.number}`,
-                    head: 'develop',
-                    base: 'main'
-                  });
-                }
               }
             }
         env:
@@ -178,28 +204,29 @@ jobs:
             const { data: issues } = await github.rest.issues.list({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              labels: 'status-board'
+              labels: "status-board"
             });
 
             const statusBoard = issues[0] || await github.rest.issues.create({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              title: '📊 PR Status Board',
-              labels: ['status-board'],
-              body: 'Initializing status board...'
+              title: "📊 PR Status Board",
+              labels: ["status-board"],
+              body: "Initializing status board..."
             });
 
             const { data: prs } = await github.rest.pulls.list({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              state: 'open'
+              state: "open"
             });
 
             const statusEmoji = {
-              draft: '📝',
-              blocked: '⏳',
-              failed: '❌',
-              ready: '✅'
+              draft: "📝",
+              blocked: "⏳",
+              failed: "❌",
+              conflicts: "⚠️",
+              ready: "✅"
             };
 
             const prStatus = await Promise.all(prs.map(async pr => {
@@ -209,10 +236,10 @@ jobs:
                 ref: pr.head.sha
               });
 
-              let status = pr.draft ? 'draft' :
-                          pr.title.match(/depends on #\d+/i) ? 'blocked' :
-                          checks.check_runs.some(c => c.conclusion === 'failure') ? 'failed' :
-                          'ready';
+              let status = pr.draft ? "draft" :
+                          pr.mergeable_state === "dirty" ? "conflicts" :
+                          checks.check_runs.some(c => c.conclusion === "failure") ? "failed" :
+                          "ready";
 
               return `${statusEmoji[status]} #${pr.number} ${pr.title}`;
             }));
@@ -221,11 +248,12 @@ jobs:
 Last updated: ${new Date().toISOString()}
 
 ## Open PRs
-${prStatus.join('\n')}
+${prStatus.join("
+")}
 
 ## Recent Activity
-${prs.slice(0, 5).map(pr => `- ${pr.updated_at}: ${pr.title}`).join('\n')}
-`;
+${prs.slice(0, 5).map(pr => `- ${pr.updated_at}: ${pr.title}`).join("
+")}`;
 
             await github.rest.issues.update({
               owner: context.repo.owner,
