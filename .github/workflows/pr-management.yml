@@ -1,0 +1,127 @@
+name: 🔄 PR Management
+
+on:
+  push:
+    branches-ignore:
+      - main
+      - develop
+  schedule:
+    - cron: '*/10 * * * *'  # Check every 10 minutes
+  workflow_dispatch:
+
+jobs:
+  manage-prs:
+    name: 🎯 Manage PRs
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check for branches without PRs
+        id: check-branches
+        run: |
+          # Get all branches except main and develop
+          branches=$(git branch -r | grep -vE 'main$|develop$|HEAD' | sed 's/origin\///')
+          
+          # For each branch, check if PR exists
+          for branch in $branches; do
+            pr_exists=$(gh pr list --head $branch --json number --jq length)
+            if [ "$pr_exists" -eq "0" ]; then
+              echo "Creating PR for $branch"
+              
+              # Get commit message and use as PR title
+              commit_msg=$(git log -1 --pretty=%B origin/$branch)
+              
+              # Create PR
+              gh pr create \
+                --base develop \
+                --head $branch \
+                --title "$commit_msg" \
+                --body "Automated PR creation for branch $branch
+
+## Changes
+$(git log develop..origin/$branch --pretty=format:'- %s')"
+            fi
+          done
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Clean up old PRs
+        run: |
+          # Close PRs that are stale (no activity for 30 days)
+          gh pr list --json number,updatedAt --jq '.[] | select((.updatedAt | fromdate) < now - 30*24*60*60)' | \
+          while read -r pr; do
+            number=$(echo $pr | jq -r .number)
+            gh pr close $number -c "Closing stale PR automatically"
+          done
+          
+          # Delete branches that have been merged
+          git branch -r --merged origin/develop | \
+          grep -vE 'main$|develop$|HEAD' | \
+          sed 's/origin\///' | \
+          while read -r branch; do
+            git push origin --delete $branch || true
+          done
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  consolidate-prs:
+    name: 🎯 Consolidate PRs
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Find similar PRs
+        run: |
+          # Get all open PRs
+          prs=$(gh pr list --json number,title,headRefName --jq '.')
+          
+          # Group PRs by type (feat, fix, etc)
+          echo "$prs" | jq -r '.[] | .title' | \
+          grep -E '^(feat|fix|chore|docs|style|refactor|perf|test|build|ci|revert):' | \
+          cut -d: -f1 | sort | uniq | \
+          while read -r type; do
+            # Find PRs of same type
+            similar_prs=$(echo "$prs" | jq -r ".[] | select(.title | startswith(\"$type:\"))")            
+            if [ "$(echo "$similar_prs" | jq length)" -gt 1 ]; then
+              echo "Found multiple $type PRs:"
+              echo "$similar_prs" | jq -r '.number'
+              
+              # Comment on PRs suggesting consolidation
+              echo "$similar_prs" | jq -r '.number' | \
+              while read -r pr_number; do
+                gh pr comment $pr_number --body "There are multiple PRs of type '$type'. Consider consolidating them for better change management."
+              done
+            fi
+          done
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  status-check:
+    name: 📊 PR Status Check
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    steps:
+      - name: Check PR statuses
+        run: |
+          gh pr list --json number,title,reviewDecision,mergeable,checksStatus \
+            --jq '.[] | select(.reviewDecision == "REVIEW_REQUIRED" or .checksStatus == "PENDING")' | \
+          while read -r pr; do
+            number=$(echo $pr | jq -r .number)
+            
+            # Add reminder comment
+            gh pr comment $number --body "⚠️ PR Status Update:
+            - Review Status: $(echo $pr | jq -r .reviewDecision)
+            - Checks Status: $(echo $pr | jq -r .checksStatus)
+            
+            Please address any pending items to move this PR forward."
+          done
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
