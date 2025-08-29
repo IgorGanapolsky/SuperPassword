@@ -3,19 +3,47 @@ updates:
   - package-ecosystem: "npm"
     directory: "/"
     schedule:
-      interval: "daily"
-      time: "04:00"
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "America/New_York"
     open-pull-requests-limit: 10
+    labels:
+      - "dependencies"
+      - "security"
+    reviewers:
+      - "IgorGanapolsky"
+    groups:
+      expo:
+        patterns:
+          - "expo*"
+      react:
+        patterns:
+          - "react*"
+          - "@react*"
+      dev-deps:
+        patterns:
+          - "@typescript-eslint/*"
+          - "@types/*"
+          - "eslint*"
+          - "prettier*"
+          - "typescript"
     commit-message:
-      prefix: "chore(deps)"
-    versioning-strategy: widen
+      prefix: "chore"
+      include: "scope"
 
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "weekly"
-      day: "sunday"
-      time: "04:30"
-    open-pull-requests-limit: 10
+      day: "monday"
+      time: "09:00"
+      timezone: "America/New_York"
+    labels:
+      - "dependencies"
+      - "ci"
+    reviewers:
+      - "IgorGanapolsky"
     commit-message:
-      prefix: "chore(actions)"
+      prefix: "ci"
+      include: "scope"
