@@ -70,6 +70,21 @@ const config: ExpoConfig = {
       {
         organization: process.env.SENTRY_ORG,
         project: process.env.SENTRY_PROJECT,
+<<<<<<< HEAD
+=======
+        hooks: {
+          postPublish: [
+            {
+              file: "sentry-expo/upload-sourcemaps",
+              config: {
+                organization: process.env.SENTRY_ORG,
+                project: process.env.SENTRY_PROJECT,
+                authToken: process.env.SENTRY_AUTH_TOKEN,
+              },
+            },
+          ],
+        },
+>>>>>>> fix/dependency-compatibility
       },
     ],
     [

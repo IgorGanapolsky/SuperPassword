@@ -1,13 +1,25 @@
 import Constants from "expo-constants";
 import * as Sentry from "sentry-expo";
 
-let isInitialized = false;
+// Initialize Sentry immediately
+try {
+  Sentry.init({
+    dsn: Constants.expoConfig?.extra?.SENTRY_DSN as string,
+    enableInExpoDevelopment: true,
+    debug: __DEV__,
+    tracesSampleRate: 1.0,
+    enableAutoPerformanceTracing: true,
+  });
+} catch (error) {
+  console.error("Failed to initialize Sentry:", error);
+}
 
 /**
  * Initialize Sentry for error tracking
- * This function is safe to call multiple times
+ * This function exists for backward compatibility
  */
 export const initializeSentry = async (): Promise<boolean> => {
+<<<<<<< HEAD
   if (isInitialized) {
     return true;
   }
@@ -27,29 +39,34 @@ export const initializeSentry = async (): Promise<boolean> => {
     console.error("Failed to initialize Sentry:", error);
     return false;
   }
+=======
+  return true;
+>>>>>>> fix/dependency-compatibility
 };
 
 /**
  * Capture an exception to Sentry
- * Safe to call even if Sentry is not initialized
  */
 export const captureException = (error: Error | unknown): void => {
+<<<<<<< HEAD
   if (!isInitialized) {
     console.error("Sentry not initialized - Error:", error);
     return;
   }
 
+=======
+>>>>>>> fix/dependency-compatibility
   Sentry.Native.captureException(error);
 };
 
 /**
  * Capture a message to Sentry
- * Safe to call even if Sentry is not initialized
  */
 export const captureMessage = (
   message: string,
   level?: "info" | "warning" | "error",
 ): void => {
+<<<<<<< HEAD
   if (!isInitialized) {
     console.log(
       `Sentry not initialized - Message: [${level || "info"}] ${message}`,
@@ -57,6 +74,8 @@ export const captureMessage = (
     return;
   }
 
+=======
+>>>>>>> fix/dependency-compatibility
   Sentry.Native.captureMessage(message, {
     level: level || "info",
   });
@@ -66,6 +85,7 @@ export const captureMessage = (
  * Add breadcrumb for better error context
  */
 export const addBreadcrumb = (message: string, category?: string): void => {
+<<<<<<< HEAD
   if (!isInitialized) {
     console.log(
       `Sentry not initialized - Breadcrumb: [${category || "custom"}] ${message}`,
@@ -73,6 +93,8 @@ export const addBreadcrumb = (message: string, category?: string): void => {
     return;
   }
 
+=======
+>>>>>>> fix/dependency-compatibility
   Sentry.Native.addBreadcrumb({
     message,
     category: category || "custom",
@@ -81,8 +103,8 @@ export const addBreadcrumb = (message: string, category?: string): void => {
 
 /**
  * Get the Sentry error boundary component
- * Returns null if Sentry is not initialized
  */
+<<<<<<< HEAD
 export const getErrorBoundary = (): React.ComponentType<any> | null => {
   if (!isInitialized) {
     return null;
@@ -96,4 +118,8 @@ export const getErrorBoundary = (): React.ComponentType<any> | null => {
  */
 export const isSentryInitialized = (): boolean => {
   return isInitialized;
+=======
+export const getErrorBoundary = (): React.ComponentType<any> => {
+  return Sentry.Native.ErrorBoundary;
+>>>>>>> fix/dependency-compatibility
 };

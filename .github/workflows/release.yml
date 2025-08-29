@@ -1,0 +1,145 @@
+name: 🚀 Release Management
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release (e.g. 1.2.3)'
+        required: true
+        type: string
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  prepare-release:
+    name: 📦 Prepare Release
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.get-version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Get Version
+        id: get-version
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "version=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+          else
+            VERSION=$(node -p "require('./package.json').version")
+            echo "version=$VERSION" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Update Version Files
+        run: |
+          VERSION="${{ steps.get-version.outputs.version }}"
+          # Update package.json
+          npm version $VERSION --no-git-tag-version
+          # Update app.config.ts version
+          sed -i "s/version: \".*\"/version: \"$VERSION\"/" app.config.ts
+
+      - name: Create Release Branch
+        run: |
+          VERSION="${{ steps.get-version.outputs.version }}"
+          git checkout -b release/v$VERSION
+          git add .
+          git commit -m "chore(release): prepare v$VERSION"
+          git push origin release/v$VERSION
+
+      - name: Create Release PR
+        run: |
+          VERSION="${{ steps.get-version.outputs.version }}"
+          gh pr create \
+            --base main \
+            --head release/v$VERSION \
+            --title "🚀 Release v$VERSION" \
+            --body "## Release v$VERSION
+
+          ### Changes
+          $(git log --pretty=format:'- %s' $(git describe --tags --abbrev=0)..HEAD)
+
+          ### Checklist
+          - [ ] Version bumped
+          - [ ] Changelog updated
+          - [ ] Tests passing
+          - [ ] Documentation updated
+          - [ ] Release notes reviewed"
+
+  build-and-test:
+    name: 🏗️ Build & Test
+    needs: prepare-release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Run Tests
+        run: npm test
+
+      - name: Build Web
+        run: npx expo build:web
+
+      - name: Build Mobile Preview
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+      - run: |
+          eas build --platform all --profile preview --non-interactive
+
+  publish-release:
+    name: 📢 Publish Release
+    needs: [prepare-release, build-and-test]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION="${{ needs.prepare-release.outputs.version }}"
+          gh release create v$VERSION \
+            --title "SuperPassword v$VERSION" \
+            --notes "$(git log --pretty=format:'- %s' $(git describe --tags --abbrev=0)..HEAD)" \
+            --draft
+
+      - name: Submit to Stores
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+      - run: |
+          eas submit -p ios --latest
+          eas submit -p android --latest
+
+  notify-team:
+    name: 📣 Notify Team
+    needs: [prepare-release, publish-release]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Send Notification
+        uses: slackapi/slack-github-action@v1.24.0
+        with:
+          channel-id: 'releases'
+          slack-message: |
+            *SuperPassword v${{ needs.prepare-release.outputs.version }} Release Status*
+            - Build: ${{ needs.build-and-test.result }}
+            - Publish: ${{ needs.publish-release.result || 'skipped' }}
+            - Version: ${{ needs.prepare-release.outputs.version }}
+            - Branch: ${{ github.ref }}
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}

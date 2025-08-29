@@ -1548,7 +1548,11 @@ Fetching old
 > husky install
 
 
+<<<<<<< HEAD
 added 1152 packages in 18s
+=======
+added 1136 packages in 13s
+>>>>>>> fix/dependency-compatibility
 
 > superpassword@1.0.0 autofix
 > npm run fmt:fix && npm run lint:fix
@@ -1557,11 +1561,16 @@ added 1152 packages in 18s
 > superpassword@1.0.0 fmt:fix
 > prettier --write .
 
+<<<<<<< HEAD
 .cursor/mcp.json 15ms (unchanged)
+=======
+.cursor/mcp.json 14ms (unchanged)
+>>>>>>> fix/dependency-compatibility
 .cursor/rules.json 1ms (unchanged)
 .eas/project.json 0ms (unchanged)
 .eslintrc.cjs 5ms (unchanged)
 .github/dependabot.yml 8ms (unchanged)
+<<<<<<< HEAD
 .github/ISSUE_TEMPLATE/bug_report.yml 5ms (unchanged)
 .github/ISSUE_TEMPLATE/config.yml 1ms (unchanged)
 .github/ISSUE_TEMPLATE/feature_request.yml 2ms (unchanged)
@@ -1595,6 +1604,28 @@ index.web.ts 0ms
 metro.config.js 1ms (unchanged)
 package-lock.json 34ms (unchanged)
 package.json 0ms (unchanged)
+=======
+.github/pull_request_template.md 11ms (unchanged)
+.github/scripts/repo-guardian.mjs 18ms (unchanged)
+.github/workflows/autofix.yml 3ms (unchanged)
+.github/workflows/ci.yml 2ms (unchanged)
+.github/workflows/codeql.yml 1ms (unchanged)
+.github/workflows/dependabot-auto-merge.yml 3ms (unchanged)
+.github/workflows/merge-queue-helper.yml 2ms (unchanged)
+.github/workflows/pr-health.yml 2ms (unchanged)
+.github/workflows/repo-guardian.yml 1ms (unchanged)
+.github/workflows/secret-scan.yml 1ms (unchanged)
+.trunk/configs/.markdownlint.yaml 0ms (unchanged)
+.trunk/trunk.yaml 1ms (unchanged)
+app.config.ts 19ms
+App.tsx 6ms (unchanged)
+babel.config.js 1ms (unchanged)
+DEPLOYMENT_CHECKLIST.md 7ms (unchanged)
+eas.json 1ms (unchanged)
+metro.config.js 1ms (unchanged)
+package-lock.json 42ms (unchanged)
+package.json 1ms (unchanged)
+>>>>>>> fix/dependency-compatibility
 PRIVACY_POLICY.md 4ms (unchanged)
 README.md 8ms (unchanged)
 scripts/generate-icon.js 3ms (unchanged)
@@ -1620,3 +1651,90 @@ tsconfig.json 0ms (unchanged)
 > superpassword@1.0.0 lint:fix
 > eslint . --ext .ts,.tsx --fix
 
+<<<<<<< HEAD
+=======
+Fetching origin
+Fetching old
+
+> superpassword@1.0.0 prepare
+> husky install
+
+
+added 1746 packages in 20s
+
+> superpassword@1.0.0 autofix
+> npm run fmt:fix && npm run lint:fix
+
+
+> superpassword@1.0.0 fmt:fix
+> prettier --write .
+
+.cursor/mcp.json 14ms (unchanged)
+.cursor/rules.json 1ms (unchanged)
+.eas/project.json 0ms (unchanged)
+.eslintrc.cjs 7ms (unchanged)
+.github/dependabot.yml 9ms (unchanged)
+.github/dependency-tracking.yml 6ms (unchanged)
+.github/documentation-config.yml 5ms (unchanged)
+.github/maintenance-config.yml 4ms (unchanged)
+.github/ml-config.yml 3ms (unchanged)
+.github/project-config.yml 2ms (unchanged)
+.github/pull_request_template.md 12ms (unchanged)
+.github/scripts/repo-guardian.mjs 20ms (unchanged)
+.github/visualization-config.yml 3ms (unchanged)
+.github/workflows/agent-orchestration.yml 3ms (unchanged)
+.github/workflows/main.yml 3ms (unchanged)
+.github/workflows/metrics-collection.yml 2ms (unchanged)
+.github/workflows/security-monitoring.yml 1ms (unchanged)
+.github/workflows/sonarcloud.yml 1ms (unchanged)
+.github/workflows/system-init.yml 1ms
+.trunk/configs/.markdownlint.yaml 1ms (unchanged)
+.trunk/trunk.yaml 1ms (unchanged)
+.venv/lib/python3.13/site-packages/pip-25.2.dist-info/licenses/src/pip/_vendor/idna/LICENSE.md 3ms (unchanged)
+app.config.ts 18ms (unchanged)
+App.tsx 7ms
+babel.config.js 1ms (unchanged)
+DEPLOYMENT_CHECKLIST.md 8ms (unchanged)
+docs/CONTRIBUTING.md 3ms (unchanged)
+docs/SECURITY.md 3ms (unchanged)
+docs/WORKFLOW.md 5ms (unchanged)
+eas.json 1ms (unchanged)
+eslint.config.js 2ms (unchanged)
+index.web.ts 1ms
+index.web.tsx 0ms
+metro.config.js 1ms (unchanged)
+monitoring/board_status/board_status_1756495569.json 1ms
+monitoring/dashboard-config.yml 2ms
+monitoring/reports/health_report_1756495545.json 1ms
+package-lock.json 55ms (unchanged)
+package.json 0ms (unchanged)
+PRIVACY_POLICY.md 4ms (unchanged)
+README.md 8ms (unchanged)
+scripts/generate-icon.js 4ms (unchanged)
+src/components/ErrorBoundary.web.tsx 4ms
+src/components/ErrorFallback.tsx 3ms (unchanged)
+src/components/SentryTest.tsx 3ms (unchanged)
+src/constants/theme.ts 2ms (unchanged)
+src/contexts/ThemeContext.tsx 3ms (unchanged)
+src/hooks/useTheme.ts 0ms (unchanged)
+src/navigation/AppNavigator.tsx 3ms
+src/polyfills.ts 1ms (unchanged)
+src/screens/HistoryScreen.tsx 33ms (unchanged)
+src/screens/HomeScreen.tsx 15ms (unchanged)
+src/screens/PremiumScreen.tsx 13ms (unchanged)
+src/screens/SettingsScreen.tsx 11ms (unchanged)
+src/services/ads.tsx 2ms (unchanged)
+src/services/ads.web.tsx 1ms (unchanged)
+src/services/firebase.ts 2ms (unchanged)
+src/services/sentry.ts 1ms (unchanged)
+src/services/storage.ts 6ms (unchanged)
+src/services/storage.web.ts 3ms
+src/types/index.ts 2ms (unchanged)
+src/utils/passwordGenerator.ts 5ms (unchanged)
+store-listings/APP_STORE_LISTING.md 5ms (unchanged)
+tsconfig.json 1ms (unchanged)
+
+> superpassword@1.0.0 lint:fix
+> eslint . --fix
+
+>>>>>>> fix/dependency-compatibility

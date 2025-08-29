@@ -99,24 +99,19 @@ export default function App() {
     </GestureHandlerRootView>
   );
 
-  // Conditionally wrap with Sentry error boundary if initialized
   const ErrorBoundary = getErrorBoundary();
-  if (ErrorBoundary) {
-    return (
-      <ErrorBoundary
-        fallback={({
-          error,
-          resetError,
-        }: {
-          error: Error;
-          resetError: () => void;
-        }) => <ErrorFallback error={error} resetError={resetError} />}
-        showDialog
-      >
-        {content}
-      </ErrorBoundary>
-    );
-  }
-
-  return content;
+  return (
+    <ErrorBoundary
+      fallback={({
+        error,
+        resetError,
+      }: {
+        error: Error;
+        resetError: () => void;
+      }) => <ErrorFallback error={error} resetError={resetError} />}
+      showDialog
+    >
+      {content}
+    </ErrorBoundary>
+  );
 }

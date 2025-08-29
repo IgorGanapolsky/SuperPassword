@@ -1,0 +1,74 @@
+name: Advanced Metrics Collection
+
+on:
+  schedule:
+    - cron: "0 */2 * * *" # Run every 2 hours
+  workflow_dispatch:
+  push:
+    branches: [main, develop]
+
+jobs:
+  collect-metrics:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Full history for accurate metrics
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Dependencies
+        run: |
+          pip install metrics-collector==2.5.0 code-quality-analyzer==2.0.0
+
+      - name: Collect Code Quality Metrics
+        run: |
+          python -m metrics.collect \
+            --type=code-quality \
+            --include-complexity \
+            --include-coverage \
+            --include-duplication
+
+      - name: Analyze Performance Metrics
+        run: |
+          python -m metrics.collect \
+            --type=performance \
+            --include-response-times \
+            --include-resource-usage
+
+      - name: Calculate Technical Debt
+        run: |
+          python -m metrics.debt \
+            --analyze-patterns \
+            --calculate-ratio \
+            --suggest-improvements
+
+      - name: Generate ML Insights
+        run: |
+          python -m metrics.ml_insights \
+            --analyze-trends \
+            --predict-issues \
+            --optimize-resources
+
+      - name: Update Project Board
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python -m metrics.update_board \
+            --metrics-data=*.json \
+            --update-views \
+            --trigger-automations
+
+      - name: Store Metrics
+        uses: actions/upload-artifact@v3
+        with:
+          name: project-metrics
+          path: metrics/
