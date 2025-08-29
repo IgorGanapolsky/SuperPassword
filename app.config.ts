@@ -70,7 +70,19 @@ const config: ExpoConfig = {
       {
         organization: process.env.SENTRY_ORG,
         project: process.env.SENTRY_PROJECT,
-      }
+        hooks: {
+          postPublish: [
+            {
+              file: "sentry-expo/upload-sourcemaps",
+              config: {
+                organization: process.env.SENTRY_ORG,
+                project: process.env.SENTRY_PROJECT,
+                authToken: process.env.SENTRY_AUTH_TOKEN,
+              },
+            },
+          ],
+        },
+      },
     ],
     [
       "expo-build-properties",
@@ -93,18 +105,6 @@ const config: ExpoConfig = {
   },
   updates: { fallbackToCacheTimeout: 0 },
   assetBundlePatterns: ["**/*"],
-  hooks: {
-    postPublish: [
-      {
-        file: "sentry-expo/upload-sourcemaps",
-        config: {
-          organization: process.env.SENTRY_ORG,
-          project: process.env.SENTRY_PROJECT,
-          authToken: process.env.SENTRY_AUTH_TOKEN
-        }
-      }
-    ]
-  },
 };
 
 export default config;
