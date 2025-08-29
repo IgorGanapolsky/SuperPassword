@@ -33,37 +33,72 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: |
-          pip install agentic-orchestrator==2.5.0
-          python -m agentic.setup
+          pip install --upgrade pip
+          pip install pytest pytest-cov pylint black mypy
+          pip install openai langchain pydantic fastapi
+          pip install pandas numpy scikit-learn
+          pip install python-dotenv requests
 
       - name: Run Health Diagnostics
         id: diagnostics
         run: |
-          python -m agentic.analyze \
-            --repo="${{ github.repository }}" \
-            --output-format=json > health_report.json
+          python -m pytest --cov=. --cov-report=json:coverage.json
+          pylint . --output-format=json > lint_report.json
+          mypy . --json-report --json-report-file type_report.json
+          echo '{"repo": "'${{ github.repository }}'"}' > repo_info.json
+          jq -s 'add' coverage.json lint_report.json type_report.json repo_info.json > health_report.json
 
       - name: Process Metrics
         run: |
-          python -m agentic.metrics \
-            --input=health_report.json \
-            --update-project
+          python <<EOF
+          import json
+          import os
+
+          with open('health_report.json', 'r') as f:
+              data = json.load(f)
+              
+          metrics = {
+              'coverage': data.get('totals', {}).get('percent_covered', 0),
+              'lint_score': len(data.get('linting', {}).get('errors', [])),
+              'type_check_score': len(data.get('type_checking', {}).get('errors', []))
+          }
+
+          with open('metrics.json', 'w') as f:
+              json.dump(metrics, f)
+          EOF
 
       - name: Update Project Board
         if: always()
         run: |
-          python -m agentic.board \
-            --mode=update \
-            --health-data=health_report.json \
-            --auto-assign \
-            --risk-analysis
+          gh api -X POST /repos/${{ github.repository }}/issues \
+            -f title="Health Report Update" \
+            -f body="$(cat health_report.json | jq -r tostring)" \
+            -f labels[]="automated,health-report"
 
       - name: Generate AI Insights
         run: |
-          python -m agentic.insights \
-            --analyze-trends \
-            --predict-risks \
-            --suggest-optimizations
+          python <<EOF
+          import json
+          import datetime
+
+          with open('health_report.json', 'r') as f:
+              data = json.load(f)
+              
+          insights = {
+              'timestamp': datetime.datetime.now().isoformat(),
+              'health_score': sum([data.get('coverage', 0), 
+                                  100 - data.get('lint_score', 0), 
+                                  100 - data.get('type_check_score', 0)]) / 3,
+              'recommendations': [
+                  'Improve test coverage',
+                  'Fix linting issues',
+                  'Address type checking errors'
+              ]
+          }
+
+          with open('insights.json', 'w') as f:
+              json.dump(insights, f)
+          EOF
 
       - name: Archive Results
         if: always()
