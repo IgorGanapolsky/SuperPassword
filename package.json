@@ -12,7 +12,17 @@
     "fmt": "prettier --check .",
     "fmt:fix": "prettier --write .",
     "autofix": "npm run fmt:fix && npm run lint:fix",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage --coverageReporters=lcov --coverageDirectory=coverage",
+    "build:web": "cross-env NODE_ENV=production expo build:web",
+    "build:ios": "eas build --platform ios",
+    "build:android": "eas build --platform android",
+    "build": "npm run build:web && npm run build:ios && npm run build:android",
+    "deploy:web": "npm run build:web && gsutil -m rsync -r web-build gs://superpassword.app",
+    "deploy:mobile": "eas submit -p all --latest",
+    "sonar": "sonar-scanner"
   },
   "dependencies": {
     "@babel/runtime": "^7.28.3",
@@ -72,7 +82,15 @@
     "husky": "^9.1.6",
     "lint-staged": "^16.1.5",
     "prettier": "^3.6.2",
-    "typescript": "~5.8.3"
+    "typescript": "~5.8.3",
+    "@sentry/react-native": "^5.25.0",
+    "@testing-library/react-native": "^12.4.3",
+    "@testing-library/jest-native": "^5.4.3",
+    "jest": "^29.7.0",
+    "jest-expo": "^49.0.0",
+    "@types/jest": "^29.5.12",
+    "cross-env": "^7.0.3",
+    "sonar-scanner": "^3.1.0"
   },
   "lint-staged": {
     "*.{ts,tsx,js,jsx,json,md,yml,yaml}": [

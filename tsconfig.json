@@ -4,6 +4,14 @@
     "strict": true,
     "importHelpers": true,
     "baseUrl": ".",
+    "target": "ES2023",
+    "module": "NodeNext",
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+    "noImplicitOverride": true,
+    "allowJs": true,
+    "checkJs": true,
+    "verbatimModuleSyntax": true,
     "paths": {
       "@/*": ["src/*"],
       "@/components/*": ["src/components/*"],
@@ -22,10 +30,12 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "esModuleInterop": true,
-    "moduleResolution": "bundler",
+    "moduleResolution": "NodeNext",
     "jsx": "react-native",
-    "lib": ["ES2021"],
-    "types": ["react-native"]
+    "lib": ["ES2023", "DOM"],
+    "types": ["react-native", "node"],
+    "incremental": true,
+    "tsBuildInfoFile": ".tsbuildinfo"
   },
   "include": ["**/*.ts", "**/*.tsx", "**/*.js", "**/*.jsx"],
   "exclude": [

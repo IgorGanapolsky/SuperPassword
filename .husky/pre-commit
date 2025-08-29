@@ -1,4 +1,25 @@
 #!/bin/sh
-. "$(dirname "$0")/_/husky.sh"
 
-npx lint-staged
+# Run TypeScript type checking
+echo "🔍 Running TypeScript checks..."
+npx tsc --noEmit || exit 1
+
+# Run ESLint and Prettier
+echo "🎨 Running ESLint and Prettier..."
+npx lint-staged || exit 1
+
+# Run tests
+echo "🧪 Running tests..."
+npm test -- --findRelatedTests --passWithNoTests || exit 1
+
+# Check for sensitive data
+echo "🔒 Checking for sensitive data..."
+if command -v detect-secrets-hook >/dev/null 2>&1; then
+  npx detect-secrets-hook
+fi
+
+# Run SonarQube local analysis if token exists
+if [ -n "$SONAR_TOKEN" ]; then
+  echo "📊 Running SonarQube analysis..."
+  npx sonar-scanner -Dsonar.login="$SONAR_TOKEN" || exit 1
+fi

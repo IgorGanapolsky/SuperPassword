@@ -1,6 +1,7 @@
 {
   "cli": {
-    "version": ">= 5.2.0",
+    "version": ">= 5.9.1",
+    "promptToConfigurePushNotifications": false,
     "appVersionSource": "remote"
   },
   "build": {
@@ -45,13 +46,13 @@
   "submit": {
     "production": {
       "ios": {
-        "appleId": "your-apple-id@example.com",
-        "ascAppId": "your-app-store-connect-app-id",
-        "appleTeamId": "YOUR_TEAM_ID"
+        "appleId": "{{EXPO_APPLE_ID}}",
+        "ascAppId": "{{EXPO_APP_ID}}",
+        "appleTeamId": "{{EXPO_TEAM_ID}}"
       },
       "android": {
-        "serviceAccountKeyPath": "./google-play-service-account.json",
-        "track": "internal"
+        "serviceAccountKeyPath": "/tmp/google-play-key.json",
+        "track": "production"
       }
     }
   }

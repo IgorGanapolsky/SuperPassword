@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#667eea" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta
+      name="apple-mobile-web-app-status-bar-style"
+      content="black-translucent"
+    />
+
+    <!-- Primary Meta Tags -->
+    <title>SuperPassword - Secure Password Generator</title>
+    <meta name="title" content="SuperPassword - Secure Password Generator" />
+    <meta
+      name="description"
+      content="Generate strong, secure passwords instantly. Customizable options, cross-device sync, and premium features for enhanced security."
+    />
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://superpassword.app/" />
+    <meta
+      property="og:title"
+      content="SuperPassword - Secure Password Generator"
+    />
+    <meta
+      property="og:description"
+      content="Generate strong, secure passwords instantly. Customizable options, cross-device sync, and premium features for enhanced security."
+    />
+    <meta
+      property="og:image"
+      content="https://superpassword.app/images/og-image.png"
+    />
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content="https://superpassword.app/" />
+    <meta
+      property="twitter:title"
+      content="SuperPassword - Secure Password Generator"
+    />
+    <meta
+      property="twitter:description"
+      content="Generate strong, secure passwords instantly. Customizable options, cross-device sync, and premium features for enhanced security."
+    />
+    <meta
+      property="twitter:image"
+      content="https://superpassword.app/images/twitter-image.png"
+    />
+
+    <!-- Favicon -->
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="32x32"
+      href="/icons/favicon-32x32.png"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="16x16"
+      href="/icons/favicon-16x16.png"
+    />
+    <link
+      rel="apple-touch-icon"
+      sizes="180x180"
+      href="/icons/apple-touch-icon.png"
+    />
+    <link rel="mask-icon" href="/icons/safari-pinned-tab.svg" color="#667eea" />
+
+    <!-- PWA -->
+    <link rel="manifest" href="/manifest.json" />
+
+    <!-- Preconnect to important origins -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+    <!-- Critical CSS -->
+    <style>
+      :root {
+        --primary-color: #667eea;
+        --accent-color: #764ba2;
+        --background-color: #f7fafc;
+        --text-color: #2d3748;
+      }
+
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        background-color: var(--background-color);
+        color: var(--text-color);
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          "Helvetica Neue", Arial, sans-serif;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+
+      #root {
+        height: 100%;
+      }
+
+      .splash-screen {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: var(--primary-color);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        color: white;
+      }
+
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --background-color: #1a202c;
+          --text-color: #f7fafc;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root">
+      <div class="splash-screen">
+        <img
+          src="/icons/icon-192.png"
+          alt="SuperPassword"
+          width="96"
+          height="96"
+        />
+        <h1>SuperPassword</h1>
+      </div>
+    </div>
+
+    <script>
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", () => {
+          navigator.serviceWorker
+            .register("/sw.js")
+            .then((registration) => {
+              console.log("ServiceWorker registration successful");
+            })
+            .catch((err) => {
+              console.log("ServiceWorker registration failed: ", err);
+            });
+        });
+      }
+    </script>
+
+    <!-- App -->
+    <script type="module" src="/static/js/main.bundle.js"></script>
+
+    <!-- Analytics (load after main content) -->
+    <script
+      defer
+      data-domain="superpassword.app"
+      src="https://plausible.io/js/script.js"
+    ></script>
+  </body>
+</html>

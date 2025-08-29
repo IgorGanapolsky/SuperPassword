@@ -1541,3 +1541,190 @@ tsconfig.json 0ms (unchanged)
 > superpassword@1.0.0 lint:fix
 > eslint . --ext .ts,.tsx --fix
 
+Fetching origin
+Fetching old
+
+> superpassword@1.0.0 prepare
+> husky install
+
+
+added 1152 packages in 20s
+
+> superpassword@1.0.0 autofix
+> npm run fmt:fix && npm run lint:fix
+
+
+> superpassword@1.0.0 fmt:fix
+> prettier --write .
+
+.cursor/mcp.json 20ms (unchanged)
+.cursor/rules.json 2ms (unchanged)
+.eas/project.json 0ms (unchanged)
+.eslintrc.cjs 7ms (unchanged)
+.github/dependabot.yml 8ms (unchanged)
+.github/pull_request_template.md 10ms (unchanged)
+.github/scripts/repo-guardian.mjs 18ms (unchanged)
+.github/workflows/autofix.yml 2ms (unchanged)
+.github/workflows/ci.yml 2ms (unchanged)
+.github/workflows/codeql.yml 1ms (unchanged)
+.github/workflows/dependabot-auto-merge.yml 3ms (unchanged)
+.github/workflows/eas-build.yml 1ms (unchanged)
+.github/workflows/merge-queue-helper.yml 2ms (unchanged)
+.github/workflows/pr-check.yml 1ms
+.github/workflows/pr-health.yml 2ms (unchanged)
+.github/workflows/repo-guardian.yml 1ms (unchanged)
+.github/workflows/secret-scan.yml 1ms (unchanged)
+.trunk/configs/.markdownlint.yaml 1ms (unchanged)
+.trunk/trunk.yaml 1ms (unchanged)
+app.config.ts 18ms
+App.tsx 7ms
+babel.config.js 1ms (unchanged)
+DEPLOYMENT_CHECKLIST.md 7ms (unchanged)
+docs/CREDENTIALS.md 3ms
+eas.json 1ms (unchanged)
+index.web.ts 0ms
+ios/Podfile.properties.json 0ms (unchanged)
+ios/Pods/boost/README.md 3ms
+ios/Pods/DoubleConversion/README 2ms
+ios/Pods/fast_float/README.md 12ms
+ios/Pods/fmt/README.md 21ms
+ios/Pods/glog/README 1ms
+ios/Pods/Local Podspecs/boost.podspec.json 2ms (unchanged)
+ios/Pods/Local Podspecs/DoubleConversion.podspec.json 3ms (unchanged)
+ios/Pods/Local Podspecs/EXApplication.podspec.json 2ms
+ios/Pods/Local Podspecs/EXConstants.podspec.json 1ms
+ios/Pods/Local Podspecs/EXJSONUtils.podspec.json 0ms (unchanged)
+ios/Pods/Local Podspecs/EXManifests.podspec.json 1ms (unchanged)
+ios/Pods/Local Podspecs/expo-dev-client.podspec.json 0ms
+ios/Pods/Local Podspecs/expo-dev-launcher.podspec.json 1ms
+ios/Pods/Local Podspecs/expo-dev-menu-interface.podspec.json 0ms (unchanged)
+ios/Pods/Local Podspecs/expo-dev-menu.podspec.json 1ms
+ios/Pods/Local Podspecs/Expo.podspec.json 1ms
+ios/Pods/Local Podspecs/ExpoAsset.podspec.json 0ms (unchanged)
+ios/Pods/Local Podspecs/ExpoClipboard.podspec.json 0ms (unchanged)
+ios/Pods/Local Podspecs/ExpoDevice.podspec.json 0ms
+ios/Pods/Local Podspecs/ExpoFileSystem.podspec.json 0ms
+ios/Pods/Local Podspecs/ExpoFont.podspec.json 0ms (unchanged)
+ios/Pods/Local Podspecs/ExpoHaptics.podspec.json 0ms (unchanged)
+ios/Pods/Local Podspecs/ExpoKeepAwake.podspec.json 0ms (unchanged)
+ios/Pods/Local Podspecs/ExpoLinearGradient.podspec.json 0ms (unchanged)
+ios/Pods/Local Podspecs/ExpoModulesCore.podspec.json 1ms
+ios/Pods/Local Podspecs/ExpoSplashScreen.podspec.json 0ms (unchanged)
+ios/Pods/Local Podspecs/EXUpdatesInterface.podspec.json 0ms (unchanged)
+ios/Pods/Local Podspecs/fast_float.podspec.json 0ms
+ios/Pods/Local Podspecs/FBLazyVector.podspec.json 0ms (unchanged)
+ios/Pods/Local Podspecs/fmt.podspec.json 0ms
+ios/Pods/Local Podspecs/glog.podspec.json 0ms
+ios/Pods/Local Podspecs/hermes-engine.podspec.json 0ms
+ios/Pods/Local Podspecs/RCT-Folly.podspec.json 1ms
+ios/Pods/Local Podspecs/RCTDeprecation.podspec.json 0ms
+ios/Pods/Local Podspecs/RCTRequired.podspec.json 0ms (unchanged)
+ios/Pods/Local Podspecs/RCTTypeSafety.podspec.json 0ms
+ios/Pods/Local Podspecs/React-callinvoker.podspec.json 0ms (unchanged)
+ios/Pods/Local Podspecs/React-Core.podspec.json 1ms
+ios/Pods/Local Podspecs/React-CoreModules.podspec.json 1ms
+ios/Pods/Local Podspecs/React-cxxreact.podspec.json 0ms
+ios/Pods/Local Podspecs/React-debug.podspec.json 0ms (unchanged)
+ios/Pods/Local Podspecs/React-defaultsnativemodule.podspec.json 0ms (unchanged)
+ios/Pods/Local Podspecs/React-domnativemodule.podspec.json 0ms (unchanged)
+ios/Pods/Local Podspecs/React-Fabric.podspec.json 1ms
+ios/Pods/Local Podspecs/React-FabricComponents.podspec.json 1ms
+ios/Pods/Local Podspecs/React-FabricImage.podspec.json 0ms
+ios/Pods/Local Podspecs/React-featureflags.podspec.json 0ms
+ios/Pods/Local Podspecs/React-featureflagsnativemodule.podspec.json 0ms (unchanged)
+ios/Pods/Local Podspecs/React-graphics.podspec.json 0ms
+ios/Pods/Local Podspecs/React-hermes.podspec.json 0ms
+ios/Pods/Local Podspecs/React-idlecallbacksnativemodule.podspec.json 0ms (unchanged)
+ios/Pods/Local Podspecs/React-ImageManager.podspec.json 0ms (unchanged)
+ios/Pods/Local Podspecs/React-jserrorhandler.podspec.json 0ms
+ios/Pods/Local Podspecs/React-jsi.podspec.json 0ms
+ios/Pods/Local Podspecs/React-jsiexecutor.podspec.json 0ms
+ios/Pods/Local Podspecs/React-jsinspector.podspec.json 0ms
+ios/Pods/Local Podspecs/React-jsinspectortracing.podspec.json 0ms (unchanged)
+ios/Pods/Local Podspecs/React-jsitooling.podspec.json 0ms
+ios/Pods/Local Podspecs/React-jsitracing.podspec.json 0ms (unchanged)
+ios/Pods/Local Podspecs/React-logger.podspec.json 0ms (unchanged)
+ios/Pods/Local Podspecs/React-Mapbuffer.podspec.json 0ms (unchanged)
+ios/Pods/Local Podspecs/React-microtasksnativemodule.podspec.json 0ms (unchanged)
+ios/Pods/Local Podspecs/react-native-safe-area-context.podspec.json 1ms
+ios/Pods/Local Podspecs/react-native-slider.podspec.json 0ms
+ios/Pods/Local Podspecs/React-NativeModulesApple.podspec.json 0ms (unchanged)
+ios/Pods/Local Podspecs/React-oscompat.podspec.json 0ms (unchanged)
+ios/Pods/Local Podspecs/React-perflogger.podspec.json 0ms
+ios/Pods/Local Podspecs/React-performancetimeline.podspec.json 0ms
+ios/Pods/Local Podspecs/React-RCTActionSheet.podspec.json 0ms
+ios/Pods/Local Podspecs/React-RCTAnimation.podspec.json 0ms
+ios/Pods/Local Podspecs/React-RCTAppDelegate.podspec.json 0ms
+ios/Pods/Local Podspecs/React-RCTBlob.podspec.json 0ms
+ios/Pods/Local Podspecs/React-RCTFabric.podspec.json 0ms
+ios/Pods/Local Podspecs/React-RCTFBReactNativeSpec.podspec.json 0ms (unchanged)
+ios/Pods/Local Podspecs/React-RCTImage.podspec.json 0ms
+ios/Pods/Local Podspecs/React-RCTLinking.podspec.json 0ms
+ios/Pods/Local Podspecs/React-RCTNetwork.podspec.json 0ms
+ios/Pods/Local Podspecs/React-RCTRuntime.podspec.json 0ms
+ios/Pods/Local Podspecs/React-RCTSettings.podspec.json 0ms
+ios/Pods/Local Podspecs/React-RCTText.podspec.json 0ms
+ios/Pods/Local Podspecs/React-RCTVibration.podspec.json 0ms
+ios/Pods/Local Podspecs/React-rendererconsistency.podspec.json 0ms (unchanged)
+ios/Pods/Local Podspecs/React-renderercss.podspec.json 0ms (unchanged)
+ios/Pods/Local Podspecs/React-rendererdebug.podspec.json 0ms
+ios/Pods/Local Podspecs/React-rncore.podspec.json 0ms (unchanged)
+ios/Pods/Local Podspecs/React-RuntimeApple.podspec.json 0ms
+ios/Pods/Local Podspecs/React-RuntimeCore.podspec.json 0ms
+ios/Pods/Local Podspecs/React-runtimeexecutor.podspec.json 0ms
+ios/Pods/Local Podspecs/React-RuntimeHermes.podspec.json 0ms
+ios/Pods/Local Podspecs/React-runtimescheduler.podspec.json 0ms
+ios/Pods/Local Podspecs/React-timing.podspec.json 0ms (unchanged)
+ios/Pods/Local Podspecs/React-utils.podspec.json 0ms
+ios/Pods/Local Podspecs/React.podspec.json 0ms
+ios/Pods/Local Podspecs/ReactAppDependencyProvider.podspec.json 0ms (unchanged)
+ios/Pods/Local Podspecs/ReactCodegen.podspec.json 0ms
+ios/Pods/Local Podspecs/ReactCommon.podspec.json 0ms
+ios/Pods/Local Podspecs/RNCAsyncStorage.podspec.json 0ms
+ios/Pods/Local Podspecs/RNGestureHandler.podspec.json 0ms
+ios/Pods/Local Podspecs/RNReanimated.podspec.json 1ms
+ios/Pods/Local Podspecs/RNScreens.podspec.json 0ms
+ios/Pods/Local Podspecs/RNVectorIcons.podspec.json 0ms
+ios/Pods/Local Podspecs/Yoga.podspec.json 0ms
+ios/Pods/RCT-Folly/README.md 12ms
+ios/Pods/SocketRocket/README.md 6ms
+ios/Pods/Target Support Files/Pods-SuperPassword/Pods-SuperPassword-acknowledgements.markdown 43ms
+ios/SuperPassword/Images.xcassets/AppIcon.appiconset/Contents.json 1ms
+ios/SuperPassword/Images.xcassets/Contents.json 0ms
+ios/SuperPassword/Images.xcassets/SplashScreenBackground.colorset/Contents.json 0ms
+ios/SuperPassword/Images.xcassets/SplashScreenLogo.imageset/Contents.json 0ms
+metro.config.js 2ms (unchanged)
+package-lock.json 40ms (unchanged)
+package.json 0ms (unchanged)
+PRIVACY_POLICY.md 4ms (unchanged)
+public/index.html 28ms
+public/manifest.json 1ms (unchanged)
+public/sw.js 3ms
+README.md 13ms (unchanged)
+scripts/generate-icon.js 6ms (unchanged)
+src/components/ErrorFallback.tsx 4ms (unchanged)
+src/components/SentryTest.tsx 4ms (unchanged)
+src/config/firebase.ts 1ms
+src/constants/theme.ts 2ms (unchanged)
+src/contexts/ThemeContext.tsx 4ms (unchanged)
+src/hooks/useTheme.ts 1ms (unchanged)
+src/navigation/AppNavigator.tsx 3ms (unchanged)
+src/screens/HistoryScreen.tsx 9ms (unchanged)
+src/screens/HomeScreen.tsx 13ms (unchanged)
+src/screens/PremiumScreen.tsx 12ms (unchanged)
+src/screens/SettingsScreen.tsx 13ms (unchanged)
+src/services/ads.tsx 4ms (unchanged)
+src/services/firebase.ts 2ms (unchanged)
+src/services/premium.ts 3ms
+src/services/sentry.ts 2ms
+src/services/storage.ts 7ms (unchanged)
+src/services/sync.ts 4ms
+src/types/index.ts 2ms (unchanged)
+src/utils/encryption.ts 1ms
+src/utils/passwordGenerator.ts 7ms (unchanged)
+store-listings/APP_STORE_LISTING.md 6ms (unchanged)
+tsconfig.json 1ms (unchanged)
+
+> superpassword@1.0.0 lint:fix
+> eslint . --ext .ts,.tsx --fix
+

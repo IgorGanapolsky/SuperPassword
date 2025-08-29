@@ -1,5 +1,6 @@
 import Constants from "expo-constants";
 import * as Sentry from "sentry-expo";
+import { Replay } from "@sentry/react-native";
 
 let isInitialized = false;
 
@@ -19,6 +20,17 @@ export const initializeSentry = async (): Promise<boolean> => {
       debug: __DEV__,
       tracesSampleRate: 1.0,
       enableAutoPerformanceTracking: true,
+      integrations: [
+        new Replay({
+          maskAllText: true,
+          maskAllInputs: true,
+        }),
+        new Sentry.Native.ReactNativeTracing(),
+        new Sentry.Native.ReactNativeProfiler(),
+      ],
+      // Session Replay Configuration
+      replaysSessionSampleRate: 1.0, // Capture 100% of sessions
+      replaysOnErrorSampleRate: 1.0, // Capture 100% of sessions with errors
     });
 
     isInitialized = true;
@@ -51,7 +63,9 @@ export const captureMessage = (
   level?: "info" | "warning" | "error",
 ): void => {
   if (!isInitialized) {
-    console.log(`Sentry not initialized - Message: [${level || "info"}] ${message}`);
+    console.log(
+      `Sentry not initialized - Message: [${level || "info"}] ${message}`,
+    );
     return;
   }
 
@@ -65,7 +79,9 @@ export const captureMessage = (
  */
 export const addBreadcrumb = (message: string, category?: string): void => {
   if (!isInitialized) {
-    console.log(`Sentry not initialized - Breadcrumb: [${category || "custom"}] ${message}`);
+    console.log(
+      `Sentry not initialized - Breadcrumb: [${category || "custom"}] ${message}`,
+    );
     return;
   }
 

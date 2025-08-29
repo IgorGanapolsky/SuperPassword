@@ -1,5 +1,10 @@
 import type { ExpoConfig } from "expo/config";
 import "dotenv/config";
+import type { AppConfig } from "./src/config/types";
+import { version } from "./package.json";
+
+const BUILD_NUMBER = process.env.BUILD_NUMBER || "1";
+const APP_ENV = process.env.APP_ENV || "development";
 
 const appName = process.env.APP_NAME ?? "SecurePass - Password Generator";
 const slug = process.env.APP_SLUG ?? "superpassword";
@@ -27,6 +32,7 @@ const config: ExpoConfig = {
   userInterfaceStyle: "automatic",
   scheme,
   owner,
+  jsEngine: "hermes",
   platforms: ["ios", "android", "web"],
   splash: {
     image: "./assets/splash.png",
@@ -70,7 +76,7 @@ const config: ExpoConfig = {
       {
         organization: process.env.SENTRY_ORG,
         project: process.env.SENTRY_PROJECT,
-      }
+      },
     ],
     [
       "expo-build-properties",
@@ -86,12 +92,34 @@ const config: ExpoConfig = {
     ],
   ],
   extra: {
+    environment: {
+      APP_ENV,
+      APP_VERSION: version,
+      BUILD_NUMBER,
+      API_URL: process.env.API_URL || "https://api.securepass.generator"
+    },
+    security: {
+      encryptionEnabled: true,
+      certificatePinning: APP_ENV === "production"
+    },
     ...(isUuid(easProjectId) ? { eas: { projectId: easProjectId } } : {}),
     SENTRY_DSN: process.env.EXPO_PUBLIC_SENTRY_DSN,
-    AD_MOB_APP_ID_IOS: process.env.ADMOB_APP_ID_IOS,
-    AD_MOB_APP_ID_ANDROID: process.env.ADMOB_APP_ID_ANDROID,
+    PLAUSIBLE_DOMAIN: process.env.EXPO_PUBLIC_PLAUSIBLE_DOMAIN,
+    STRIPE_PUBLISHABLE_KEY: process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY,
+    FIREBASE_API_KEY: process.env.EXPO_PUBLIC_FIREBASE_API_KEY,
+    FIREBASE_AUTH_DOMAIN: process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN,
+    FIREBASE_PROJECT_ID: process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID,
+    FIREBASE_STORAGE_BUCKET: process.env.EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET,
+    FIREBASE_MESSAGING_SENDER_ID:
+      process.env.EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+    FIREBASE_APP_ID: process.env.EXPO_PUBLIC_FIREBASE_APP_ID,
+    FIREBASE_MEASUREMENT_ID: process.env.EXPO_PUBLIC_FIREBASE_MEASUREMENT_ID,
   },
-  updates: { fallbackToCacheTimeout: 0 },
+  updates: {
+    fallbackToCacheTimeout: 0,
+    checkAutomatically: APP_ENV === "production" ? "ON_ERROR_RECOVERY" : "ON_LOAD",
+    url: "https://u.expo.dev/" + easProjectId
+  },
   assetBundlePatterns: ["**/*"],
   hooks: {
     postPublish: [
@@ -100,10 +128,10 @@ const config: ExpoConfig = {
         config: {
           organization: process.env.SENTRY_ORG,
           project: process.env.SENTRY_PROJECT,
-          authToken: process.env.SENTRY_AUTH_TOKEN
-        }
-      }
-    ]
+          authToken: process.env.SENTRY_AUTH_TOKEN,
+        },
+      },
+    ],
   },
 };
 

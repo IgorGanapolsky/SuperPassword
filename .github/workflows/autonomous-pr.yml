@@ -1,0 +1,106 @@
+name: Autonomous PR Management
+
+on:
+  push:
+    branches-ignore: [main]
+  pull_request:
+    types: [opened, synchronize, reopened]
+  schedule:
+    - cron: '0 */4 * * *'  # Run every 4 hours
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+  checks: write
+
+jobs:
+  analyze:
+    name: Analyze and Auto-Fix
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Run tests and analysis
+        id: analysis
+        run: |
+          npm run test
+          npm run lint
+          echo "LINT_EXIT_CODE=$?" >> $GITHUB_ENV
+      
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        
+      - name: Auto-fix linting issues
+        if: env.LINT_EXIT_CODE != 0
+        run: |
+          npm run lint:fix
+          npm run fmt:fix
+          
+      - name: Create Fix PR
+        if: failure()
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "🤖 AUTO: Fix code quality issues"
+          title: "🤖 AUTO: Fix code quality issues"
+          body: |
+            This PR was automatically created to fix code quality issues.
+            
+            Changes made:
+            - Fixed linting issues
+            - Applied code formatting
+            - Updated dependencies if needed
+            
+            Please review the changes and merge if appropriate.
+          branch: auto-fix-${{ github.sha }}
+          base: ${{ github.head_ref }}
+          labels: automated-pr, maintenance
+      
+      - name: Auto-merge if checks pass
+        if: success()
+        uses: pascalgn/automerge-action@v0.15.6
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          MERGE_LABELS: "automated-pr,maintenance"
+          MERGE_METHOD: "squash"
+          MERGE_COMMIT_MESSAGE: "🤖 AUTO: Merge pull request"
+          MERGE_DELETE_BRANCH: "true"
+          MERGE_RETRY_SLEEP: "60000"
+
+  update-badge:
+    needs: analyze
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Update README with SonarCloud Badges
+        run: |
+          REPO="IgorGanapolsky/SuperPassword"
+          
+          # Add badges if they don't exist
+          if ! grep -q "sonarcloud.io/api/project_badges/measure?project=$REPO&metric=alert_status" README.md; then
+            echo "[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=$REPO&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=$REPO)" >> README.md
+            echo "[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=$REPO&metric=coverage)](https://sonarcloud.io/summary/new_code?id=$REPO)" >> README.md
+            echo "[![Technical Debt](https://sonarcloud.io/api/project_badges/measure?project=$REPO&metric=sqale_index)](https://sonarcloud.io/summary/new_code?id=$REPO)" >> README.md
+            
+            git config --local user.email "action@github.com"
+            git config --local user.name "GitHub Action"
+            git add README.md
+            git commit -m "📊 AUTO: Update SonarCloud badges"
+            git push
+          fi
