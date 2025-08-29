@@ -24,13 +24,12 @@ export const initializeSentry = async (): Promise<boolean> => {
         new Replay({
           maskAllText: true,
           maskAllInputs: true,
+          sessionSampleRate: 1.0,  // Capture 100% of sessions
+          errorSampleRate: 1.0,    // Capture 100% of sessions with errors
         }),
         new Sentry.Native.ReactNativeTracing(),
         new Sentry.Native.ReactNativeProfiler(),
-      ],
-      // Session Replay Configuration
-      replaysSessionSampleRate: 1.0, // Capture 100% of sessions
-      replaysOnErrorSampleRate: 1.0, // Capture 100% of sessions with errors
+      ]
     });
 
     isInitialized = true;
