@@ -1,0 +1,62 @@
+# Add 'documentation' label to any changes to *.md files
+documentation:
+  - '**/*.md'
+  - 'docs/**/*'
+
+# Add 'ci' label to any changes to GitHub workflow files
+ci:
+  - '.github/workflows/**/*'
+  - '.github/*.yml'
+
+# Add 'automation' label to any changes to automation scripts
+automation:
+  - 'scripts/**/*'
+  - '.github/scripts/**/*'
+
+# Add 'dependencies' label to any changes to package files
+dependencies:
+  - 'package.json'
+  - 'package-lock.json'
+  - 'yarn.lock'
+
+# Add 'test' label to any changes to test files
+test:
+  - '**/*.test.{js,jsx,ts,tsx}'
+  - '**/*.spec.{js,jsx,ts,tsx}'
+  - '**/__tests__/**/*'
+
+# Add 'ui' label to any changes to UI components
+ui:
+  - 'src/components/**/*'
+  - 'src/screens/**/*'
+
+# Add 'api' label to any changes to API services
+api:
+  - 'src/services/**/*'
+  - 'src/api/**/*'
+
+# Add 'config' label to any changes to configuration files
+config:
+  - '*.config.{js,ts,json}'
+  - '.env.example'
+  - '.eslintrc.*'
+  - '.prettierrc.*'
+  - 'tsconfig.json'
+
+# Add 'mobile' label to any changes to mobile-specific files
+mobile:
+  - 'android/**/*'
+  - 'ios/**/*'
+  - 'app.config.ts'
+  - 'App.tsx'
+
+# Add 'enhancement' label to files related to new features
+enhancement:
+  - 'src/features/**/*'
+  - 'src/components/new/**/*'
+
+# Add 'security' label to files related to security
+security:
+  - 'src/utils/crypto/**/*'
+  - 'src/services/auth/**/*'
+  - '.github/SECURITY.md'
