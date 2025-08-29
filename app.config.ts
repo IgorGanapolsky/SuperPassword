@@ -70,7 +70,7 @@ const config: ExpoConfig = {
       {
         organization: process.env.SENTRY_ORG,
         project: process.env.SENTRY_PROJECT,
-      }
+      },
     ],
     [
       "expo-build-properties",
@@ -100,10 +100,10 @@ const config: ExpoConfig = {
         config: {
           organization: process.env.SENTRY_ORG,
           project: process.env.SENTRY_PROJECT,
-          authToken: process.env.SENTRY_AUTH_TOKEN
-        }
-      }
-    ]
+          authToken: process.env.SENTRY_AUTH_TOKEN,
+        },
+      },
+    ],
   },
 };
 

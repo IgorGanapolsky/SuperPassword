@@ -8,7 +8,7 @@ on:
   check_suite:
     types: [completed]
   schedule:
-    - cron: '*/3 * * * *'  # Run every 3 minutes
+    - cron: "*/3 * * * *" # Run every 3 minutes
   workflow_dispatch:
 
 jobs:
@@ -20,18 +20,18 @@ jobs:
       pull-requests: write
       checks: write
       issues: write
-      
+
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: npm
-          
+
       - name: Get Repository Status
         id: status
         uses: actions/github-script@v7
@@ -43,7 +43,7 @@ jobs:
               repo: context.repo.repo,
               state: 'open'
             });
-            
+
             // Check dependencies
             for (const pr of prs.data) {
               const bodyMatch = pr.body.match(/Depends on #(\d+)/);
@@ -60,16 +60,16 @@ jobs:
                 }
               }
             }
-            
+
             // Get metrics
             const metrics = {
               open_prs: prs.data.length,
               ready_to_merge: prs.data.filter(pr => pr.mergeable && !pr.draft).length,
               blocked: prs.data.filter(pr => pr.body.includes('Depends on')).length
             };
-            
+
             return metrics;
-            
+
       - name: Update README Badges
         run: |
           # Function to create badge
@@ -79,7 +79,7 @@ jobs:
             local COLOR=$3
             echo "[![$LABEL](https://img.shields.io/badge/$LABEL-$MESSAGE-$COLOR)]"
           }
-          
+
           # Add badges section to README
           {
             echo "# SecurePass - Password Generator"
@@ -95,42 +95,42 @@ jobs:
             cat README.md | tail -n +2
           } > README.new
           mv README.new README.md
-          
+
       - name: Create/Update Status Board
         uses: actions/github-script@v7
         with:
           script: |
             const metrics = ${{ steps.status.outputs.result }};
-            
+
             const statusBoard = `# 🎯 Repository Status Board
-            
+
             ## Pull Requests
             - 📬 Open PRs: ${metrics.open_prs}
             - ✅ Ready to Merge: ${metrics.ready_to_merge}
             - ⏳ Blocked: ${metrics.blocked}
-            
+
             ## Current PR Sequence:
             ${context.payload.pull_request ? `
             1. #${context.payload.pull_request.number}: ${context.payload.pull_request.title}
             - Status: ${context.payload.pull_request.mergeable_state}
             - Checks: ${context.payload.pull_request.state}
             ` : ''}
-            
+
             ## Build Status
             - 🏗️ Latest Build: Running
             - 🚀 Deploy Status: Active
-            
+
             ## Quality Gates
             - 📊 Code Coverage
             - 🔒 Security Scans
             - 🔍 Code Analysis
-            
+
             ## Performance
             - ⚡ Build Time: < 5 minutes
             - 🎯 Success Rate: 98%
-            
+
             _Last updated: ${new Date().toISOString()}_`;
-            
+
             // Create or update status issue
             const issues = await github.rest.issues.listForRepo({
               owner: context.repo.owner,
@@ -138,7 +138,7 @@ jobs:
               labels: ['status-board'],
               state: 'open'
             });
-            
+
             if (issues.data.length > 0) {
               await github.rest.issues.update({
                 owner: context.repo.owner,
@@ -155,7 +155,7 @@ jobs:
                 labels: ['status-board']
               });
             }
-      
+
       - name: Commit README Changes
         run: |
           if git diff --quiet README.md; then
@@ -165,7 +165,7 @@ jobs:
             git commit -m "docs: Update badges [skip ci]"
             git push
           fi
-      
+
       - name: Process PRs
         uses: actions/github-script@v7
         with:
@@ -175,7 +175,7 @@ jobs:
               repo: context.repo.repo,
               state: 'open'
             });
-            
+
             for (const pr of prs.data) {
               // Skip if PR depends on others
               if (pr.body.match(/Depends on #(\d+)/)) continue;
@@ -224,7 +224,7 @@ jobs:
               pr_flow: 'active',
               security: 'monitored'
             };
-            
+
             if (health.ci_status !== 'healthy') {
               await github.rest.issues.create({
                 owner: context.repo.owner,
