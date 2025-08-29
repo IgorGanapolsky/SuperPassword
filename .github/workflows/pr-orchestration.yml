@@ -1,0 +1,52 @@
+name: 🤖 PR Automation
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+jobs:
+  automate_pr:
+    name: Automate PR Workflow
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Analyze PRs
+        run: |
+          echo "Analyzing PR content and changes..."
+          
+      - name: Update Status Board
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          BOARD_ISSUE=$(gh issue list --label status-board --json number -q '.[0].number')
+          
+          if [ -z "$BOARD_ISSUE" ]; then
+            gh issue create --title "📊 Repository Status Board" --body "Initializing..." --label status-board
+            BOARD_ISSUE=$(gh issue list --label status-board --json number -q '.[0].number')
+          fi
+          
+          # Generate status board content
+          CONTENT="# 📊 Repository Status Board\n\n"
+          CONTENT+="## Pull Requests\n"
+          CONTENT+=$(gh pr list --json number,title,headRefName,mergeable,isDraft --template '
+          {{- range . -}}
+          {{ if .isDraft }}📝{{ else if .mergeable }}✅{{ else }}⏳{{ end }} #{{.number}}: {{.title}} (`{{.headRefName}}`)\n
+          {{- end -}}
+          ')
+          
+          CONTENT+="\n## Recent Actions\n"
+          CONTENT+=$(gh run list --limit 5 --json name,status,conclusion,createdAt --template '
+          {{- range . -}}
+          {{- if eq .conclusion "success" }}✅{{ else if eq .conclusion "failure" }}❌{{ else }}⏳{{ end }} {{.name}}: {{.status}}\n
+          {{- end -}}
+          ')
+          
+          CONTENT+="\n_Last updated: $(date -u)_"
+          
+          gh issue edit "$BOARD_ISSUE" --body "$CONTENT"

@@ -1,0 +1,93 @@
+name: 📊 Performance Monitoring
+
+on:
+  schedule:
+    - cron: "0 */6 * * *"  # Every 6 hours
+  workflow_dispatch:
+
+jobs:
+  monitor:
+    name: 📈 Monitor Performance
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Install Lighthouse CI
+        run: npm install -g @lhci/cli
+
+      - name: Run Lighthouse CI
+        run: |
+          lhci autorun \
+            --collect.url=https://superpassword.app \
+            --collect.numberOfRuns=3 \
+            --upload.target=temporary-public-storage
+
+      - name: Check Bundle Size
+        uses: preactjs/compressed-size-action@v2
+        with:
+          pattern: "web-build/**/*.{js,css,html,json}"
+          strip-hash: "\\b[a-f0-9]{8}\\b"
+
+      - name: Monitor API Performance
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const metrics = {
+              timestamp: new Date().toISOString(),
+              bundleSize: process.env.BUNDLE_SIZE,
+              lighthouse: process.env.LIGHTHOUSE_SCORE,
+              apiLatency: process.env.API_LATENCY
+            };
+
+            const fs = require('fs');
+            const path = require('path');
+
+            const metricsDir = 'monitoring/metrics';
+            if (!fs.existsSync(metricsDir)) {
+              fs.mkdirSync(metricsDir, { recursive: true });
+            }
+
+            const metricsFile = path.join(metricsDir, `${new Date().toISOString().split('T')[0]}.json`);
+            fs.writeFileSync(metricsFile, JSON.stringify(metrics, null, 2));
+
+      - name: Update Status Board
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data: issues } = await github.rest.issues.list({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              labels: 'monitoring'
+            });
+
+            const monitoringBoard = issues[0] || await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: '📊 Performance Dashboard',
+              labels: ['monitoring'],
+              body: 'Initializing monitoring...'
+            });
+
+            const metrics = require('./monitoring/metrics/latest.json');
+            
+            const body = `# 📊 Performance Dashboard
+Last updated: ${new Date().toISOString()}
+
+## Web Performance
+- Lighthouse Score: ${metrics.lighthouse}
+- Bundle Size: ${metrics.bundleSize}
+- API Latency: ${metrics.apiLatency}ms
+
+## Trends
+${generateTrendCharts(metrics)}
+
+## Recommendations
+${generateRecommendations(metrics)}
+`;
+
+            await github.rest.issues.update({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: monitoringBoard.number,
+              body
+            });
