@@ -1,0 +1,146 @@
+name: 📊 Status Board Manager
+
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+  workflow_run:
+    workflows: ["CI/CD Pipeline", "Security Monitoring", "PR Orchestration"]
+    types: [completed]
+  issues:
+    types: [opened, closed, edited, deleted]
+  pull_request:
+    types: [opened, closed, synchronize, edited, ready_for_review]
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: read
+  checks: read
+  statuses: read
+  actions: read
+
+concurrency:
+  group: status-board
+  cancel-in-progress: true
+
+jobs:
+  update-board:
+    name: Update Status Board
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          
+      - name: Install Dependencies
+        run: |
+          npm ci
+          npm install @octokit/rest @actions/core @actions/github
+      
+      - name: Get Status Board Info
+        id: board
+        run: |
+          BOARD_NUMBER=$(gh issue list -l status-board --json number -q ".[0].number")
+          echo "number=${BOARD_NUMBER}" >> $GITHUB_OUTPUT
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Get Build Status
+        id: build
+        run: |
+          BUILD_INFO=$(gh run list --limit 1 --json conclusion,url,databaseId,name)
+          echo "status=$(echo "$BUILD_INFO" | jq -r ".[0].conclusion")" >> $GITHUB_OUTPUT
+          echo "url=$(echo "$BUILD_INFO" | jq -r ".[0].url")" >> $GITHUB_OUTPUT
+          echo "id=$(echo "$BUILD_INFO" | jq -r ".[0].databaseId")" >> $GITHUB_OUTPUT
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Get PR Stats
+        id: prs
+        run: |
+          PR_INFO=$(gh pr list --json number,isDraft,reviewDecision)
+          echo "total=$(echo "$PR_INFO" | jq length)" >> $GITHUB_OUTPUT
+          echo "draft=$(echo "$PR_INFO" | jq "[.[] | select(.isDraft == true)] | length")" >> $GITHUB_OUTPUT
+          echo "needs_review=$(echo "$PR_INFO" | jq "[.[] | select(.reviewDecision == \"REVIEW_REQUIRED\")] | length")" >> $GITHUB_OUTPUT
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Get Security Stats
+        id: security
+        run: |
+          ALERTS=$(gh api repos/$GITHUB_REPOSITORY/security-alerts/dependabot)
+          echo "total=$(echo "$ALERTS" | jq length)" >> $GITHUB_OUTPUT
+          echo "critical=$(echo "$ALERTS" | jq "[.[] | select(.severity == \"critical\")] | length")" >> $GITHUB_OUTPUT
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Generate Status Report
+        id: report
+        run: |
+          cat << EOF > status_report.md
+          ## 📊 Status Board Update
+
+          ### 🏗️ Build Status
+          - Status: ${{ steps.build.outputs.status == "success" && "✅" || steps.build.outputs.status == "failure" && "❌" || "⏳" }} ${{ steps.build.outputs.status }}
+          - 🔗 [View Build](https://github.com/${{ github.repository }}/actions/runs/${{ steps.build.outputs.id }})
+
+          ### 🛡️ Security
+          - Alerts: ${{ steps.security.outputs.total }} (${{ steps.security.outputs.critical }} critical)
+          - Status: ${{ steps.security.outputs.critical == "0" && "✅" || "⚠️" }}
+
+          ### 👥 Pull Requests
+          - 📬 Total: ${{ steps.prs.outputs.total }}
+          - 📝 Draft: ${{ steps.prs.outputs.draft }}
+          - 👀 Needs Review: ${{ steps.prs.outputs.needs_review }}
+          - ✅ Ready to Merge: ${{ steps.prs.outputs.total - steps.prs.outputs.draft - steps.prs.outputs.needs_review }}
+
+          ### 📋 Active PRs
+          $(gh pr list --json number,title,isDraft,reviewDecision --template '{{- range . }}
+          - #{{.number}} {{.title}}{{if .isDraft}} (📝 Draft){{end}}{{if eq .reviewDecision "REVIEW_REQUIRED"}} (👀 Needs Review){{end}}
+          {{- end }}')
+
+          ### 🔄 Recent Activity
+          $(gh run list --limit 5 --json conclusion,name,createdAt --template '{{- range . }}
+          - {{if eq .conclusion "success"}}✅{{else if eq .conclusion "failure"}}❌{{else}}⏳{{end}} {{.name}} ({{.createdAt}})
+          {{- end }}')
+
+          _Last Updated: $(date -u +"%Y-%m-%d %H:%M:%S UTC")_
+          _Next Update: In 5 minutes_
+          EOF
+
+          cat status_report.md >> $GITHUB_STEP_SUMMARY
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Update Board
+        run: |
+          if [ -n "${{ steps.board.outputs.number }}" ]; then
+            gh issue comment ${{ steps.board.outputs.number }} -F status_report.md
+          else
+            gh issue create --title "📊 SuperPassword Status Board" --body-file status_report.md --label status-board
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Verify Update
+        if: always()
+        run: |
+          BOARD_NUMBER="${{ steps.board.outputs.number }}"
+          if [ -n "$BOARD_NUMBER" ]; then
+            LAST_COMMENT=$(gh api repos/$GITHUB_REPOSITORY/issues/$BOARD_NUMBER/comments --jq ".[0].created_at")
+            NOW=$(date +%s)
+            LAST_UPDATE=$(date -d "$LAST_COMMENT" +%s)
+            MINUTES_AGO=$(( ($NOW - $LAST_UPDATE) / 60 ))
+            
+            if [ $MINUTES_AGO -gt 6 ]; then
+              echo "::error::Status board not updated in the last 6 minutes"
+              exit 1
+            fi
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
