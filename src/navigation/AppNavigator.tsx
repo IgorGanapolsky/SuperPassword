@@ -90,7 +90,9 @@ export const AppNavigator: React.FC = () => {
     <NavigationContainer
       documentTitle={{
         formatter: (options, route) =>
-          Platform.OS === 'web' ? `${options?.title ?? route?.name} - SuperPassword` : undefined,
+          Platform.OS === "web"
+            ? `${options?.title ?? route?.name} - SuperPassword`
+            : undefined,
       }}
     >
       <Stack.Navigator

@@ -1,5 +1,5 @@
-import React, { Component, ErrorInfo } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import React, { Component, ErrorInfo } from "react";
+import { View, Text, StyleSheet } from "react-native";
 
 interface Props {
   children: React.ReactNode;
@@ -21,7 +21,7 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
-    console.error('Error caught by boundary:', error, errorInfo);
+    console.error("Error caught by boundary:", error, errorInfo);
   }
 
   render(): React.ReactNode {
@@ -30,7 +30,9 @@ export class ErrorBoundary extends Component<Props, State> {
         <View style={styles.container}>
           <Text style={styles.heading}>Something went wrong</Text>
           <Text style={styles.error}>{this.state.error?.message}</Text>
-          <Text style={styles.instruction}>Please refresh the page to try again.</Text>
+          <Text style={styles.instruction}>
+            Please refresh the page to try again.
+          </Text>
         </View>
       );
     }
@@ -42,22 +44,22 @@ export class ErrorBoundary extends Component<Props, State> {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     padding: 20,
   },
   heading: {
     fontSize: 24,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 10,
   },
   error: {
     fontSize: 16,
-    color: 'red',
+    color: "red",
     marginBottom: 10,
   },
   instruction: {
     fontSize: 16,
-    color: '#666',
+    color: "#666",
   },
 });

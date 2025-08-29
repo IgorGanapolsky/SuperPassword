@@ -53,7 +53,7 @@ export class StorageService {
 
   static async addPasswordToHistory(
     entry: PasswordEntry,
-    maxCount: number = 10
+    maxCount: number = 10,
   ): Promise<void> {
     try {
       const history = await this.getPasswordHistory();
@@ -79,7 +79,9 @@ export class StorageService {
     }
   }
 
-  static async saveUserPreferences(preferences: UserPreferences): Promise<void> {
+  static async saveUserPreferences(
+    preferences: UserPreferences,
+  ): Promise<void> {
     try {
       this.setItem(STORAGE_KEYS.USER_PREFERENCES, JSON.stringify(preferences));
     } catch (error) {
