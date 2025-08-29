@@ -1,0 +1,70 @@
+name: 🔒 Security Issue
+description: Report a security vulnerability
+labels: ["security", "triage"]
+assignees:
+  - IgorGanapolsky
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping us keep SecurePass secure! Please fill out this form with your security concern.
+
+        ⚠️ If this is a critical security vulnerability, please report it directly to security@securepass.app instead.
+
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severity
+      description: How severe is this security issue?
+      options:
+        - Critical (Immediate action required)
+        - High (Urgent action required)
+        - Medium (Action required)
+        - Low (Should be addressed)
+    validations:
+      required: true
+
+  - type: textarea
+    id: vulnerability
+    attributes:
+      label: Vulnerability Description
+      description: Describe the security vulnerability
+      placeholder: Explain the security concern...
+    validations:
+      required: true
+
+  - type: textarea
+    id: impact
+    attributes:
+      label: Potential Impact
+      description: What's the potential impact if this vulnerability is exploited?
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to Reproduce
+      description: How can we reproduce this security issue?
+      placeholder: |
+        1. Configure '...'
+        2. Execute '...'
+        3. Observe '...'
+    validations:
+      required: true
+
+  - type: textarea
+    id: mitigation
+    attributes:
+      label: Suggested Mitigation
+      description: Do you have any suggestions for how to fix this?
+
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Security Report Agreement
+      options:
+        - label: I agree to follow this project's Code of Conduct
+          required: true
+        - label: I agree to keep this report confidential until it's resolved
+          required: true

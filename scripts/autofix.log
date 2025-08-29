@@ -1541,3 +1541,82 @@ tsconfig.json 0ms (unchanged)
 > superpassword@1.0.0 lint:fix
 > eslint . --ext .ts,.tsx --fix
 
+Fetching origin
+Fetching old
+
+> superpassword@1.0.0 prepare
+> husky install
+
+
+added 1152 packages in 18s
+
+> superpassword@1.0.0 autofix
+> npm run fmt:fix && npm run lint:fix
+
+
+> superpassword@1.0.0 fmt:fix
+> prettier --write .
+
+.cursor/mcp.json 15ms (unchanged)
+.cursor/rules.json 1ms (unchanged)
+.eas/project.json 0ms (unchanged)
+.eslintrc.cjs 5ms (unchanged)
+.github/dependabot.yml 8ms (unchanged)
+.github/ISSUE_TEMPLATE/bug_report.yml 5ms (unchanged)
+.github/ISSUE_TEMPLATE/config.yml 1ms (unchanged)
+.github/ISSUE_TEMPLATE/feature_request.yml 2ms (unchanged)
+.github/ISSUE_TEMPLATE/security.yml 2ms
+.github/orchestration.yml 2ms
+.github/pull_request_template.md 10ms (unchanged)
+.github/scripts/repo-guardian.mjs 17ms (unchanged)
+.github/workflows/autofix.yml 2ms (unchanged)
+.github/workflows/autonomous-orchestration.yml 2ms
+.github/workflows/ci.yml 1ms (unchanged)
+.github/workflows/codeql.yml 1ms (unchanged)
+.github/workflows/dependabot-auto-merge.yml 2ms (unchanged)
+.github/workflows/eas-build.yml 1ms (unchanged)
+.github/workflows/main.yml 1ms (unchanged)
+.github/workflows/merge-queue-helper.yml 1ms (unchanged)
+.github/workflows/orchestration.yml 2ms
+.github/workflows/pr-health.yml 1ms (unchanged)
+.github/workflows/pr-orchestration.yml 1ms
+.github/workflows/repo-guardian.yml 1ms (unchanged)
+.github/workflows/secret-scan.yml 1ms (unchanged)
+.github/workflows/update-badges.yml 1ms
+.trunk/configs/.markdownlint.yaml 0ms (unchanged)
+.trunk/trunk.yaml 1ms (unchanged)
+app.config.ts 18ms
+App.tsx 6ms
+babel.config.js 1ms (unchanged)
+DEPLOYMENT_CHECKLIST.md 7ms (unchanged)
+docs/BRANCH_STRATEGY.md 3ms (unchanged)
+eas.json 1ms (unchanged)
+index.web.ts 0ms
+metro.config.js 1ms (unchanged)
+package-lock.json 34ms (unchanged)
+package.json 0ms (unchanged)
+PRIVACY_POLICY.md 4ms (unchanged)
+README.md 8ms (unchanged)
+scripts/generate-icon.js 3ms (unchanged)
+src/components/ErrorFallback.tsx 4ms (unchanged)
+src/components/SentryTest.tsx 3ms (unchanged)
+src/constants/theme.ts 2ms (unchanged)
+src/contexts/ThemeContext.tsx 3ms (unchanged)
+src/hooks/useTheme.ts 0ms (unchanged)
+src/navigation/AppNavigator.tsx 2ms (unchanged)
+src/screens/HistoryScreen.tsx 8ms (unchanged)
+src/screens/HomeScreen.tsx 12ms (unchanged)
+src/screens/PremiumScreen.tsx 10ms (unchanged)
+src/screens/SettingsScreen.tsx 9ms (unchanged)
+src/services/ads.tsx 2ms (unchanged)
+src/services/firebase.ts 2ms (unchanged)
+src/services/sentry.ts 2ms
+src/services/storage.ts 6ms (unchanged)
+src/types/index.ts 2ms (unchanged)
+src/utils/passwordGenerator.ts 5ms (unchanged)
+store-listings/APP_STORE_LISTING.md 5ms (unchanged)
+tsconfig.json 0ms (unchanged)
+
+> superpassword@1.0.0 lint:fix
+> eslint . --ext .ts,.tsx --fix
+

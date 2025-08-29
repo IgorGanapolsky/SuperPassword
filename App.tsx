@@ -19,7 +19,7 @@ import { StorageService } from "@/services/storage";
 import { PasswordOptions } from "@/types";
 
 // Keep the splash screen visible while we fetch resources
-if (Platform.OS !== 'web') {
+if (Platform.OS !== "web") {
   SplashScreen.preventAutoHideAsync();
 }
 
@@ -33,7 +33,7 @@ export default function App() {
         await initializeSentry();
 
         // Pre-load fonts
-        if (Platform.OS !== 'web') {
+        if (Platform.OS !== "web") {
           await Font.loadAsync(MaterialCommunityIcons.font);
         }
 
@@ -75,7 +75,7 @@ export default function App() {
       } finally {
         // Tell the application to render
         setIsReady(true);
-        if (Platform.OS !== 'web') {
+        if (Platform.OS !== "web") {
           await SplashScreen.hideAsync();
         }
       }
