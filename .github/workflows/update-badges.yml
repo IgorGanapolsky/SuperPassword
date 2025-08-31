@@ -33,7 +33,7 @@ jobs:
           echo "metrics=$JSON" >> $GITHUB_OUTPUT
 
       - name: Get Coverage Badge
-        uses: action-badges/cobertura-coverage-xml-badges@v0.3.0
+        uses: action-badges/cobertura-coverage-xml-badges@0.3.1
         with:
           file-name: coverage/cobertura-coverage.xml
           badge-branch: badges
