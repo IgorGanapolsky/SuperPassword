@@ -36,7 +36,7 @@
     "expo-status-bar": "~2.2.3",
     "metro": "^0.82.5",
     "metro-config": "^0.82.5",
-    "metro-resolver": "^0.82.5",
+    "metro-resolver": "^0.83.1",
     "react": "19.0.0",
     "react-native": "0.79.5",
     "react-native-gesture-handler": "~2.24.0",
