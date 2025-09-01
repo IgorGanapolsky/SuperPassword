@@ -25,7 +25,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 3
     
-steps:
+    steps:
       - uses: actions/checkout@v4
       - name: Generate Status Summary
         id: status
