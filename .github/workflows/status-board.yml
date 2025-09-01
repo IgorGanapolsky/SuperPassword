@@ -1,0 +1,85 @@
+name: 📊 Status Board
+
+on:
+  schedule:
+    - cron: "*/5 * * * *"  # Run every 5 minutes
+  workflow_dispatch:  # Allow manual trigger
+  pull_request:
+    types: [opened, closed, reopened]
+  push:
+    branches: ["main", "develop"]
+
+jobs:
+  update-status:
+    name: 🔄 Update Status Board
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      pull-requests: read
+      contents: read
+    
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Generate Status Report
+        id: status
+        run: |
+          # Get PR statistics
+          OPEN_PRS=$(gh pr list --state open --json number | jq length)
+          MERGED_PRS=$(gh pr list --state merged --limit 10 --json number | jq length)
+          
+          # Get issue statistics
+          OPEN_ISSUES=$(gh issue list --state open --json number | jq length)
+          HIGH_PRIORITY=$(gh issue list --state open --label "high-priority" --json number | jq length)
+          
+          # Get build status
+          LATEST_BUILD=$(gh run list --limit 1 --json conclusion --jq '.[0].conclusion')
+          
+          # Create status board content
+          echo "# SuperPassword Status Board" > status.md
+          echo "Last updated: $(date -u '+%Y-%m-%d %H:%M UTC')" >> status.md
+          echo "" >> status.md
+          echo "## Quick Stats" >> status.md
+          echo "- 🔄 Open PRs: $OPEN_PRS" >> status.md
+          echo "- ✅ Recently Merged: $MERGED_PRS" >> status.md
+          echo "- 📝 Open Issues: $OPEN_ISSUES" >> status.md
+          echo "- 🚨 High Priority: $HIGH_PRIORITY" >> status.md
+          echo "- 🏗️ Latest Build: $LATEST_BUILD" >> status.md
+          
+          # Get dependency status
+          echo "" >> status.md
+          echo "## Dependencies" >> status.md
+          npm outdated --json | jq -r '. | 
+            to_entries | 
+            map(select(.value.current != .value.latest)) | 
+            map("- " + .key + ": " + .value.current + " → " + .value.latest)[]
+          ' >> status.md || echo "All dependencies up to date" >> status.md
+          
+          # Get recent activity
+          echo "" >> status.md
+          echo "## Recent Activity" >> status.md
+          gh pr list --state merged --limit 5 --json title,mergedAt,author --jq '.[] | 
+            "- " + .title + " (by @" + .author.login + ")"
+          ' >> status.md
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          
+      - name: Update Status Issue
+        run: |
+          # Find existing status board issue
+          ISSUE_NUMBER=$(gh issue list --label status-board --json number --jq '.[0].number')
+          
+          if [ -n "$ISSUE_NUMBER" ]; then
+            # Update existing issue
+            gh issue edit $ISSUE_NUMBER --body-file status.md
+          else
+            # Create new issue
+            gh issue create --title "SuperPassword Status Board" \
+                          --body-file status.md \
+                          --label status-board
+          fi
+          
+          # Pin the issue if not already pinned
+          gh issue pin $ISSUE_NUMBER || true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
