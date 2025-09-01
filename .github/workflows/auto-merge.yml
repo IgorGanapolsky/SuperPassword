@@ -1,0 +1,53 @@
+name: Auto Merge PRs
+
+on:
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - ready_for_review
+  pull_request_review:
+    types:
+      - submitted
+  check_suite:
+    types:
+      - completed
+  status: {}
+
+jobs:
+  auto-merge:
+    runs-on: ubuntu-latest
+    if: |
+      (github.actor == 'dependabot[bot]' || github.actor == 'github-actions[bot]') &&
+      !contains(github.event.pull_request.labels.*.name, 'do-not-merge')
+
+    steps:
+      - name: Auto Approve & Enable Auto-merge
+        run: |
+          # Approve PR
+          gh pr review --approve "$PR_URL"
+
+          # Enable auto-merge
+          gh pr merge --auto --squash "$PR_URL"
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  auto-merge-status-board:
+    runs-on: ubuntu-latest
+    if: |
+      contains(github.event.pull_request.title, 'Status Board') &&
+      github.event.pull_request.user.login == 'github-actions[bot]'
+
+    steps:
+      - name: Auto Approve & Merge Status Board Updates
+        run: |
+          # Approve PR
+          gh pr review --approve "$PR_URL"
+
+          # Merge immediately
+          gh pr merge --squash "$PR_URL"
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

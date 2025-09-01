@@ -3,11 +3,13 @@ updates:
   - package-ecosystem: "npm"
     directory: "/"
     schedule:
-      interval: "weekly"
-      day: "monday"
-      time: "09:00"
+      interval: "daily"
+      time: "04:00"
       timezone: "America/New_York"
-    open-pull-requests-limit: 10
+    open-pull-requests-limit: 20
+    versioning-strategy: "auto"
+    auto-merge: true
+    auto-approve: true
     labels:
       - "dependencies"
       - "security"
@@ -35,10 +37,11 @@ updates:
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
-      interval: "weekly"
-      day: "monday"
-      time: "09:00"
+      interval: "daily"
+      time: "04:00"
       timezone: "America/New_York"
+    auto-merge: true
+    auto-approve: true
     labels:
       - "dependencies"
       - "ci"

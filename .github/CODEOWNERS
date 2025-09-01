@@ -1,3 +1,15 @@
 # Default owner for all files
 * @IgorGanapolsky
 
+# Automation and CI/CD configurations
+/.github/workflows/ @IgorGanapolsky
+/.github/dependabot.yml @IgorGanapolsky
+
+# Dependencies and package management
+package.json @IgorGanapolsky
+yarn.lock @IgorGanapolsky
+
+# Automated workflows don't need review
+/.github/workflows/status-board-update.yml @github-actions[bot]
+/.github/workflows/auto-merge.yml @github-actions[bot]
+
