@@ -1,0 +1,98 @@
+name: 📊 Status Board
+
+on:
+  schedule:
+    - cron: '*/5 * * * *'  # Every 5 minutes
+  workflow_dispatch:  # Manual trigger
+  workflow_run:
+    workflows: ["CI/CD Pipeline"]
+    types: [completed]
+  pull_request:
+    types: [opened, closed, synchronize]
+
+concurrency: 
+  group: status-board
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: read
+
+jobs:
+  update:
+    name: 🔄 Update Status Board
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    
+    steps:
+      - name: Generate Status Summary
+        id: status
+        run: |
+          # Get PR stats
+          OPEN_PRS=$(gh api graphql -f query='
+            query($owner:String!, $repo:String!) {
+              repository(owner:$owner, name:$repo) {
+                pullRequests(states:OPEN) {
+                  totalCount
+                }
+              }
+            }' -f owner=$GITHUB_REPOSITORY_OWNER -f repo=${GITHUB_REPOSITORY#*/} --jq '.data.repository.pullRequests.totalCount')
+          
+          # Get build status
+          BUILD_STATUS=$(gh api graphql -f query='
+            query($owner:String!, $repo:String!) {
+              repository(owner:$owner, name:$repo) {
+                defaultBranchRef {
+                  target {
+                    ... on Commit {
+                      status {
+                        state
+                      }
+                    }
+                  }
+                }
+              }
+            }' -f owner=$GITHUB_REPOSITORY_OWNER -f repo=${GITHUB_REPOSITORY#*/} --jq '.data.repository.defaultBranchRef.target.status.state')
+          
+          # Get security alerts
+          SECURITY_ALERTS=$(gh api graphql -f query='
+            query($owner:String!, $repo:String!) {
+              repository(owner:$owner, name:$repo) {
+                vulnerabilityAlerts(first:100, states:OPEN) {
+                  totalCount
+                }
+              }
+            }' -f owner=$GITHUB_REPOSITORY_OWNER -f repo=${GITHUB_REPOSITORY#*/} --jq '.data.repository.vulnerabilityAlerts.totalCount')
+          
+          # Format timestamp
+          TIMESTAMP=$(date -u "+%Y-%m-%d %H:%M:%S UTC")
+          
+          # Create status report
+          echo "status<<EOF" >> $GITHUB_OUTPUT
+          echo "# 📊 SuperPassword Status Board" >> $GITHUB_OUTPUT
+          echo "Last updated: $TIMESTAMP" >> $GITHUB_OUTPUT
+          echo "" >> $GITHUB_OUTPUT
+          echo "## 🔄 Current Status" >> $GITHUB_OUTPUT
+          echo "- 📬 Open PRs: $OPEN_PRS" >> $GITHUB_OUTPUT
+          echo "- 🏗️ Build Status: ${BUILD_STATUS:-Unknown}" >> $GITHUB_OUTPUT
+          echo "- 🔒 Security Alerts: $SECURITY_ALERTS" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          
+      - name: Update Status Issue
+        if: success()
+        run: |
+          # Update or create status issue
+          gh issue edit 32 --body "${{ steps.status.outputs.status }}" || 
+          gh issue create --title "📊 SuperPassword Status Board" --body "${{ steps.status.outputs.status }}" --label "status-board"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          
+      - name: Error Notification
+        if: failure()
+        run: |
+          gh issue comment 32 --body "❌ Status board update failed at $(date -u). Please check the [workflow logs](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})."
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
