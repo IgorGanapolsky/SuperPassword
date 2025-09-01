@@ -35,7 +35,7 @@
     "expo-splash-screen": "^0.30.10",
     "expo-status-bar": "~2.2.3",
     "metro": "^0.82.5",
-    "metro-config": "^0.82.5",
+    "metro-config": "^0.83.1",
     "metro-resolver": "^0.82.5",
     "react": "19.0.0",
     "react-native": "0.79.5",
