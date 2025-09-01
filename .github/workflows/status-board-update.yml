@@ -1,0 +1,140 @@
+name: Update Status Board
+
+on:
+  schedule:
+    - cron: "0 * * * *" # Runs every hour
+  workflow_dispatch: # Allow manual triggers
+
+permissions:
+  issues: write # Required for updating the status board issue
+  pull-requests: read # Required for PR statistics
+  contents: read # Required for checking repository content
+
+env:
+  STATUS_BOARD_ISSUE: 32
+
+jobs:
+  update-status:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Collect PR Statistics
+        id: pr-stats
+        run: |
+          # Get all PRs
+          prs=$(gh api repos/${{ github.repository }}/pulls --jq '. | length')
+          # Get ready to merge PRs (those with approved reviews and passing checks)
+          ready=$(gh api repos/${{ github.repository }}/pulls \
+            --jq '[.[] | select(.mergeable_state == "clean" and (.reviews | length > 0))] | length')
+          # Get blocked PRs (those with requested changes or failing checks)
+          blocked=$(gh api repos/${{ github.repository }}/pulls \
+            --jq '[.[] | select(.mergeable_state == "blocked" or .labels[].name == "blocked")] | length')
+
+          echo "open_prs=$prs" >> $GITHUB_OUTPUT
+          echo "ready_prs=$ready" >> $GITHUB_OUTPUT
+          echo "blocked_prs=$blocked" >> $GITHUB_OUTPUT
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Check Build Status
+        id: build-status
+        run: |
+          BUILD_STATUS=$(gh api \
+            repos/${{ github.repository }}/actions/runs \
+            --jq '.workflow_runs[0].conclusion')
+          echo "build_status=$BUILD_STATUS" >> $GITHUB_OUTPUT
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Check Deployment Status
+        id: deploy-status
+        run: |
+          DEPLOY_STATUS=$(gh api \
+            repos/${{ github.repository }}/deployments \
+            --jq '.[0].state')
+          echo "deploy_status=$DEPLOY_STATUS" >> $GITHUB_OUTPUT
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Collect Quality Metrics
+        id: quality-metrics
+        run: |
+          # Calculate code coverage from latest test run
+          coverage=$(gh api repos/${{ github.repository }}/actions/runs \
+            --jq '.workflow_runs[] | select(.name == "Tests") | .jobs_url' | \
+            xargs -I {} gh api {} --jq '.jobs[0].steps[] | select(.name == "Coverage") | .conclusion')
+
+          # Get security scan results
+          security=$(gh api repos/${{ github.repository }}/code-scanning/alerts \
+            --jq '[.[] | select(.state == "open")] | length')
+
+          summary="## Quality Gates\n"
+          summary+="- 📊 Code Coverage: ${coverage:-N/A}\n"
+          summary+="- 🔒 Open Security Issues: ${security:-0}\n"
+
+          echo "summary<<EOF" >> $GITHUB_OUTPUT
+          echo "$summary" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Collect Performance Metrics
+        id: perf-metrics
+        run: |
+          # Get average build time from recent runs
+          build_time=$(gh api repos/${{ github.repository }}/actions/runs \
+            --jq '[.workflow_runs[0:10] | .[].updated_at] | add/length')
+
+          # Calculate success rate
+          total_runs=$(gh api repos/${{ github.repository }}/actions/runs \
+            --jq '.total_count')
+          success_runs=$(gh api repos/${{ github.repository }}/actions/runs \
+            --jq '[.workflow_runs[] | select(.conclusion == "success")] | length')
+          success_rate=$((success_runs * 100 / total_runs))
+
+          summary="## Performance\n"
+          summary+="- ⚡ Build Time: ${build_time:-N/A} minutes\n"
+          summary+="- 🎯 Success Rate: ${success_rate:-N/A}%\n"
+
+          echo "summary<<EOF" >> $GITHUB_OUTPUT
+          echo "$summary" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Update Status Board
+        run: |
+          timestamp=$(date -u "+%Y-%m-%d %H:%M:%S UTC")
+
+          body="# 🎯 SuperPassword Status Board
+          Last updated: $timestamp
+
+          ## Pull Requests
+          - 📬 Open PRs: ${{ steps.pr-stats.outputs.open_prs }}
+          - ✅ Ready to Merge: ${{ steps.pr-stats.outputs.ready_prs }}
+          - ⏳ Blocked: ${{ steps.pr-stats.outputs.blocked_prs }}
+
+          ## Build Status
+          - 🏗️ Latest Build: ${{ steps.build-status.outputs.build_status }}
+
+          ## Deployment Status
+          - 🚀 Status: ${{ steps.deploy-status.outputs.deploy_status }}
+
+          ${{ steps.quality-metrics.outputs.summary }}
+
+          ${{ steps.perf-metrics.outputs.summary }}"
+
+          gh issue edit ${{ env.STATUS_BOARD_ISSUE }} --body "$body"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Error Notification
+        if: failure()
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const issue = await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: process.env.STATUS_BOARD_ISSUE,
+              body: '❌ Status board update failed. Please check the workflow logs.'
+            });
