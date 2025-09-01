@@ -15,7 +15,7 @@ const easProjectId =
 const isUuid = (v?: string) =>
   !!v &&
   /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/.test(
-    v,
+    v
   );
 
 const config: ExpoConfig = {
@@ -70,21 +70,6 @@ const config: ExpoConfig = {
       {
         organization: process.env.SENTRY_ORG,
         project: process.env.SENTRY_PROJECT,
-<<<<<<< HEAD
-=======
-        hooks: {
-          postPublish: [
-            {
-              file: "sentry-expo/upload-sourcemaps",
-              config: {
-                organization: process.env.SENTRY_ORG,
-                project: process.env.SENTRY_PROJECT,
-                authToken: process.env.SENTRY_AUTH_TOKEN,
-              },
-            },
-          ],
-        },
->>>>>>> fix/dependency-compatibility
       },
     ],
     [
