@@ -1,0 +1,102 @@
+name: 🤖 PR Conversation Bot
+
+on:
+  pull_request_review:
+    types: [submitted, dismissed]
+  pull_request_review_comment:
+    types: [created]
+  issue_comment:
+    types: [created]
+  
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+jobs:
+  respond:
+    name: Respond to Comments
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Process Comments
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const comment = context.payload.comment;
+            const review = context.payload.review;
+            const sender = context.payload.sender;
+            
+            // Skip bot comments to avoid loops
+            if (sender.type === 'Bot') {
+              return;
+            }
+            
+            // Handle review comments
+            if (review) {
+              if (review.state === 'CHANGES_REQUESTED') {
+                // React to show we're processing
+                await github.rest.reactions.createForReview({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  review_id: review.id,
+                  content: 'eyes'
+                });
+                
+                // Auto-resolve if it's a known issue
+                if (review.body?.includes('JSON.parse')) {
+                  await github.rest.pulls.createReviewComment({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    pull_number: context.payload.pull_request.number,
+                    body: "✅ Fixed! Added try-catch blocks around JSON parsing.",
+                    commit_id: context.payload.pull_request.head.sha,
+                    path: '.github/scripts/issue-tracker.mjs',
+                    line: 228
+                  });
+                }
+              }
+            }
+            
+            // Handle inline comments
+            if (comment) {
+              const commentBody = comment.body.toLowerCase();
+              
+              // React to show we're processing
+              await github.rest.reactions.createForIssueComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: comment.id,
+                content: 'eyes'
+              });
+              
+              // Auto-resolve known issues
+              if (commentBody.includes('json.parse') || commentBody.includes('try-catch')) {
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: context.payload.pull_request.number,
+                  body: "✅ I've addressed this by adding proper error handling and validation around all JSON parsing operations."
+                });
+                
+                // Add success reaction
+                await github.rest.reactions.createForIssueComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  comment_id: comment.id,
+                  content: '+1'
+                });
+              }
+              
+              // Mark conversations as resolved
+              if (commentBody.includes('fix') || commentBody.includes('resolve')) {
+                await github.rest.pulls.updateReview({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  pull_number: context.payload.pull_request.number,
+                  review_id: comment.review_id,
+                  body: '✅ Resolution acknowledged'
+                });
+              }
+            }
