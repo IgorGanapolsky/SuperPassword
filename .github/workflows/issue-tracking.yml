@@ -1,0 +1,117 @@
+name: 🚀 Issue Tracking & Management
+
+on:
+  issues:
+    types: [opened, edited, labeled, unlabeled, closed, reopened, assigned]
+  pull_request:
+    types: [opened, closed, edited]
+  schedule:
+    - cron: '0 */6 * * *'  # Every 6 hours
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'Manual action to perform'
+        required: false
+        default: 'update-board'
+        type: choice
+        options:
+          - update-board
+          - triage-issues
+          - cleanup-stale
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
+jobs:
+  manage-issues:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run Issue Tracker
+        run: node .github/scripts/issue-tracker.mjs
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          MANUAL_ACTION: ${{ github.event.inputs.action }}
+
+  update-status-board:
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Update Repository Status Board
+        run: |
+          # Find or create status board issue
+          BOARD_ISSUE=$(gh issue list --label status-board --json number -q '.[0].number')
+
+          if [ -z "$BOARD_ISSUE" ]; then
+            gh issue create --title "📊 Repository Status Board" \
+                           --body "Initializing repository status tracking..." \
+                           --label status-board
+            BOARD_ISSUE=$(gh issue list --label status-board --json number -q '.[0].number')
+          fi
+
+          # Generate comprehensive status board
+          CONTENT="# 📊 Repository Status Board
+
+## 📈 Repository Health
+- **Open Issues**: $(gh issue list --state open --json number | jq '. | length') ($(gh issue list --state open --label bug --json number | jq '. | length') bugs, $(gh issue list --state open --label enhancement --json number | jq '. | length') features)
+- **Open PRs**: $(gh pr list --state open --json number | jq '. | length')
+- **Last Updated**: $(date -u '+%Y-%m-%d %H:%M UTC')
+
+## 🔄 Active Pull Requests
+$(gh pr list --state open --limit 10 --json number,title,headRefName,mergeable,isDraft,createdAt --template '
+{{- range . -}}
+{{ if .isDraft }}📝{{ else if .mergeable }}✅{{ else }}⏳{{ end }} **[#{{.number}}]({{.url}})**: {{.title}}
+   - Branch: `{{.headRefName}}`
+   - Age: {{ (now.Sub (fromJson .createdAt | time.Parse "2006-01-02T15:04:05Z07:00")) | time.Duration | printf "%.0f" }} days
+{{- end -}}
+')
+
+## 🐛 Recent Bug Reports
+$(gh issue list --state open --label bug --limit 5 --json number,title,createdAt --template '
+{{- range . -}}
+🐛 **[#{{.number}}]({{.url}})**: {{.title}} ({{ (now.Sub (fromJson .createdAt | time.Parse "2006-01-02T15:04:05Z07:00")) | time.Duration | printf "%.0f" }} days ago)
+{{- end -}}
+')
+
+## ✨ Recent Feature Requests
+$(gh issue list --state open --label enhancement --limit 5 --json number,title,createdAt --template '
+{{- range . -}}
+💡 **[#{{.number}}]({{.url}})**: {{.title}} ({{ (now.Sub (fromJson .createdAt | time.Parse "2006-01-02T15:04:05Z07:00")) | time.Duration | printf "%.0f" }} days ago)
+{{- end -}}
+')
+
+## 🔍 Triage Queue
+$(gh issue list --state open --no-labels --limit 5 --json number,title,createdAt --template '
+{{- range . -}}
+📋 **[#{{.number}}]({{.url}})**: {{.title}} ({{ (now.Sub (fromJson .createdAt | time.Parse "2006-01-02T15:04:05Z07:00")) | time.Duration | printf "%.0f" }} days ago)
+{{- end -}}
+')
+
+## ⚡ Recent Activity
+$(gh run list --limit 5 --json name,status,conclusion,createdAt --template '
+{{- range . -}}
+{{- if eq .conclusion "success" }}✅{{ else if eq .conclusion "failure" }}❌{{ else }}⏳{{ end }} {{.name}}: {{.status}} ({{ (now.Sub (fromJson .createdAt | time.Parse "2006-01-02T15:04:05Z07:00")) | time.Duration | printf "%.0f" }}h ago)
+{{- end -}}
+')
+
+---
+*This board updates automatically every 6 hours. Last sync: $(date -u)*"
+
+          # Update the status board issue
+          echo "$CONTENT" | gh issue edit "$BOARD_ISSUE" --body-file -
