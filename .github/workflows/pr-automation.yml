@@ -2,166 +2,85 @@ name: 🤖 PR Automation
 
 on:
   pull_request:
-    types: [opened, reopened, synchronize, ready_for_review, edited]
-  pull_request_review:
-    types: [submitted, dismissed]
+    types: [opened, synchronize, ready_for_review]
   check_suite:
     types: [completed]
   schedule:
-    - cron: '*/15 * * * *'  # Run every 15 minutes instead of 3
-  workflow_dispatch:
-    inputs:
-      debug:
-        description: 'Enable debug logging'
-        required: false
-        default: 'false'
+    - cron: '*/5 * * * *'  # Check every 5 minutes
 
 permissions:
   contents: write
   pull-requests: write
   checks: write
-  issues: write
 
 jobs:
   automate:
     name: Automate PR Workflow
     runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Analyze PRs
-        id: analyze
+      
+      - name: Auto-merge Check
         uses: actions/github-script@v7
         with:
           script: |
-            const prs = await github.rest.pulls.list({
+            const pr = await github.rest.pulls.get({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              state: 'open'
+              pull_number: context.issue.number
             });
-
-            for (const pr of prs.data) {
-              console.log(`Processing PR #${pr.number}: ${pr.title}`);
-              
-              // Skip draft PRs
-              if (pr.draft) {
-                console.log('Draft PR - skipping');
-                continue;
-              }
-
-              // Check dependencies
-              const depMatch = pr.body?.match(/Depends on #(\d+)/);
-              if (depMatch) {
-                const depPR = await github.rest.pulls.get({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  pull_number: parseInt(depMatch[1])
-                }).catch(() => null);
-
-                if (depPR && depPR.data.state !== 'closed') {
-                  await github.rest.issues.createComment({
-                    owner: context.repo.owner,
-                    repo: context.repo.repo,
-                    issue_number: pr.number,
-                    body: `⏳ Waiting for #${depMatch[1]}`
-                  });
-                  continue;
-                }
-              }
-
-              // Check status
-              const checks = await github.rest.checks.listForRef({
+            
+            // Check if PR is targeting develop
+            if (pr.data.base.ref !== 'develop') {
+              await github.rest.issues.createComment({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                ref: pr.head.sha
+                issue_number: context.issue.number,
+                body: '⚠️ This PR must target the `develop` branch.'
               });
-
-              const reviews = await github.rest.pulls.listReviews({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                pull_number: pr.number
-              });
-
-              // Update status
-              let status = '';
-              const checksPass = checks.data.check_runs.every(c => 
-                c.conclusion === 'success' || c.conclusion === 'skipped'
-              );
-              
-              if (!checksPass) {
-                status = '⏳ Waiting for checks';
-              } else if (pr.mergeable) {
-                status = '✅ Ready to merge';
-                // Auto-merge if everything passes
+              return;
+            }
+            
+            // Get check status
+            const checks = await github.rest.checks.listForRef({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: pr.data.head.sha
+            });
+            
+            const checksPass = checks.data.check_runs.every(c => 
+              c.status === 'completed' && (c.conclusion === 'success' || c.conclusion === 'skipped')
+            );
+            
+            if (checksPass && pr.data.mergeable) {
+              try {
                 await github.rest.pulls.merge({
                   owner: context.repo.owner,
                   repo: context.repo.repo,
-                  pull_number: pr.number,
+                  pull_number: context.issue.number,
                   merge_method: 'squash'
                 });
-              }
-
-              // Update PR status in first comment
-              const comments = await github.rest.issues.listComments({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                issue_number: pr.number
-              });
-
-              const statusComment = comments.data.find(c => 
-                c.body.startsWith('🤖 PR Status')
-              );
-
-              const statusBody = `🤖 PR Status: ${status}\n\n` +
-                `- Checks: ${checksPass ? '✅' : '⏳'}\n` +
-                `- Mergeable: ${pr.mergeable ? '✅' : '❌'}\n\n` +
-                `Last updated: ${new Date().toISOString()}`;
-
-              if (statusComment) {
-                await github.rest.issues.updateComment({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  comment_id: statusComment.id,
-                  body: statusBody
-                });
-              } else {
+                
+                console.log('PR merged successfully');
+                
+              } catch (error) {
+                console.error('Failed to merge:', error);
                 await github.rest.issues.createComment({
                   owner: context.repo.owner,
                   repo: context.repo.repo,
-                  issue_number: pr.number,
-                  body: statusBody
+                  issue_number: context.issue.number,
+                  body: `⚠️ Auto-merge failed: ${error.message}`
                 });
               }
+            } else {
+              const status = !checksPass ? '⏳ Waiting for checks to pass' : '⚠️ PR not mergeable';
+              
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: `${status}\n\nI'll try again once all conditions are met.`
+              });
             }
 
-      - name: Update Status Board
-        if: always()
-        run: |
-          BOARD_ISSUE=$(gh issue list --label status-board --json number -q '.[0].number')
-          
-          if [ -z "$BOARD_ISSUE" ]; then
-            gh issue create --title "📊 Repository Status Board" --body "Initializing..." --label status-board
-            BOARD_ISSUE=$(gh issue list --label status-board --json number -q '.[0].number')
-          fi
-          
-          # Generate status board content
-          CONTENT="# 📊 Repository Status Board\n\n"
-          CONTENT+="## Pull Requests\n"
-          CONTENT+=$(gh pr list --json number,title,headRefName,mergeable,isDraft --template '
-          {{- range . -}}
-          {{ if .isDraft }}📝{{ else if .mergeable }}✅{{ else }}⏳{{ end }} #{{.number}}: {{.title}} (`{{.headRefName}}`)\n
-          {{- end -}}
-          ')
-          
-          CONTENT+="\n## Recent Actions\n"
-          CONTENT+=$(gh run list --limit 5 --json name,status,conclusion,createdAt --template '
-          {{- range . -}}
-          {{- if eq .conclusion "success" }}✅{{ else if eq .conclusion "failure" }}❌{{ else }}⏳{{ end }} {{.name}}: {{.status}}\n
-          {{- end -}}
-          ')
-          
-          CONTENT+="\n_Last updated: $(date -u)_"
-          
-          gh issue edit "$BOARD_ISSUE" --body "$CONTENT"

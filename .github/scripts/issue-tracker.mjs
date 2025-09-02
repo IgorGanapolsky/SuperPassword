@@ -224,8 +224,13 @@ This issue will be automatically closed in 7 days if there's no activity.`;
 async function linkIssuesToPRs() {
   console.log("🔗 Linking issues to pull requests...");
 
-  const prs = await gh(`pr list --repo ${REPO} --state open --json number,title,body`);
-  const prsData = JSON.parse(prs);
+  try {
+    const prs = await gh(`pr list --repo ${REPO} --state open --json number,title,body`);
+    const prsData = JSON.parse(prs);
+    if (!Array.isArray(prsData)) {
+      console.warn('Unexpected PR data format');
+      return [];
+    }
 
   for (const pr of prsData) {
     // Look for issue references in PR title and body
