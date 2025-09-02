@@ -89,21 +89,9 @@ jobs:
               const checksPass = checks.data.check_runs.every(c => 
                 c.conclusion === 'success' || c.conclusion === 'skipped'
               );
-              const hasApproval = reviews.data.some(r => r.state === 'APPROVED');
               
               if (!checksPass) {
                 status = '⏳ Waiting for checks';
-              } else if (!hasApproval) {
-                status = '👀 Needs review';
-                // Request review if not already requested
-                if (!pr.requested_reviewers?.length) {
-                  await github.rest.pulls.requestReviewers({
-                    owner: context.repo.owner,
-                    repo: context.repo.repo,
-                    pull_number: pr.number,
-                    reviewers: ['IgorGanapolsky']
-                  });
-                }
               } else if (pr.mergeable) {
                 status = '✅ Ready to merge';
                 // Auto-merge if everything passes
@@ -128,7 +116,6 @@ jobs:
 
               const statusBody = `🤖 PR Status: ${status}\n\n` +
                 `- Checks: ${checksPass ? '✅' : '⏳'}\n` +
-                `- Reviews: ${hasApproval ? '✅' : '👀'}\n` +
                 `- Mergeable: ${pr.mergeable ? '✅' : '❌'}\n\n` +
                 `Last updated: ${new Date().toISOString()}`;
 
