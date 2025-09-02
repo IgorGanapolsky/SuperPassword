@@ -774,3 +774,247 @@ npm warn deprecated glob@7.2.3: Glob versions prior to v9 are no longer supporte
 npm warn deprecated glob@7.2.3: Glob versions prior to v9 are no longer supported
 npm warn deprecated glob@7.2.3: Glob versions prior to v9 are no longer supported
 npm warn deprecated glob@7.2.3: Glob versions prior to v9 are no longer supported
+npm warn deprecated react-native-vector-icons@10.3.0: react-native-vector-icons package has moved to a new model of per-icon-family packages. See the https://github.com/oblador/react-native-vector-icons/blob/master/MIGRATION.md on how to migrate
+husky - install command is DEPRECATED
+[error] .github/scripts/issue-tracker.mjs: SyntaxError: Unexpected token (374:1)
+[error]   372 | // Run with rate limit protection
+[error]   373 | withRateLimit(main).catch(console.error);
+[error] > 374 |
+[error]       | ^
+[error] .github/workflows/issue-tracking.yml: SyntaxError: A collection cannot be both a mapping and a sequence (1:1)
+[error] >  1 | name: 🚀 Issue Tracking & Management
+[error]      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[error] >  2 |
+[error]      | ^
+[error] >  3 | on:
+[error]      | ^
+[error] >  4 |   issues:
+[error]      | ^
+[error] >  5 |     types: [opened, edited, labeled, unlabeled, closed, reopened, assigned]
+[error]      | ^
+[error] >  6 |   pull_request:
+[error]      | ^
+[error] >  7 |     types: [opened, closed, edited]
+[error]      | ^
+[error] >  8 |   schedule:
+[error]      | ^
+[error] >  9 |     - cron: '0 */6 * * *'  # Every 6 hours
+[error]      | ^
+[error] >  10 |   workflow_dispatch:
+[error]       | ^
+[error] >  11 |     inputs:
+[error]       | ^
+[error] >  12 |       action:
+[error]       | ^
+[error] >  13 |         description: 'Manual action to perform'
+[error]       | ^
+[error] >  14 |         required: false
+[error]       | ^
+[error] >  15 |         default: 'update-board'
+[error]       | ^
+[error] >  16 |         type: choice
+[error]       | ^
+[error] >  17 |         options:
+[error]       | ^
+[error] >  18 |           - update-board
+[error]       | ^
+[error] >  19 |           - triage-issues
+[error]       | ^
+[error] >  20 |           - cleanup-stale
+[error]       | ^
+[error] >  21 |
+[error]       | ^
+[error] >  22 | permissions:
+[error]       | ^
+[error] >  23 |   contents: write
+[error]       | ^
+[error] >  24 |   issues: write
+[error]       | ^
+[error] >  25 |   pull-requests: write
+[error]       | ^
+[error] >  26 |
+[error]       | ^
+[error] >  27 | jobs:
+[error]       | ^
+[error] >  28 |   manage-issues:
+[error]       | ^
+[error] >  29 |     runs-on: ubuntu-latest
+[error]       | ^
+[error] >  30 |     steps:
+[error]       | ^
+[error] >  31 |       - uses: actions/checkout@v4
+[error]       | ^
+[error] >  32 |         with:
+[error]       | ^
+[error] >  33 |           fetch-depth: 0
+[error]       | ^
+[error] >  34 |
+[error]       | ^
+[error] >  35 |       - name: Setup Node.js
+[error]       | ^
+[error] >  36 |         uses: actions/setup-node@v4
+[error]       | ^
+[error] >  37 |         with:
+[error]       | ^
+[error] >  38 |           node-version: '20'
+[error]       | ^
+[error] >  39 |           cache: 'npm'
+[error]       | ^
+[error] >  40 |
+[error]       | ^
+[error] >  41 |       - name: Install dependencies
+[error]       | ^
+[error] >  42 |         run: npm ci
+[error]       | ^
+[error] >  43 |
+[error]       | ^
+[error] >  44 |       - name: Run Issue Tracker
+[error]       | ^
+[error] >  45 |         run: node .github/scripts/issue-tracker.mjs
+[error]       | ^
+[error] >  46 |         env:
+[error]       | ^
+[error] >  47 |           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+[error]       | ^
+[error] >  48 |           MANUAL_ACTION: ${{ github.event.inputs.action }}
+[error]       | ^
+[error] >  49 |
+[error]       | ^
+[error] >  50 |   update-status-board:
+[error]       | ^
+[error] >  51 |     runs-on: ubuntu-latest
+[error]       | ^
+[error] >  52 |     if: always()
+[error]       | ^
+[error] >  53 |     steps:
+[error]       | ^
+[error] >  54 |       - uses: actions/checkout@v4
+[error]       | ^
+[error] >  55 |
+[error]       | ^
+[error] >  56 |       - name: Update Repository Status Board
+[error]       | ^
+[error] >  57 |         run: |
+[error]       | ^
+[error] >  58 |           # Find or create status board issue
+[error]       | ^
+[error] >  59 |           BOARD_ISSUE=$(gh issue list --label status-board --json number -q '.[0].number')
+[error]       | ^
+[error] >  60 |
+[error]       | ^
+[error] >  61 |           if [ -z "$BOARD_ISSUE" ]; then
+[error]       | ^
+[error] >  62 |             gh issue create --title "📊 Repository Status Board" \
+[error]       | ^
+[error] >  63 |                            --body "Initializing repository status tracking..." \
+[error]       | ^
+[error] >  64 |                            --label status-board
+[error]       | ^
+[error] >  65 |             BOARD_ISSUE=$(gh issue list --label status-board --json number -q '.[0].number')
+[error]       | ^
+[error] >  66 |           fi
+[error]       | ^
+[error] >  67 |
+[error]       | ^
+[error] >  68 |           # Generate comprehensive status board
+[error]       | ^
+[error] >  69 |           CONTENT="# 📊 Repository Status Board
+[error]       | ^
+[error] >  70 |
+[error]       | ^
+[error] >  71 | ## 📈 Repository Health
+[error]       | ^
+[error] >  72 | - **Open Issues**: $(gh issue list --state open --json number | jq '. | length') ($(gh issue list --state open --label bug --json number | jq '. | length') bugs, $(gh issue list --state open --label enhancement --json number | jq '. | length') features)
+[error]       | ^
+[error] >  73 | - **Open PRs**: $(gh pr list --state open --json number | jq '. | length')
+[error]       | ^
+[error] >  74 | - **Last Updated**: $(date -u '+%Y-%m-%d %H:%M UTC')
+[error]       | ^
+[error] >  75 |
+[error]       | ^
+[error] >  76 | ## 🔄 Active Pull Requests
+[error]       | ^
+[error] >  77 | $(gh pr list --state open --limit 10 --json number,title,headRefName,mergeable,isDraft,createdAt --template '
+[error]       | ^
+[error] >  78 | {{- range . -}}
+[error]       | ^
+[error] >  79 | {{ if .isDraft }}📝{{ else if .mergeable }}✅{{ else }}⏳{{ end }} **[#{{.number}}]({{.url}})**: {{.title}}
+[error]       | ^
+[error] >  80 |    - Branch: `{{.headRefName}}`
+[error]       | ^
+[error] >  81 |    - Age: {{ (now.Sub (fromJson .createdAt | time.Parse "2006-01-02T15:04:05Z07:00")) | time.Duration | printf "%.0f" }} days
+[error]       | ^
+[error] >  82 | {{- end -}}
+[error]       | ^
+[error] >  83 | ')
+[error]       | ^
+[error] >  84 |
+[error]       | ^
+[error] >  85 | ## 🐛 Recent Bug Reports
+[error]       | ^
+[error] >  86 | $(gh issue list --state open --label bug --limit 5 --json number,title,createdAt --template '
+[error]       | ^
+[error] >  87 | {{- range . -}}
+[error]       | ^
+[error] >  88 | 🐛 **[#{{.number}}]({{.url}})**: {{.title}} ({{ (now.Sub (fromJson .createdAt | time.Parse "2006-01-02T15:04:05Z07:00")) | time.Duration | printf "%.0f" }} days ago)
+[error]       | ^
+[error] >  89 | {{- end -}}
+[error]       | ^
+[error] >  90 | ')
+[error]       | ^
+[error] >  91 |
+[error]       | ^
+[error] >  92 | ## ✨ Recent Feature Requests
+[error]       | ^
+[error] >  93 | $(gh issue list --state open --label enhancement --limit 5 --json number,title,createdAt --template '
+[error]       | ^
+[error] >  94 | {{- range . -}}
+[error]       | ^
+[error] >  95 | 💡 **[#{{.number}}]({{.url}})**: {{.title}} ({{ (now.Sub (fromJson .createdAt | time.Parse "2006-01-02T15:04:05Z07:00")) | time.Duration | printf "%.0f" }} days ago)
+[error]       | ^
+[error] >  96 | {{- end -}}
+[error]       | ^
+[error] >  97 | ')
+[error]       | ^
+[error] >  98 |
+[error]       | ^
+[error] >  99 | ## 🔍 Triage Queue
+[error]       | ^
+[error] > 100 | $(gh issue list --state open --no-labels --limit 5 --json number,title,createdAt --template '
+[error]       | ^
+[error] > 101 | {{- range . -}}
+[error]       | ^
+[error] > 102 | 📋 **[#{{.number}}]({{.url}})**: {{.title}} ({{ (now.Sub (fromJson .createdAt | time.Parse "2006-01-02T15:04:05Z07:00")) | time.Duration | printf "%.0f" }} days ago)
+[error]       | ^
+[error] > 103 | {{- end -}}
+[error]       | ^
+[error] > 104 | ')
+[error]       | ^
+[error] > 105 |
+[error]       | ^
+[error] > 106 | ## ⚡ Recent Activity
+[error]       | ^
+[error] > 107 | $(gh run list --limit 5 --json name,status,conclusion,createdAt --template '
+[error]       | ^
+[error] > 108 | {{- range . -}}
+[error]       | ^
+[error] > 109 | {{- if eq .conclusion "success" }}✅{{ else if eq .conclusion "failure" }}❌{{ else }}⏳{{ end }} {{.name}}: {{.status}} ({{ (now.Sub (fromJson .createdAt | time.Parse "2006-01-02T15:04:05Z07:00")) | time.Duration | printf "%.0f" }}h ago)
+[error]       | ^
+[error] > 110 | {{- end -}}
+[error]       | ^
+[error] > 111 | ')
+[error]       | ^
+[error] > 112 |
+[error]       | ^
+[error] > 113 | ---
+[error]       | ^
+[error] > 114 | *This board updates automatically every 6 hours. Last sync: $(date -u)*"
+[error]       | ^
+[error] > 115 |
+[error]       | ^
+[error] > 116 |           # Update the status board issue
+[error]       | ^
+[error] > 117 |           echo "$CONTENT" | gh issue edit "$BOARD_ISSUE" --body-file -
+[error]       | ^
+[error] > 118 |
+[error]       | ^

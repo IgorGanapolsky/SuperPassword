@@ -107,8 +107,23 @@ function getLabelDescription(label) {
 }
 
 async function getIssues(state = 'open') {
-  const data = await gh(`issue list --repo ${REPO} --state ${state} --json number,title,body,labels,createdAt,updatedAt,author`);
-  return JSON.parse(data);
+  try {
+    const data = await gh(`issue list --repo ${REPO} --state ${state} --json number,title,body,labels,createdAt,updatedAt,author`);
+    try {
+      const parsedData = JSON.parse(data);
+      if (!Array.isArray(parsedData)) {
+        console.warn('Unexpected issue data format');
+        return [];
+      }
+      return parsedData;
+    } catch (e) {
+      console.error('Failed to parse issue data:', e);
+      return [];
+    }
+  } catch (e) {
+    console.error('Failed to fetch issues:', e);
+    return [];
+  }
 }
 
 async function analyzeIssueContent(title, body) {
@@ -226,9 +241,15 @@ async function linkIssuesToPRs() {
 
   try {
     const prs = await gh(`pr list --repo ${REPO} --state open --json number,title,body`);
-    const prsData = JSON.parse(prs);
-    if (!Array.isArray(prsData)) {
-      console.warn('Unexpected PR data format');
+    let prsData;
+    try {
+      prsData = JSON.parse(prs);
+      if (!Array.isArray(prsData)) {
+        console.warn('Unexpected PR data format');
+        return [];
+      }
+    } catch (e) {
+      console.error('Failed to parse PR data:', e);
       return [];
     }
 

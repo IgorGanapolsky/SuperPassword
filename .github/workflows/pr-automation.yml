@@ -6,7 +6,7 @@ on:
   check_suite:
     types: [completed]
   schedule:
-    - cron: '*/5 * * * *'  # Check every 5 minutes
+    - cron: "*/5 * * * *" # Check every 5 minutes
 
 permissions:
   contents: write
@@ -20,7 +20,7 @@ jobs:
     if: github.event.pull_request.draft == false
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Auto-merge Check
         uses: actions/github-script@v7
         with:
@@ -30,7 +30,7 @@ jobs:
               repo: context.repo.repo,
               pull_number: context.issue.number
             });
-            
+
             // Check if PR is targeting develop
             if (pr.data.base.ref !== 'develop') {
               await github.rest.issues.createComment({
@@ -41,18 +41,18 @@ jobs:
               });
               return;
             }
-            
+
             // Get check status
             const checks = await github.rest.checks.listForRef({
               owner: context.repo.owner,
               repo: context.repo.repo,
               ref: pr.data.head.sha
             });
-            
+
             const checksPass = checks.data.check_runs.every(c => 
               c.status === 'completed' && (c.conclusion === 'success' || c.conclusion === 'skipped')
             );
-            
+
             if (checksPass && pr.data.mergeable) {
               try {
                 await github.rest.pulls.merge({
@@ -83,4 +83,3 @@ jobs:
                 body: `${status}\n\nI'll try again once all conditions are met.`
               });
             }
-
