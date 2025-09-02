@@ -1620,3 +1620,9 @@ tsconfig.json 0ms (unchanged)
 > superpassword@1.0.0 lint:fix
 > eslint . --ext .ts,.tsx --fix
 
+Fetching origin
+Fetching old
+
+> superpassword@1.0.0 prepare
+> husky install
+
