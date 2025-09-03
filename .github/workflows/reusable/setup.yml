@@ -1,0 +1,46 @@
+name: Setup Environment
+on:
+  workflow_call:
+    inputs:
+      node-version:
+        required: false
+        type: string
+        default: "20"
+      install-dependencies:
+        required: false
+        type: boolean
+        default: true
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ inputs.node-version }}
+          cache: "npm"
+
+      - name: Install Expo CLI
+        run: npm install -g expo-cli
+
+      - name: Install dependencies
+        if: inputs.install-dependencies
+        run: |
+          npm ci
+          npx expo install --check
+
+      - name: Cache Expo
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.npm
+            ~/Library/Caches/Yarn
+            ~/Library/Caches/CocoaPods
+            ~/.expo
+          key: ${{ runner.os }}-expo-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-expo-
