@@ -26,10 +26,15 @@ setup_develop_protection() {
   gh api \
     --method PUT \
     "/repos/$GITHUB_REPOSITORY/branches/develop/protection" \
-    -f required_status_checks='{"strict":true,"contexts":["validate","security","build"]}' \
+    -f required_status_checks[strict]=true \
+    -f required_status_checks[contexts][]=validate \
+    -f required_status_checks[contexts][]=security \
+    -f required_status_checks[contexts][]=build \
     -f enforce_admins=true \
-    -f required_pull_request_reviews='{"required_approving_review_count":1,"dismiss_stale_reviews":true}' \
-    -f restrictions=null
+    -f required_pull_request_reviews[required_approving_review_count]=1 \
+    -f required_pull_request_reviews[dismiss_stale_reviews]=true \
+    -f allow_deletions=false \
+    -f allow_force_pushes=false
 }
 
 # Set up main branch protection
@@ -38,10 +43,18 @@ setup_main_protection() {
   gh api \
     --method PUT \
     "/repos/$GITHUB_REPOSITORY/branches/main/protection" \
-    -f required_status_checks='{"strict":true,"contexts":["validate","security","build","release"]}' \
+    -f required_status_checks[strict]=true \
+    -f required_status_checks[contexts][]=validate \
+    -f required_status_checks[contexts][]=security \
+    -f required_status_checks[contexts][]=build \
+    -f required_status_checks[contexts][]=release \
     -f enforce_admins=true \
-    -f required_pull_request_reviews='{"required_approving_review_count":2,"dismiss_stale_reviews":true,"require_code_owner_reviews":true}' \
-    -f restrictions='{"users":[],"teams":[],"apps":[]}' \
+    -f required_pull_request_reviews[required_approving_review_count]=2 \
+    -f required_pull_request_reviews[dismiss_stale_reviews]=true \
+    -f required_pull_request_reviews[require_code_owner_reviews]=true \
+    -f restrictions[users][] \
+    -f restrictions[teams][] \
+    -f restrictions[apps][] \
     -f required_linear_history=true \
     -f allow_force_pushes=false \
     -f allow_deletions=false
