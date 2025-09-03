@@ -1,0 +1,290 @@
+name: 🎯 Intelligent Issues Management
+
+on:
+  issues:
+    types: [opened, reopened, edited, labeled, unlabeled, assigned, unassigned]
+  schedule:
+    - cron: "*/10 * * * *" # Every 10 minutes
+  workflow_dispatch:
+    inputs:
+      sync_board:
+        description: "Force sync project board"
+        required: false
+        default: "false"
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+  checks: read
+
+jobs:
+  triage:
+    name: Smart Issue Triaging
+    runs-on: ubuntu-latest
+    if: github.event_name == 'issues' || github.event_name == 'schedule'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Intelligent Triage
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issue = context.payload.issue;
+            if (!issue) return;
+
+            console.log(`Triaging issue #${issue.number}: ${issue.title}`);
+
+            const title = issue.title.toLowerCase();
+            const body = issue.body?.toLowerCase() || '';
+            const labelsToAdd = [];
+            const labelsToRemove = [];
+
+            // Priority Analysis based on keywords and content
+            if (title.includes('fix') || title.includes('bug') || body.includes('breaking')) {
+              labelsToAdd.push('priority: high');
+            } else if (title.includes('enhancement') || title.includes('feature')) {
+              labelsToAdd.push('priority: medium');
+            } else if (title.includes('docs') || title.includes('chore')) {
+              labelsToAdd.push('priority: low');
+            }
+
+            // Type classification
+            if (title.includes('security') || body.includes('security')) {
+              labelsToAdd.push('type: security');
+            } else if (title.includes('performance') || body.includes('performance')) {
+              labelsToAdd.push('type: performance');
+            } else if (title.includes('ux') || title.includes('ui') || body.includes('user experience')) {
+              labelsToAdd.push('type: ux');
+            } else if (title.includes('bug') || title.includes('fix')) {
+              labelsToAdd.push('type: bug');
+            }
+
+            // Status classification
+            if (!issue.assignee) {
+              labelsToAdd.push('status: unassigned');
+              labelsToAdd.push('needs: triage');
+            } else {
+              labelsToRemove.push('status: unassigned');
+            }
+
+            // Time-based labels
+            const createdAt = new Date(issue.created_at);
+            const now = new Date();
+            const hoursOld = (now - createdAt) / (1000 * 60 * 60);
+
+            if (hoursOld > 24) {
+              labelsToAdd.push('age: stale');
+            } else if (hoursOld > 1) {
+              labelsToAdd.push('age: fresh');
+            }
+
+            // Add labels
+            if (labelsToAdd.length > 0) {
+              try {
+                await github.rest.issues.addLabels({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: issue.number,
+                  labels: labelsToAdd
+                });
+                console.log(`Added labels: ${labelsToAdd.join(', ')}`);
+              } catch (error) {
+                console.log('Could not add all labels (some may already exist)');
+              }
+            }
+
+            // Remove outdated labels
+            if (labelsToRemove.length > 0) {
+              for (const label of labelsToRemove) {
+                try {
+                  await github.rest.issues.removeLabel({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    issue_number: issue.number,
+                    name: label
+                  });
+                } catch (error) {
+                  // Label might not exist, continue
+                }
+              }
+            }
+
+            // Auto-assign based on type
+            if (!issue.assignee && labelsToAdd.length > 0) {
+              const typeLabels = labelsToAdd.filter(l => l.startsWith('type:'));
+              // You can customize assignment logic here
+              // await github.rest.issues.addAssignees({ ... })
+            }
+
+            // Response template for new issues
+            if (context.payload.action === 'opened') {
+              const isBug = labelsToAdd.some(l => l.includes('bug') || l.includes('security'));
+              const response = isBug ?
+                '🐛 **Bug report received!** Thanks for helping improve our code. A team member will review this shortly.' :
+                '📋 **Issue received** and automatically triaged for efficiency. A team member will address this based on priority.';
+
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                body: response
+              });
+            }
+
+  project_board_sync:
+    name: Sync Project Board
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule' || github.event.inputs.sync_board == 'true'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Update Project Board
+        uses: actions/github-script@v7
+        with:
+          script: |
+            console.log('Syncing project board...');
+
+            // Get all issues
+            const issues = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              per_page: 100
+            });
+
+            console.log(`Found ${issues.data.length} open issues`);
+
+            const board = {
+              high_priority: issues.data.filter(i => i.labels.some(l => l.name === 'priority: high')),
+              medium_priority: issues.data.filter(i => i.labels.some(l => l.name === 'priority: medium')),
+              low_priority: issues.data.filter(i => i.labels.some(l => l.name === 'priority: low')),
+              unassigned: issues.data.filter(i => !i.assignee),
+              bugs: issues.data.filter(i => i.labels.some(l => l.name.includes('bug'))),
+              features: issues.data.filter(i => i.labels.some(l => l.name.includes('enhancement') || l.name.includes('feature'))),
+              stale: issues.data.filter(i => i.labels.some(l => l.name === 'age: stale'))
+            };
+
+            // Create/update project board comment on main issue
+            const projectBoardContent = Object.entries(board).map(([category, items]) => {
+              const sortedItems = items.sort((a, b) => {
+                const aPriority = a.labels.find(l => l.name.startsWith('priority:'))?.name || '';
+                const bPriority = b.labels.find(l => l.name.startsWith('priority:'))?.name || '';
+                return bPriority.localeCompare(aPriority);
+              });
+
+              const list = sortedItems.slice(0, 10).map(item => {
+                const priority = item.labels.find(l => l.name.startsWith('priority:'))?.name || '';
+                const assignee = item.assignee ? `@${item.assignee.login}` : '👤 Unassigned';
+                const days = Math.floor((new Date() - new Date(item.created_at)) / (1000 * 60 * 60 * 24));
+                return `- ${priority.includes('high') ? '🔴' : priority.includes('medium') ? '🟡' : '🟢'} #${item.number} (${assignee}, ${days}d ago)`;
+              }).join('\\n');
+
+              return `\\n### ${category.replace('_', ' ').replace(/\\b\\w/g, l => l.toUpperCase())}\\n${list || '_No items_'}`;
+            }).join('');
+
+            // Find or create project status issue
+            let projectIssue;
+            const existing = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              labels: ['project-board']
+            });
+
+            if (existing.data.length > 0) {
+              projectIssue = existing.data[0];
+            } else {
+              projectIssue = await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: '📋 Project Board - Issues Overview',
+                body: 'Auto-generated project board for tracking issues',
+                labels: ['project-board']
+              });
+            }
+
+            const fullContent = `# 📋 Issues Project Board\\n\\n` +
+              `## Overview\\n` +
+              `- 📊 Total Open Issues: ${issues.data.length}\\n` +
+              `- 🎯 High Priority: ${board.high_priority.length}\\n` +
+              `- 👥 Unassigned: ${board.unassigned.length}\\n` +
+              `- 🐛 Bugs: ${board.bugs.length}\\n` +
+              `- ✨ Features: ${board.features.length}\\n\\n` +
+              `## Detailed Breakdown\\n${projectBoardContent}\\n\\n` +
+              `---\\n_Last updated: ${new Date().toISOString()}_`;
+
+            await github.rest.issues.update({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: projectIssue.number,
+              body: fullContent
+            });
+
+            console.log('Project board updated successfully');
+
+  sla_monitoring:
+    name: SLA Monitoring & Escalation
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Monitor SLAs
+        uses: actions/github-script@v7
+        with:
+          script: |
+            console.log('Monitoring SLA compliance...');
+
+            const issues = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              per_page: 100
+            });
+
+            const now = new Date();
+            const slaConfigs = {
+              'high': 24,     // 24 hours for high priority
+              'medium': 72,   // 3 days for medium priority
+              'low': 168      // 1 week for low priority
+            };
+
+            let escalatedCount = 0;
+
+            for (const issue of issues.data) {
+              const createdAt = new Date(issue.created_at);
+              const hoursOld = (now - createdAt) / (1000 * 60 * 60);
+
+              const priorityLabel = issue.labels.find(l => l.name.startsWith('priority:'))?.name;
+              const priority = priorityLabel?.split(':')[1]?.trim();
+
+              if (!priority) continue;
+
+              const slaHours = slaConfigs[priority];
+              if (slaHours && hoursOld > slaHours) {
+                const hasEscalation = issue.labels.some(l => l.name === 'escalated');
+
+                if (!hasEscalation) {
+                  // Mark as escalated
+                  await github.rest.issues.addLabels({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    issue_number: issue.number,
+                    labels: ['escalated', 'urgent']
+                  });
+
+                  // Comment about escalation
+                  await github.rest.issues.createComment({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    issue_number: issue.number,
+                    body: `🚨 **SLA BREACHED**\\n\\nThis ${priority} priority issue has exceeded the ${slaHours} hour SLA.\\n\\n@IgorGanapolsky - Immediate attention required!`
+                  });
+
+                  escalatedCount++;
+                  console.log(`Escalated issue #${issue.number}`);
+                }
+              }
+            }
+
+            console.log(`Escalated ${escalatedCount} issues for SLA violations`);
