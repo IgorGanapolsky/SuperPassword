@@ -5,7 +5,7 @@ bot:
 
 review:
   auto_review: true
-  auto_merge: true
+  auto_merge: false # For safety, require manual merge confirmation
   review_comment_strategy: aggregate
   auto_review_enabled: true
   auto_fix: true
@@ -65,10 +65,19 @@ github:
 
 notifications:
   slack:
-    enabled: false # Enable if you want Slack notifications
+    enabled: false
     channel: "" # Add your channel if enabling
 
-ignore_usernames: [] # Add usernames to ignore if needed
+# Protect against direct pushes
+branch_protection:
+  develop:
+    required_reviews: 1
+    required_status_checks: true
+    prevent_direct_push: true
+  main:
+    required_reviews: 1
+    required_status_checks: true
+    prevent_direct_push: true
 
 advanced:
   rate_limit:

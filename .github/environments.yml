@@ -1,0 +1,43 @@
+# GitHub Environments Configuration
+# This file is used for documentation purposes and as a reference for manual environment setup
+
+environments:
+  staging:
+    protected: true
+    deployment_branch_policy:
+      protected_branches: true
+      custom_branches: false
+    reviewers:
+      - IgorGanapolsky
+    deployment_protection_rules:
+      - wait_timer: 5
+      - required_reviewers: 1
+    secrets:
+      - EXPO_TOKEN
+      - EXPO_PUBLIC_SENTRY_DSN
+      - APPSTORE_PRIVATE_KEY
+      - APPSTORE_KEY_ID
+      - APPSTORE_ISSUER_ID
+      - GOOGLE_SERVICE_ACCOUNT_JSON
+      - SLACK_WEBHOOK_URL
+      - SNYK_TOKEN
+
+  production:
+    protected: true
+    deployment_branch_policy:
+      protected_branches: true
+      custom_branches: false
+    reviewers:
+      - IgorGanapolsky
+    deployment_protection_rules:
+      - wait_timer: 15
+      - required_reviewers: 2
+    secrets:
+      - EXPO_TOKEN
+      - EXPO_PUBLIC_SENTRY_DSN
+      - APPSTORE_PRIVATE_KEY
+      - APPSTORE_KEY_ID
+      - APPSTORE_ISSUER_ID
+      - GOOGLE_SERVICE_ACCOUNT_JSON
+      - SLACK_WEBHOOK_URL
+      - SNYK_TOKEN
