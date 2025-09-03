@@ -1,3 +1,114 @@
+# SuperPassword - Secure Password Management App
+
+## CI/CD Pipeline
+
+Our CI/CD pipeline is designed to ensure code quality, security, and reliable deployments:
+
+### Workflows
+
+1. **CI Pipeline** (.github/workflows/ci.yml)
+   - Runs on all PRs and pushes to develop
+   - Validates code quality (TypeScript, lint, tests)
+   - Performs security checks
+   - Builds development versions
+
+2. **Security Pipeline** (.github/workflows/security.yml)
+   - Daily security scans
+   - Dependency vulnerability checks
+   - Code security analysis
+   - Mobile-specific security checks
+
+3. **Release Pipeline** (.github/workflows/release.yml)
+   - Triggered by version tags or manually
+   - Supports staging and production deployments
+   - Generates SBOM and release notes
+   - Handles app store submissions
+
+### Branch Protection
+
+- All work branches from `develop`
+- PRs require:
+  - CI pipeline success
+  - Code review approval
+  - Up-to-date branch status
+- `main` branch:
+  - Protected from direct pushes
+  - Requires admin approval for merges
+  - Release tags trigger deployments
+
+### Security Features
+
+- CodeQL analysis
+- OWASP dependency checking
+- Secret scanning
+- Mobile security framework integration
+- SBOM generation
+- Dependency audit
+
+### Release Process
+
+1. Create feature branch from develop
+2. Open PR to develop
+3. Pass CI and get approval
+4. Merge to develop
+5. Create release PR to main (when ready)
+6. Get admin approval
+7. Tag release triggers deployment
+
+# SuperPassword
+
+## Development Workflow
+
+### Branch Strategy
+
+- `main`: Production-ready code
+- `develop`: Primary development branch
+- Feature branches: Create from `develop`, merge back to `develop`
+
+### Pull Request Process
+
+1. Create branch from `develop`
+2. Make your changes
+3. Ensure all checks pass:
+   - Linting
+   - Type checking
+   - Tests
+   - Build verification
+4. Submit PR to `develop`
+5. Once approved, merge to `develop`
+
+### Active GitHub Actions
+
+- **CI**: Runs on PRs and pushes to main/develop
+  - Linting, type checking, tests, and build verification
+- **CodeQL**: Security scanning
+  - Runs weekly and on PRs to main
+- **Dependabot**: Dependency updates
+  - Monthly schedule
+  - Security updates as needed
+
+### Development Commands
+
+```bash
+# Install dependencies
+npm install
+
+# Start development server
+npm run start
+
+# Run tests
+npm run test
+
+# Lint code
+npm run lint
+
+# Type check
+npm run typecheck
+
+# Build app
+npm run build
+```
+
 # SecurePass - Password Generator
 
 [![CI/CD Pipeline](https://github.com/IgorGanapolsky/SuperPassword/actions/workflows/main.yml/badge.svg)](https://github.com/IgorGanapolsky/SuperPassword/actions/workflows/main.yml)

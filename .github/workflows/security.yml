@@ -1,0 +1,120 @@
+name: Security Pipeline
+on:
+  schedule:
+    - cron: "0 0 * * *" # Run daily at midnight
+  workflow_dispatch: # Allow manual triggers
+  push:
+    branches: [main, develop]
+    paths:
+      - "package.json"
+      - "package-lock.json"
+      - "yarn.lock"
+      - "**/*.js"
+      - "**/*.ts"
+      - "**/*.tsx"
+
+permissions:
+  contents: read
+  security-events: write
+  actions: read
+
+jobs:
+  security-scan:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        scan-type: [dependencies, code, mobile]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        if: matrix.scan-type == 'dependencies'
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      # Dependency Security Scans
+      - name: Run npm audit
+        if: matrix.scan-type == 'dependencies'
+        run: npm audit --json > npm-audit.json || true
+
+      - name: Run Snyk
+        if: matrix.scan-type == 'dependencies'
+        uses: snyk/actions/node@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          args: --severity-threshold=high
+
+      - name: OWASP Dependency Check
+        if: matrix.scan-type == 'dependencies'
+        uses: dependency-check/Dependency-Check_Action@main
+        with:
+          project: "SuperPassword"
+          path: "."
+          format: "HTML"
+          args: >
+            --suppression ./.github/config/dependency-check-suppressions.xml
+            --failOnCVSS 7
+            --enableRetired
+
+      # Code Security Scans
+      - name: Run CodeQL Analysis
+        if: matrix.scan-type == 'code'
+        uses: github/codeql-action/init@v3
+        with:
+          languages: javascript
+          queries: security-extended,security-and-quality
+
+      - name: Perform CodeQL Analysis
+        if: matrix.scan-type == 'code'
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:javascript"
+
+      - name: Run Secret Scan
+        if: matrix.scan-type == 'code'
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Mobile-specific Security Scans
+      - name: Mobile Security Framework (MobSF)
+        if: matrix.scan-type == 'mobile'
+        uses: MobSF/mobsfscan@main
+        with:
+          args: ". --json --output mobile-security-results.json"
+
+      - name: Run npm-audit-helper
+        if: matrix.scan-type == 'dependencies'
+        run: npx npm-audit-helper@latest --audit-level=moderate
+
+      - name: Upload Security Results
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: security-results-${{ matrix.scan-type }}
+          path: |
+            npm-audit.json
+            dependency-check-report.html
+            mobile-security-results.json
+
+  notify:
+    needs: security-scan
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Notify Security Issues
+        if: always()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          fields: repo,message,commit,author,action,eventName,ref,workflow
+          text: |
+            Security scan completed with status: ${{ job.status }}
+            View detailed results in GitHub Actions artifacts
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}

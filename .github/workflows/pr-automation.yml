@@ -8,13 +8,13 @@ on:
   check_suite:
     types: [completed]
   schedule:
-    - cron: '*/15 * * * *'  # Run every 15 minutes instead of 3
+    - cron: "*/15 * * * *" # Run every 15 minutes instead of 3
   workflow_dispatch:
     inputs:
       debug:
-        description: 'Enable debug logging'
+        description: "Enable debug logging"
         required: false
-        default: 'false'
+        default: "false"
 
 permissions:
   contents: write
@@ -153,12 +153,12 @@ jobs:
         if: always()
         run: |
           BOARD_ISSUE=$(gh issue list --label status-board --json number -q '.[0].number')
-          
+
           if [ -z "$BOARD_ISSUE" ]; then
             gh issue create --title "📊 Repository Status Board" --body "Initializing..." --label status-board
             BOARD_ISSUE=$(gh issue list --label status-board --json number -q '.[0].number')
           fi
-          
+
           # Generate status board content
           CONTENT="# 📊 Repository Status Board\n\n"
           CONTENT+="## Pull Requests\n"
@@ -167,14 +167,14 @@ jobs:
           {{ if .isDraft }}📝{{ else if .mergeable }}✅{{ else }}⏳{{ end }} #{{.number}}: {{.title}} (`{{.headRefName}}`)\n
           {{- end -}}
           ')
-          
+
           CONTENT+="\n## Recent Actions\n"
           CONTENT+=$(gh run list --limit 5 --json name,status,conclusion,createdAt --template '
           {{- range . -}}
           {{- if eq .conclusion "success" }}✅{{ else if eq .conclusion "failure" }}❌{{ else }}⏳{{ end }} {{.name}}: {{.status}}\n
           {{- end -}}
           ')
-          
+
           CONTENT+="\n_Last updated: $(date -u)_"
-          
+
           gh issue edit "$BOARD_ISSUE" --body "$CONTENT"

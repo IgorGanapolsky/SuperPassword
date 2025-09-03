@@ -1,0 +1,148 @@
+name: Release Pipeline
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Environment to deploy to"
+        type: choice
+        options:
+          - staging
+          - production
+        required: true
+        default: "staging"
+      version:
+        description: "Version to release (e.g., v1.2.3)"
+        required: false
+        type: string
+
+permissions:
+  contents: write
+  id-token: write
+  issues: write
+  pull-requests: write
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.get-version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get version
+        id: get-version
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "version=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+          else
+            echo "version=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Validate version
+        run: |
+          version=${{ steps.get-version.outputs.version }}
+          if ! [[ $version =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.]+)?$ ]]; then
+            echo "Invalid version format: $version"
+            exit 1
+          fi
+
+  build:
+    needs: prepare
+    runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.environment || 'production' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Setup EAS
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Generate SBOM
+        uses: anchore/sbom-action@v0
+        with:
+          format: cyclonedx-json
+          output-file: sbom.cdx.json
+
+      - name: Update app version
+        run: |
+          version=${{ needs.prepare.outputs.version }}
+          jq --arg v "${version#v}" '.version = $v' package.json > tmp.json && mv tmp.json package.json
+          npx expo config --type bare
+
+      - name: Build iOS
+        run: |
+          eas build --platform ios --profile ${{ github.event.inputs.environment || 'production' }} --non-interactive --no-wait --auto-submit
+        env:
+          EXPO_PUBLIC_SENTRY_DSN: ${{ secrets.EXPO_PUBLIC_SENTRY_DSN }}
+          APPSTORE_PRIVATE_KEY: ${{ secrets.APPSTORE_PRIVATE_KEY }}
+          APPSTORE_KEY_ID: ${{ secrets.APPSTORE_KEY_ID }}
+          APPSTORE_ISSUER_ID: ${{ secrets.APPSTORE_ISSUER_ID }}
+
+      - name: Build Android
+        run: |
+          eas build --platform android --profile ${{ github.event.inputs.environment || 'production' }} --non-interactive --no-wait --auto-submit
+        env:
+          EXPO_PUBLIC_SENTRY_DSN: ${{ secrets.EXPO_PUBLIC_SENTRY_DSN }}
+          GOOGLE_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
+
+      - name: Generate release notes
+        id: release-notes
+        run: |
+          version=${{ needs.prepare.outputs.version }}
+          previous_tag=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+          if [ -n "$previous_tag" ]; then
+            echo "# Changes since $previous_tag" > RELEASE_NOTES.md
+            git log --pretty=format:"* %s" $previous_tag..HEAD >> RELEASE_NOTES.md
+          else
+            echo "# Initial release" > RELEASE_NOTES.md
+            git log --pretty=format:"* %s" >> RELEASE_NOTES.md
+          fi
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        if: ${{ github.event.inputs.environment == 'production' || github.event_name == 'push' }}
+        with:
+          tag_name: ${{ needs.prepare.outputs.version }}
+          name: Release ${{ needs.prepare.outputs.version }}
+          body_path: RELEASE_NOTES.md
+          draft: false
+          prerelease: false
+          files: |
+            sbom.cdx.json
+
+      - name: Upload SBOM
+        uses: actions/upload-artifact@v3
+        with:
+          name: sbom
+          path: sbom.cdx.json
+
+  notify:
+    needs: [prepare, build]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Notify release status
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          fields: repo,message,commit,author,action,eventName,ref,workflow
+          text: |
+            Release ${{ needs.prepare.outputs.version }} to ${{ github.event.inputs.environment || 'production' }} completed with status: ${{ job.status }}
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
