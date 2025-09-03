@@ -1,0 +1,126 @@
+name: CI/CD Analytics
+on:
+  schedule:
+    - cron: "0 0 * * 0" # Weekly on Sunday
+  workflow_dispatch:
+
+permissions:
+  actions: read
+  contents: read
+  issues: write
+
+jobs:
+  analyze-workflows:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Analyze workflow runs
+        id: workflow-stats
+        run: |
+          gh api -H "Accept: application/vnd.github+json" \
+            /repos/${{ github.repository }}/actions/runs \
+            --paginate \
+            --jq '.workflow_runs[] | select(.created_at >= (now - 604800 | strftime("%Y-%m-%dT%H:%M:%SZ"))) | {workflow_name: .name, conclusion: .conclusion, duration: (.updated_at | fromdate - (.created_at | fromdate))}' \
+            > workflow_stats.json
+
+          echo "### CI/CD Performance Report (Last 7 Days)" > report.md
+          echo "" >> report.md
+          echo "#### Build Success Rate" >> report.md
+          jq -r '[.conclusion] | group_by(.) | map({conclusion: .[0], count: length}) | map("\(.conclusion): \(.count)") | .[]' workflow_stats.json >> report.md
+          echo "" >> report.md
+
+          echo "#### Average Build Duration" >> report.md
+          jq -r 'group_by(.workflow_name) | map({name: .[0].workflow_name, avg_duration: (map(.duration) | add / length)}) | .[] | "\(.name): \(.avg_duration | floor)s"' workflow_stats.json >> report.md
+          echo "" >> report.md
+
+          echo "#### Cache Performance" >> report.md
+          gh api -H "Accept: application/vnd.github+json" \
+            /repos/${{ github.repository }}/actions/caches \
+            --jq '.actions_caches | map({size_in_mb: (.size_in_bytes/1048576 | floor), last_accessed_at}) | "Total caches: \(length)\nTotal size: \(map(.size_in_mb) | add)MB"' >> report.md
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create performance issue
+        uses: peter-evans/create-issue-from-file@v4
+        with:
+          title: Weekly CI/CD Performance Report
+          content-filepath: ./report.md
+          labels: |
+            metrics
+            automation
+            ci-cd
+
+  analyze-security:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Analyze security alerts
+        id: security-stats
+        run: |
+          echo "### Security Metrics Report (Last 7 Days)" > security_report.md
+          echo "" >> security_report.md
+
+          echo "#### CodeQL Alerts" >> security_report.md
+          gh api -H "Accept: application/vnd.github+json" \
+            /repos/${{ github.repository }}/code-scanning/alerts \
+            --jq 'group_by(.state) | map({state: .[0].state, count: length}) | .[] | "\(.state): \(.count)"' >> security_report.md
+          echo "" >> security_report.md
+
+          echo "#### Dependency Alerts" >> security_report.md
+          gh api -H "Accept: application/vnd.github+json" \
+            /repos/${{ github.repository }}/dependabot/alerts \
+            --jq 'group_by(.state) | map({state: .[0].state, count: length}) | .[] | "\(.state): \(.count)"' >> security_report.md
+          echo "" >> security_report.md
+
+          echo "#### Secret Scanning Alerts" >> security_report.md
+          gh api -H "Accept: application/vnd.github+json" \
+            /repos/${{ github.repository }}/secret-scanning/alerts \
+            --jq 'group_by(.state) | map({state: .[0].state, count: length}) | .[] | "\(.state): \(.count)"' >> security_report.md
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create security report issue
+        uses: peter-evans/create-issue-from-file@v4
+        with:
+          title: Weekly Security Metrics Report
+          content-filepath: ./security_report.md
+          labels: |
+            security
+            metrics
+            automation
+
+  analyze-deployments:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Analyze deployments
+        id: deployment-stats
+        run: |
+          echo "### Deployment Metrics Report (Last 7 Days)" > deployment_report.md
+          echo "" >> deployment_report.md
+
+          echo "#### Deployment Statistics" >> deployment_report.md
+          gh api -H "Accept: application/vnd.github+json" \
+            /repos/${{ github.repository }}/deployments \
+            --jq '[.[] | select(.created_at >= (now - 604800 | strftime("%Y-%m-%dT%H:%M:%SZ")))] | group_by(.environment) | map({env: .[0].environment, count: length, success: map(select(.state == "success")) | length}) | .[] | "\(.env):\n  Total: \(.count)\n  Success Rate: \((.success/.count * 100 | floor))%"' >> deployment_report.md
+          echo "" >> deployment_report.md
+
+          echo "#### Recent Deployments" >> deployment_report.md
+          gh api -H "Accept: application/vnd.github+json" \
+            /repos/${{ github.repository }}/deployments \
+            --jq 'limit(5; reverse) | .[] | "- \(.environment) (\(.created_at)): \(.state)"' >> deployment_report.md
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create deployment report issue
+        uses: peter-evans/create-issue-from-file@v4
+        with:
+          title: Weekly Deployment Metrics Report
+          content-filepath: ./deployment_report.md
+          labels: |
+            deployments
+            metrics
+            automation
