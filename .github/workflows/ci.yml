@@ -1,11 +1,11 @@
-name: CI (Checks)
+name: CI
 
 on:
-  push:
-    branches: [main]
   pull_request:
-    branches: [main]
+    branches: [develop, main]
     types: [opened, synchronize, reopened, ready_for_review]
+  push:
+    branches: [develop, main]
 
 permissions:
   contents: read
@@ -15,13 +15,13 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  checks:
+  validate:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v4
 
-      - name: Setup Node
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: "20"
@@ -39,5 +39,8 @@ jobs:
       - name: Lint
         run: npm run lint
 
-      - name: Prettier check
-        run: npm run fmt
+      - name: Test
+        run: npm run test
+
+      - name: Build
+        run: npm run build

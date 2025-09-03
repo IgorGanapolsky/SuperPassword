@@ -1,3 +1,57 @@
+# SuperPassword
+
+## Development Workflow
+
+### Branch Strategy
+
+- `main`: Production-ready code
+- `develop`: Primary development branch
+- Feature branches: Create from `develop`, merge back to `develop`
+
+### Pull Request Process
+
+1. Create branch from `develop`
+2. Make your changes
+3. Ensure all checks pass:
+   - Linting
+   - Type checking
+   - Tests
+   - Build verification
+4. Submit PR to `develop`
+5. Once approved, merge to `develop`
+
+### Active GitHub Actions
+
+- **CI**: Runs on PRs and pushes to main/develop
+  - Linting, type checking, tests, and build verification
+- **CodeQL**: Security scanning
+  - Runs weekly and on PRs to main
+- **Dependabot**: Dependency updates
+  - Monthly schedule
+  - Security updates as needed
+
+### Development Commands
+
+```bash
+# Install dependencies
+npm install
+
+# Start development server
+npm run start
+
+# Run tests
+npm run test
+
+# Lint code
+npm run lint
+
+# Type check
+npm run typecheck
+
+# Build app
+npm run build
+```
+
 # SecurePass - Password Generator
 
 [![CI/CD Pipeline](https://github.com/IgorGanapolsky/SuperPassword/actions/workflows/main.yml/badge.svg)](https://github.com/IgorGanapolsky/SuperPassword/actions/workflows/main.yml)

@@ -3,19 +3,12 @@ updates:
   - package-ecosystem: "npm"
     directory: "/"
     schedule:
-      interval: "daily"
-      time: "04:00"
+      interval: "monthly"
     open-pull-requests-limit: 10
+    versioning-strategy: "auto"
+    labels:
+      - "dependencies"
+      - "security"
     commit-message:
-      prefix: "chore(deps)"
-    versioning-strategy: widen
-
-  - package-ecosystem: "github-actions"
-    directory: "/"
-    schedule:
-      interval: "weekly"
-      day: "sunday"
-      time: "04:30"
-    open-pull-requests-limit: 10
-    commit-message:
-      prefix: "chore(actions)"
+      prefix: "deps"
+    target-branch: "develop"

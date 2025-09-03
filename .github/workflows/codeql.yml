@@ -2,10 +2,11 @@ name: CodeQL
 
 on:
   push:
-    branches: [main]
+    branches: [main, develop]
   pull_request:
     branches: [main]
-    types: [opened, synchronize, reopened, ready_for_review]
+  schedule:
+    - cron: "0 0 * * 1" # Run weekly on Mondays
 
 permissions:
   contents: read
@@ -20,13 +21,9 @@ jobs:
   analyze:
     name: Analyze
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      security-events: write
-      actions: read
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v4
 
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3
