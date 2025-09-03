@@ -2,42 +2,124 @@ name: ⚙️ CI
 
 on:
   push:
-    branches: [main, develop]
+    branches: [main]
+    paths-ignore:
+      - "**.md"
+      - ".github/*.yml"
+      - "docs/**"
   pull_request:
-    branches: [develop]
+    branches: [main]
     types: [opened, synchronize, reopened, ready_for_review]
+    paths-ignore:
+      - "**.md"
+      - ".github/*.yml"
+      - "docs/**"
 
 permissions:
   contents: read
+  checks: write
+  pull-requests: write
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  checks:
+  validate:
+    name: Validate & Test
     runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+    timeout-minutes: 15
+
     steps:
-      - name: Checkout
+      - name: ⬇️ Checkout
         uses: actions/checkout@v5
 
-      - name: Setup Node
+      - name: 📱 Setup React Native
         uses: actions/setup-node@v4
         with:
           node-version: "20"
           cache: "npm"
 
-      - name: Install dependencies
-        run: npm ci --no-audit --no-fund
+      - name: 🏗️ Setup EAS
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
 
-      - name: TypeScript check
+      - name: 📦 Install Dependencies
+        run: |
+          npm ci --no-audit --no-fund
+          npx expo install --check
+
+      - name: 🔍 Type Check
         run: npx tsc --noEmit
 
-      - name: Expo doctor
-        run: npx expo-doctor
+      - name: 💅 Code Style
+        run: |
+          npm run lint
+          npm run fmt -- --check
 
-      - name: Lint
-        run: npm run lint
+      - name: 🩺 Expo Doctor
+        run: |
+          npx expo-doctor
+          npx expo diagnostics
 
-      - name: Prettier check
-        run: npm run fmt
+      - name: 🧪 Run Tests
+        run: npm test -- --ci --coverage
+
+      - name: 📊 Upload Coverage
+        uses: codecov/codecov-action@v3
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: false
+
+  preview:
+    name: Build Preview
+    needs: validate
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    timeout-minutes: 30
+
+    steps:
+      - name: ⬇️ Checkout
+        uses: actions/checkout@v5
+
+      - name: 📱 Setup React Native
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: 🏗️ Setup EAS
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: 📦 Install Dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: 🚀 Create Preview
+        run: |
+          if [[ ${{ github.event.pull_request.head.repo.full_name }} == ${{ github.repository }} ]]; then
+            npx eas build --platform all --profile preview --non-interactive
+          else
+            echo "Skipping preview build for fork"
+          fi
+
+      - name: 💬 Comment Preview URL
+        if: success() && github.event.pull_request.head.repo.full_name == github.repository
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const body = `🎉 Preview build succeeded!
+            You can test this PR using the Expo Go app:
+            - [Open in Expo Go](exp://exp.host/@igorganapolsky/superpassword?release-channel=pr-${{ github.event.pull_request.number }})`;
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: body
+            });
