@@ -1,0 +1,44 @@
+# Merge Queue Configuration - 2025 Best Practices
+queue_rules:
+  - name: default
+    merge_conditions:
+      - check-success=ci
+      - check-success=CodeQL
+    merge_method: squash
+    batch_size: 5 # Process multiple PRs together
+    batch_max_wait_time: 60 # Wait up to 60 mins to batch PRs
+    update_strategy: auto # Auto-update PRs when needed
+
+  - name: dependencies
+    merge_conditions:
+      - check-success=ci
+      - check-success=CodeQL
+      - label=dependencies
+    merge_method: squash
+    batch_size: 10 # Larger batch for deps
+    batch_max_wait_time: 30 # Faster processing for deps
+    update_strategy: auto
+    schedule:
+      # Process deps during quiet hours
+      cron: "0 2-5 * * *" # 2 AM - 5 AM
+
+protection_rules:
+  - pattern: main
+    enforce_admins: false
+    required_status_checks:
+      - ci
+      - CodeQL
+    allow_force_pushes: false
+
+  - pattern: develop
+    enforce_admins: false
+    required_status_checks:
+      - ci
+    allow_force_pushes: true # Allow force push on develop
+
+automated_fixes:
+  - type: dependencies
+    auto_approve: true
+    labels: [dependencies]
+    batch: true
+    schedule: "0 3 * * *" # 3 AM daily
