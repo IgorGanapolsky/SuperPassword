@@ -1,0 +1,83 @@
+# Auto detect text files and perform LF normalization
+* text=auto eol=lf
+
+# JavaScript/TypeScript files
+*.js text
+*.jsx text
+*.ts text
+*.tsx text
+*.json text
+
+# React Native/Expo files
+*.pbxproj binary
+*.plist text
+*.xcconfig text
+*.entitlements text
+*.xcscheme text
+*.m text
+*.h text
+*.mm text
+*.swift text
+*.java text
+*.kt text
+*.xml text
+*.gradle text
+*.properties text
+
+# Documentation
+*.md text
+*.txt text
+*.yml text
+*.yaml text
+
+# Images
+*.png binary
+*.jpg binary
+*.gif binary
+*.ico binary
+*.svg text
+
+# Fonts
+*.ttf binary
+*.otf binary
+*.woff binary
+*.woff2 binary
+*.eot binary
+
+# Archives
+*.zip binary
+*.tar binary
+*.gz binary
+
+# Xcode
+*.xcworkspace binary
+*.xcuserstate binary
+*.xcassets binary
+*.storyboard text
+*.xib text
+
+# Android
+*.aar binary
+*.jar binary
+*.so binary
+*.dex binary
+*.apk binary
+
+# iOS
+*.ipa binary
+*.app binary
+*.dylib binary
+*.framework binary
+*.xcarchive binary
+
+# Lock files
+package-lock.json text -diff
+yarn.lock text -diff
+
+# Git config files
+.gitattributes text
+.gitignore text
+.gitconfig text
+
+# Heroku
+Procfile text
