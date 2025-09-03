@@ -1,0 +1,299 @@
+name: 📊 Unified Status Dashboard
+
+on:
+  schedule:
+    - cron: "0 * * * *" # Hourly updates
+  workflow_dispatch:
+    inputs:
+      force_refresh:
+        description: "Force dashboard refresh"
+        required: false
+        default: "false"
+      include_history:
+        description: "Include historical metrics"
+        required: false
+        default: "false"
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: read
+  checks: read
+
+jobs:
+  unified_dashboard:
+    name: Generate Unified Dashboard
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js for Metrics
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Collect Repository Metrics
+        id: metrics
+        uses: actions/github-script@v7
+        with:
+          script: |
+            console.log('📊 Collecting unified metrics...');
+
+            // Get all issues (includes PRs)
+            const allIssues = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'all',
+              per_page: 100
+            });
+
+            // Get PRs specifically
+            const allPRs = await github.rest.pulls.list({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'all',
+              per_page: 100
+            });
+
+            // Get recent workflow runs
+            const workflowRuns = await github.rest.actions.listWorkflowRuns({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              per_page: 20
+            });
+
+            // Calculate metrics
+            const now = new Date();
+            const sevenDaysAgo = new Date(now - 7 * 24 * 60 * 60 * 1000);
+            const thirtyDaysAgo = new Date(now - 30 * 24 * 60 * 60 * 1000);
+
+            // Issue metrics
+            const issues = allIssues.data.filter(i => !i.pull_request);
+            const openIssues = issues.filter(i => i.state === 'open');
+            const closedIssues = issues.filter(i => i.state === 'closed');
+
+            const recentIssues = issues.filter(i =>
+              new Date(i.created_at) > sevenDaysAgo
+            );
+
+            const oldIssues = openIssues.filter(i =>
+              new Date(i.created_at) < thirtyDaysAgo
+            );
+
+            // PR metrics
+            const openPRs = allPRs.data.filter(pr => pr.state === 'open');
+            const mergedPRs = allPRs.data.filter(pr => pr.merged_at);
+            const recentPRs = allPRs.data.filter(pr =>
+              new Date(pr.created_at) > sevenDaysAgo
+            );
+
+            // Workflow success rates
+            const successfulRuns = workflowRuns.data.filter(r =>
+              r.conclusion === 'success'
+            );
+            const totalRuns = workflowRuns.data.filter(r =>
+              r.conclusion !== 'cancelled'
+            );
+            const successRate = totalRuns.length > 0 ?
+              ((successfulRuns.length / totalRuns.length) * 100).toFixed(1) : 0;
+
+            // Build average time calculation
+            const completedRuns = workflowRuns.data.filter(r =>
+              r.conclusion && r.conclusion !== 'cancelled'
+            );
+            let avgBuildTime = 0;
+            if (completedRuns.length > 0) {
+              const totalTime = completedRuns.reduce((sum, run) => {
+                if (run.created_at && run.updated_at) {
+                  return sum + (new Date(run.updated_at) - new Date(run.created_at));
+                }
+                return sum;
+              }, 0);
+              avgBuildTime = Math.round(totalTime / completedRuns.length / 1000 / 60); // minutes
+            }
+
+            const metrics = {
+              issues: {
+                total: issues.length,
+                open: openIssues.length,
+                closed: closedIssues.length,
+                recent: recentIssues.length,
+                old: oldIssues.length
+              },
+              prs: {
+                total: allPRs.data.length,
+                open: openPRs.length,
+                merged: mergedPRs.length,
+                recent: recentPRs.length
+              },
+              ci: {
+                success_rate: successRate,
+                avg_build_time: avgBuildTime,
+                recent_runs: workflowRuns.data.length
+              },
+              priorities: {
+                high: openIssues.filter(i =>
+                  i.labels.some(l => l.name === 'priority: high')
+                ).length,
+                medium: openIssues.filter(i =>
+                  i.labels.some(l => l.name === 'priority: medium')
+                ).length,
+                low: openIssues.filter(i =>
+                  i.labels.some(l => l.name === 'priority: low')
+                ).length
+              },
+              slas: {
+                breached: openIssues.filter(i =>
+                  i.labels.some(l => l.name === 'escalated')
+                ).length
+              }
+            };
+
+            core.setOutput('metrics', JSON.stringify(metrics));
+            return metrics;
+
+      - name: Generate Dashboard Issue
+        uses: actions/github-script@v7
+        env:
+          METRICS: ${{ steps.metrics.outputs.metrics }}
+        with:
+          script: |
+            const metrics = JSON.parse(process.env.METRICS);
+
+            // Create comprehensive dashboard
+            const dashboard = [
+              '# 📊 SuperPassword Repository Dashboard\\n',
+              '## 🔥 Live Metrics Overview\\n',
+              '### 📋 Issues & Requests\\n',
+              `| Metric | Count | Status |\\n`,
+              `|--------|-------|--------|\\n`,
+              `| **Total Issues** | ${metrics.issues.total} | 📊 |\\n`,
+              `| **Open Issues** | ${metrics.issues.open} | ${metrics.issues.open === 0 ? '✅' : metrics.issues.open < 10 ? '🟡' : '🔴'} |\\n`,
+              `| **Recent Issues (7d)** | ${metrics.issues.recent} | 📈 |\\n`,
+              `| **Old Issues (30d+)** | ${metrics.issues.old} | ${metrics.issues.old > 5 ? '⚠️' : '✅'} |\\n\\n`,
+              '### 🔄 Pull Requests\\n',
+              `| Metric | Count | Trend |\\n`,
+              `|--------|-------|-------|\\n`,
+              `| **Open PRs** | ${metrics.prs.open} | ${metrics.prs.open === 0 ? '✅' : metrics.prs.open < 5 ? '🟡' : '🔴'} |\\n`,
+              `| **Total Merged** | ${metrics.prs.merged} | 📈 |\\n`,
+              `| **Recent PRs (7d)** | ${metrics.prs.recent} | 📊 |\\n\\n`,
+              '### 🏗️ CI/CD Health\\n',
+              `| Metric | Value | Status |\\n`,
+              `|--------|-------|--------|\\n`,
+              `| **Success Rate** | ${metrics.ci.success_rate}% | ${metrics.ci.success_rate >= 95 ? '✅' : metrics.ci.success_rate >= 80 ? '🟡' : '🔴'} |\\n`,
+              `| **Avg Build Time** | ${metrics.ci.avg_build_time}m | ${metrics.ci.avg_build_time <= 5 ? '⚡' : metrics.ci.avg_build_time <= 10 ? '🟡' : '🐌'} |\\n`,
+              `| **Recent Runs** | ${metrics.ci.recent_runs} | 📊 |\\n\\n`,
+              '## 📋 Priority Breakdown\\n',
+              `- 🔴 **High Priority**: ${metrics.priorities.high}\\n`,
+              `- 🟡 **Medium Priority**: ${metrics.priorities.medium}\\n`,
+              `- 🟢 **Low Priority**: ${metrics.priorities.low}\\n\\n`,
+              '## 🚨 SLA Monitoring\\n',
+              `- **Breach Alerts**: ${metrics.slas.breached} escalated issues need attention\\n`,
+              metrics.slas.breached > 0 ? '⚠️ **ACTION REQUIRED**: Check escalated issues for immediate attention!\\n\\n' : '\\n',
+              '## 📈 Weekly Trends\\n',
+              `- 📝 Issue creation rate: ${Math.round(metrics.issues.recent / 7 * 10) / 10} per day average\\n`,
+              `- 🚀 PR merge rate: ${Math.round(metrics.prs.recent / 7 * 10) / 10} per day average\\n`,
+              `- 🏗️ CI success consistency: ${metrics.ci.success_rate > 95 ? 'Excellent' : metrics.ci.success_rate > 85 ? 'Good' : 'Needs attention'}\\n\\n`,
+              '---\\n',
+              `*Dashboard updates hourly • Last updated: ${new Date().toISOString()}*\\n`,
+              `*Powered by 2025 automation standards*`
+            ].join('');
+
+            // Find or create dashboard issue
+            let dashboardIssue;
+            const existing = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              labels: ['dashboard', 'automated'],
+              state: 'open'
+            });
+
+            if (existing.data.length > 0) {
+              dashboardIssue = existing.data[0];
+              await github.rest.issues.update({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: dashboardIssue.number,
+                body: dashboard
+              });
+              console.log('Updated existing dashboard');
+            } else {
+              dashboardIssue = await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: '📊 Repository Health Dashboard',
+                body: dashboard,
+                labels: ['dashboard', 'automated', 'pinned']
+              });
+
+              console.log('Created new dashboard issue');
+              // Try to lock the dashboard issue to prevent unwanted comments
+              try {
+                await github.rest.issues.lock({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: dashboardIssue.number
+                });
+              } catch (e) {
+                console.log('Could not lock dashboard issue');
+              }
+            }
+
+      - name: Send Health Notifications
+        if: github.event_name == 'schedule'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const metrics = JSON.parse(${{ steps.metrics.outputs.metrics }});
+
+            // Critical health checks
+            const criticalIssues = [
+              {
+                check: metrics.issues.open > 20,
+                level: 'warning',
+                message: `High issue backlog: ${metrics.issues.open} open issues`
+              },
+              {
+                check: metrics.ci.success_rate < 80,
+                level: 'critical',
+                message: `CI health critical: ${metrics.ci.success_rate}% success rate`
+              },
+              {
+                check: metrics.slas.breached > 5,
+                level: 'urgent',
+                message: `${metrics.slas.breached} issues have breached SLAs`
+              },
+              {
+                check: metrics.prs.open > 10,
+                level: 'warning',
+                message: `PR backlog: ${metrics.prs.open} open pull requests`
+              }
+            ];
+
+            const alerts = criticalIssues.filter(issue => issue.check);
+
+            if (alerts.length > 0) {
+              const alertBody = `# � Repository Health Alerts\\n\\n` +
+                alerts.map(alert => {
+                  const icon = alert.level === 'critical' ? '🔴' :
+                               alert.level === 'urgent' ? '🚨' : '🟡';
+                  return `${icon} **${alert.level.toUpperCase()}**: ${alert.message}`;
+                }).join('\\n') +
+                `\\n\\n---\\n*Auto-generated health check at ${new Date().toISOString()}*`;
+
+              // Create notification issue if critical issues exist
+              if (alerts.some(a => a.level === 'critical' || a.level === 'urgent')) {
+                await github.rest.issues.create({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  title: '🚨 Critical Repository Health Alert',
+                  body: alertBody,
+                  labels: ['alert', 'urgent', 'automated'],
+                  assignees: ['IgorGanapolsky']
+                });
+              }
+
+              console.log(`Sent ${alerts.length} health alerts`);
+            } else {
+              console.log('All systems healthy - no alerts needed');
+            }
