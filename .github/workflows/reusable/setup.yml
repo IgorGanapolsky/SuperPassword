@@ -14,10 +14,6 @@ on:
       cache-hit:
         description: "Whether there was a cache hit for node_modules"
         value: ${{ jobs.setup.outputs.cache-hit }}
-    permissions:
-      contents: read
-      actions: write
-      security-events: write
 
 jobs:
   setup:
