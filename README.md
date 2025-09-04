@@ -1,6 +1,6 @@
 # SuperPassword
 
-[![CI Status](https://github.com/IgorGanapolsky/SuperPassword/workflows/CI/badge.svg?branch=main)
+[![CI Status](https://github.com/IgorGanapolsky/SuperPassword/workflows/CI/badge.svg?branch=main)](https://github.com/IgorGanapolsky/SuperPassword/actions)
 [![CodeQL](https://github.com/IgorGanapolsky/SuperPassword/workflows/CodeQL/badge.svg)](https://github.com/IgorGanapolsky/SuperPassword/security/code-scanning)
 [![codecov](https://codecov.io/gh/IgorGanapolsky/SuperPassword/branch/main/graph/badge.svg)](https://codecov.io/gh/IgorGanapolsky/SuperPassword)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=IgorGanapolsky_SuperPassword&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=IgorGanapolsky_SuperPassword)
@@ -8,7 +8,7 @@
 [![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=IgorGanapolsky_SuperPassword&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=IgorGanapolsky_SuperPassword)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-A professional password generator React Native Expo app with material design, ready for deployment.
+A professional password generator React Native Expo app with material design, leveraging modern security standards and ready for 2025 deployment requirements.
 
 ## Features
 
@@ -22,6 +22,7 @@ A professional password generator React Native Expo app with material design, re
 - 📜 Password history (last 10 generated passwords) with timestamps
 - 🌓 Dark mode toggle with system preference detection
 - 📳 Haptic feedback for interactions
+- 🖥️ Web support with PWA capabilities
 
 ### Premium Features ($2.99 one-time purchase)
 
@@ -33,39 +34,51 @@ A professional password generator React Native Expo app with material design, re
 - 🔒 Advanced security settings
 - 🚫 No advertisements
 
-## Tech Stack
+## Tech Stack (2025 Standards)
 
-- React Native with Expo
-- TypeScript
-- React Navigation
+### Core
+- React Native with Expo SDK 53
+- TypeScript 5.x
+- React Navigation 7.x
 - React Native Paper (Material Design)
+
+### Testing
+- Jest + React Testing Library
+- Component testing with @testing-library/react-native
+- E2E testing with Maestro
+- Contract testing with Pact
+
+### State & Storage
 - AsyncStorage for local data
-- Firebase (ready for integration)
-- Google AdMob (ready for integration)
+- Firebase Cloud Storage
+- Redux Toolkit for state management
 
-## CI/CD Pipeline
+### Security & Analytics
+- Firebase Authentication
+- Google AdMob
+- Sentry error tracking
+- API contract validation
 
-Our CI/CD pipeline is designed to ensure code quality, security, and reliable deployments:
+### Performance
+- Lighthouse CI integration
+- Real User Monitoring (RUM)
+- Performance budgets
+- Bundle size optimization
 
-### Workflows
+## CI/CD Pipeline (Consolidated)
 
-1. **CI Pipeline** (.github/workflows/ci.yml)
-   - Runs on all PRs and pushes to develop
-   - Validates code quality (TypeScript, lint, tests)
-   - Performs security checks
-   - Builds development versions
+Our single workflow `.github/workflows/main.yml` orchestrates:
 
-2. **Security Pipeline** (.github/workflows/security.yml)
-   - Daily security scans
-   - Dependency vulnerability checks
-   - Code security analysis
-   - Mobile-specific security checks
+- Validate: TypeScript, ESLint, tests, SonarCloud, Codecov
+- Security: OWASP Dependency-Check (SARIF), Snyk (optional), CodeQL
+- Build (gated on push to main/develop): EAS build and optional submit
+- Issue Management: automation and status updates
 
-3. **Release Pipeline** (.github/workflows/release.yml)
-   - Triggered by version tags or manually
-   - Supports staging and production deployments
-   - Generates SBOM and release notes
-   - Handles app store submissions
+Branch protection rules:
+
+- All work branches from `develop`
+- PRs require green checks, review approval, squash merges
+- `main` is protected and requires admin approval for merges
 
 ### Branch Protection
 
