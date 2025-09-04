@@ -3,6 +3,17 @@
 import { AppRegistry } from 'react-native';
 import { App } from './App';
 
+// Declare DOM types for web
+declare global {
+  interface Window {
+    addEventListener: (type: string, listener: EventListener) => void;
+  }
+  interface Navigator {
+    serviceWorker: {
+      register: (scriptURL: string) => Promise<ServiceWorkerRegistration>;
+    };
+  }
+
 AppRegistry.registerComponent('SuperPassword', () => App);
 AppRegistry.runApplication('SuperPassword', {
   rootTag: document.getElementById('root'),

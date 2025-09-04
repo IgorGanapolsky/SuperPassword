@@ -18,7 +18,7 @@ export const initializeSentry = async (): Promise<boolean> => {
       enableInExpoDevelopment: true,
       debug: __DEV__,
       tracesSampleRate: 1.0,
-      enableAutoPerformanceTracking: true,
+      enableAutoPerformanceTracing: true,
     });
 
     isInitialized = true;

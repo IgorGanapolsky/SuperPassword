@@ -1,7 +1,17 @@
 {
   "extends": "expo/tsconfig.base",
   "compilerOptions": {
+    "lib": ["es2020", "dom"],
+    "types": ["jest", "node"],
+    "allowJs": true,
+    "jsx": "react-native",
     "strict": true,
+    "moduleResolution": "node",
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"]
+    }
+  }
     "importHelpers": true,
     "baseUrl": ".",
     "paths": {
