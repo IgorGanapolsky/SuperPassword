@@ -1,0 +1,196 @@
+name: Main Pipeline
+
+on:
+  push:
+    branches: [develop, main]
+  pull_request:
+    branches: [develop, main]
+  schedule:
+    - cron: '0 0 * * *'  # Daily security scans
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+  security-events: write
+  statuses: write
+  checks: write
+  id-token: write
+
+jobs:
+  validate:
+    name: Validate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Type check
+        run: npx tsc --noEmit
+      
+      - name: Lint
+        run: |
+          npm run lint
+          npm run prettier:check
+      
+      - name: Test
+        run: npm test -- --coverage
+      
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+      
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONARCLOUD_TOKEN }}
+
+  security:
+    name: Security Checks
+    runs-on: ubuntu-latest
+    needs: validate
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Run CodeQL Analysis
+        uses: github/codeql-action/analyze@v2
+        with:
+          languages: javascript
+      
+      - name: Run OWASP Dependency Check
+        uses: dependency-check/Dependency-Check_Action@main
+        with:
+          project: 'SuperPassword'
+          path: '.'
+          format: 'HTML'
+          args: >
+            --failOnCVSS 7
+            --enableRetired
+      
+      - name: Run Snyk Security Check
+        uses: snyk/actions/node@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          args: --severity-threshold=high
+
+  project-sync:
+    name: Project Board Sync
+    runs-on: ubuntu-latest
+    needs: validate
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Sync Project Items
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.PROJECT_PAT }}
+          script: |
+            const { repo, owner } = context.repo;
+            
+            // Get project items
+            const project = await github.rest.projects.listForRepo({
+              owner,
+              repo,
+              state: 'open'
+            });
+            
+            if (project.data.length === 0) return;
+            
+            // Update project status issue
+            const stats = {
+              openIssues: 0,
+              inProgress: 0,
+              readyForReview: 0,
+              completed: 0
+            };
+            
+            const columns = await github.rest.projects.listColumns({
+              project_id: project.data[0].id
+            });
+            
+            for (const column of columns.data) {
+              const cards = await github.rest.projects.listCards({
+                column_id: column.id
+              });
+              
+              switch(column.name.toLowerCase()) {
+                case 'to do':
+                  stats.openIssues += cards.data.length;
+                  break;
+                case 'in progress':
+                  stats.inProgress += cards.data.length;
+                  break;
+                case 'review':
+                  stats.readyForReview += cards.data.length;
+                  break;
+                case 'done':
+                  stats.completed += cards.data.length;
+                  break;
+              }
+            }
+            
+            const completionRate = Math.round((stats.completed / (stats.completed + stats.openIssues)) * 100);
+            const reviewRate = Math.round((stats.readyForReview / stats.inProgress) * 100);
+            
+            const update = `## Project Status Update
+
+### Current Stats
+- 📝 Open Issues: ${stats.openIssues}
+- 🏃 In Progress: ${stats.inProgress}
+- 👀 Ready for Review: ${stats.readyForReview}
+- ✅ Completed: ${stats.completed}
+
+### Health Metrics
+- Completion Rate: ${completionRate}%
+- Review Rate: ${reviewRate}%
+
+Last updated: ${new Date().toISOString()}`;
+            
+            // Update status issue
+            await github.rest.issues.update({
+              owner,
+              repo,
+              issue_number: 81,
+              body: update
+            });
+
+  build:
+    name: Build
+    needs: [validate, security]
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Expo
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Build Development (develop branch)
+        if: github.ref == 'refs/heads/develop'
+        run: |
+          eas build --platform all --profile development --non-interactive
+      
+      - name: Build Production (main branch)
+        if: github.ref == 'refs/heads/main'
+        run: |
+          eas build --platform all --profile production --non-interactive
+          
+      - name: Submit to Stores (main branch)
+        if: github.ref == 'refs/heads/main'
+        run: |
+          eas submit --platform all --latest
