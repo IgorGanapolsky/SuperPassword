@@ -1,10 +1,198 @@
-name: Main Pipeline (2025 Standard)
+name: SuperPassword CI/CD Pipeline
 
-# Consolidated workflow that handles:
-# - CI/CD pipeline
-# - Project automation
-# - Security checks
-# - Metrics collection
+on:
+  push:
+    branches: [develop, main]
+  pull_request:
+    branches: [develop, main]
+  schedule:
+    - cron: '*/30 * * * *'  # Run health checks every 30 minutes
+  issues:
+    types: [opened, edited, labeled, unlabeled, reopened, assigned, unassigned]
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+  repository-projects: write
+  security-events: write
+  statuses: write
+  checks: write
+  id-token: write
+
+jobs:
+  validate:
+    name: Validate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Type check
+        run: npx tsc --noEmit
+      
+      - name: Lint
+        run: |
+          npm run lint
+          npm run prettier:check
+      
+      - name: Test
+        run: npm test -- --coverage
+      
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+      
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONARCLOUD_TOKEN }}
+
+  security:
+    name: Security Checks
+    runs-on: ubuntu-latest
+    needs: validate
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Run CodeQL Analysis
+        uses: github/codeql-action/init@v2
+        with:
+          languages: javascript
+      
+      - name: Run OWASP Dependency Check
+        uses: dependency-check/Dependency-Check_Action@main
+        with:
+          project: 'SuperPassword'
+          path: '.'
+          format: 'HTML'
+          args: >
+            --failOnCVSS 7
+            --enableRetired
+      
+      - name: Run Snyk Security Check
+        uses: snyk/actions/node@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          args: --severity-threshold=high
+
+  issue_management:
+    name: Issue Management
+    runs-on: ubuntu-latest
+    if: github.event_name == 'issues' || github.event_name == 'schedule'
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Process Issues
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.PROJECT_PAT }}
+          script: |
+            const event = context.payload;
+            
+            // Handle new issues
+            if (event.action === 'opened') {
+              // Auto-labeling
+              const title = event.issue.title.toLowerCase();
+              const labels = [];
+              
+              if (title.includes('bug') || title.includes('error')) {
+                labels.push('type: bug', 'triage');
+              } else if (title.includes('feature') || title.includes('request')) {
+                labels.push('type: enhancement');
+              }
+              
+              if (labels.length > 0) {
+                await github.rest.issues.addLabels({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: event.issue.number,
+                  labels: labels
+                });
+              }
+            }
+            
+            // Update metrics (on schedule)
+            if (context.eventName === 'schedule') {
+              const now = new Date();
+              const thirtyDaysAgo = new Date(now - 30 * 24 * 60 * 60 * 1000);
+              
+              const issues = await github.rest.issues.listForRepo({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                state: 'all',
+                since: thirtyDaysAgo.toISOString()
+              });
+              
+              const metrics = {
+                total: issues.data.length,
+                open: issues.data.filter(i => i.state === 'open').length,
+                closed: issues.data.filter(i => i.state === 'closed').length,
+                bugs: issues.data.filter(i => i.labels.some(l => l.name === 'type: bug')).length,
+                features: issues.data.filter(i => i.labels.some(l => l.name === 'type: enhancement')).length
+              };
+              
+              const update = `## Project Health Dashboard
+              
+              ### 📊 Current Status
+              - Open Issues: ${metrics.total}
+              - Active Issues: ${metrics.open}
+              - Resolved: ${metrics.closed}
+              - Bugs: ${metrics.bugs}
+              - Features: ${metrics.features}
+              
+              Last updated: ${now.toISOString()}`;
+              
+              await github.rest.issues.update({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: 81,
+                body: update
+              });
+            }
+
+  build:
+    name: Build
+    needs: [validate, security]
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Expo
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Build Development (develop branch)
+        if: github.ref == 'refs/heads/develop'
+        run: |
+          eas build --platform all --profile development --non-interactive
+      
+      - name: Build Production (main branch)
+        if: github.ref == 'refs/heads/main'
+        run: |
+          eas build --platform all --profile production --non-interactive
+          
+      - name: Submit to Stores (main branch)
+        if: github.ref == 'refs/heads/main'
+        run: |
+          eas submit --platform all --latest
 
 on:
   push:
