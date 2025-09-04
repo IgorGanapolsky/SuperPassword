@@ -1,6 +1,6 @@
 # SuperPassword
 
-[![CI Status](https://github.com/IgorGanapolsky/SuperPassword/workflows/CI%20Pipeline/badge.svg?branch=main)](https://github.com/IgorGanapolsky/SuperPassword/actions)
+[![CI Status](https://github.com/IgorGanapolsky/SuperPassword/workflows/CI/badge.svg?branch=main)
 [![CodeQL](https://github.com/IgorGanapolsky/SuperPassword/workflows/CodeQL/badge.svg)](https://github.com/IgorGanapolsky/SuperPassword/security/code-scanning)
 [![codecov](https://codecov.io/gh/IgorGanapolsky/SuperPassword/branch/main/graph/badge.svg)](https://codecov.io/gh/IgorGanapolsky/SuperPassword)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=IgorGanapolsky_SuperPassword&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=IgorGanapolsky_SuperPassword)
