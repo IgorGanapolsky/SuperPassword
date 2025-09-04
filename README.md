@@ -728,6 +728,32 @@ npx tsc --noEmit
 
 MIT
 
-## Support
+## Issue Management & Support
 
-For support, email support@securepass.app
+### 🐛 Reporting Issues
+
+SuperPassword uses GitHub Issues for bug tracking and feature requests. Before creating an issue, please:
+
+1. Search existing issues to avoid duplicates
+2. Use our issue templates:
+   - 🐛 [Report a Bug](../../issues/new?template=bug_report.yml)
+   - 💡 [Request a Feature](../../issues/new?template=feature_request.yml)
+
+### 📊 Issue Status Dashboard
+
+Track issue status and project health at our [Project Dashboard](../../projects/3)
+
+### ⏱️ Response Times
+
+We aim to provide initial responses within:
+- 🔴 Critical issues: 2 hours
+- 🟠 High priority: 24 hours
+- 🟡 Medium priority: 48 hours
+- 🟢 Low priority: 72 hours
+
+### 💬 Community & Support
+
+- 📱 [FAQ](docs/FAQ.md)
+- 🔍 [Knowledge Base](docs/KB.md)
+- 💭 [Discord Community](https://discord.gg/superpassword)
+- 📧 Email: support@securepass.app
