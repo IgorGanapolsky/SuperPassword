@@ -8,11 +8,12 @@ on:
     branches: [develop, main]
 
 permissions:
-  contents: read
-  security-events: write
-  actions: read
+  contents: write
   checks: write
   pull-requests: write
+  issues: write
+  repository-projects: write
+  deployments: write
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
