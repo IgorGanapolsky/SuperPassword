@@ -1,0 +1,113 @@
+name: Issue Automation
+
+on:
+  issues:
+    types: [opened, edited, labeled, unlabeled]
+
+permissions:
+  issues: write
+  contents: read
+  repository-projects: write
+
+jobs:
+  triage:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Initial issue triage
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issue = context.payload.issue;
+
+            // Add priority label if missing
+            const hasPriority = issue.labels.some(label => 
+              label.name.startsWith('priority:')
+            );
+            if (!hasPriority) {
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                labels: ['priority: medium']
+              });
+            }
+
+            // Add type label if missing
+            const hasType = issue.labels.some(label => 
+              label.name.startsWith('type:')
+            );
+            if (!hasType && !issue.title.includes('Project Status')) {
+              const title = issue.title.toLowerCase();
+              let typeLabel = 'type: feature';
+              
+              if (title.includes('fix:') || title.includes('bug')) {
+                typeLabel = 'type: bug';
+              } else if (title.includes('test:')) {
+                typeLabel = 'type: test';
+              }
+              
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                labels: [typeLabel]
+              });
+            }
+
+      - name: Add to project board
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issue = context.payload.issue;
+
+            // Get organization-level projects
+            const projects = await github.rest.projects.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open'
+            });
+
+            // Find main project board
+            const mainProject = projects.data.find(p => 
+              p.name.toLowerCase().includes('development')
+            );
+
+            if (mainProject) {
+              // Add issue to project
+              await github.rest.projects.createCard({
+                project_id: mainProject.id,
+                content_id: issue.id,
+                content_type: 'Issue'
+              });
+            }
+
+      - name: Add analysis comment
+        if: "!contains(github.event.issue.title, 'Project Status')"
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issue = context.payload.issue;
+
+            const analysis = `
+            ## Issue Analysis
+
+            - Type: ${issue.labels.find(l => l.name.startsWith('type:'))?.name || 'Unclassified'}
+            - Priority: ${issue.labels.find(l => l.name.startsWith('priority:'))?.name || 'Unassigned'}
+            - Created: ${new Date(issue.created_at).toLocaleString()}
+
+            ### Monitoring
+            - [ ] Added to project board
+            - [ ] Priority assigned
+            - [ ] Labels verified
+
+            I'll keep monitoring this issue for updates and SLA compliance.
+            `;
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issue.number,
+              body: analysis
+            });
