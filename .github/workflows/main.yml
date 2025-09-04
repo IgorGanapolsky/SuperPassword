@@ -44,7 +44,6 @@ jobs:
         uses: github/codeql-action/init@v2
         with:
           languages: javascript
-          config-file: ./.github/codeql/codeql-config.yml
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -259,28 +258,57 @@ jobs:
         if: github.ref == 'refs/heads/main'
         run: |
           eas submit --platform all --latest
-      - uses: actions/checkout@v4
-      
-      - name: Setup Expo
-        uses: expo/expo-github-action@v8
+
+  notify:
+    name: Notification
+    runs-on: ubuntu-latest
+    needs: [validate, security, build]
+    if: always()
+    steps:
+      - name: Notify on failure
+        if: failure()
+        uses: actions/github-script@v7
         with:
-          eas-version: latest
-          token: ${{ secrets.EXPO_TOKEN }}
-      
-      - name: Install dependencies
-        run: npm ci
-      
-      - name: Build Development (develop branch)
-        if: github.ref == 'refs/heads/develop'
-        run: |
-          eas build --platform all --profile development --non-interactive
-      
-      - name: Build Production (main branch)
-        if: github.ref == 'refs/heads/main'
-        run: |
-          eas build --platform all --profile production --non-interactive
-          
-      - name: Submit to Stores (main branch)
-        if: github.ref == 'refs/heads/main'
-        run: |
-          eas submit --platform all --latest
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            try {
+              const { repo, owner } = context.repo;
+              const run_url = `https://github.com/${owner}/${repo}/actions/runs/${context.runId}`;
+              
+              const message = `⚠️ CI Pipeline failed for ${context.sha}\nSee details: ${run_url}`;
+              
+              if (context.payload.pull_request) {
+                await github.rest.issues.createComment({
+                  owner,
+                  repo,
+                  issue_number: context.payload.pull_request.number,
+                  body: message
+                });
+              }
+            } catch (error) {
+              console.log('Error creating notification:', error);
+            }
+            
+      - name: Notify on success
+        if: success()
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            try {
+              const { repo, owner } = context.repo;
+              const run_url = `https://github.com/${owner}/${repo}/actions/runs/${context.runId}`;
+              
+              const message = `✅ CI Pipeline passed successfully!\nSee details: ${run_url}`;
+              
+              if (context.payload.pull_request) {
+                await github.rest.issues.createComment({
+                  owner,
+                  repo,
+                  issue_number: context.payload.pull_request.number,
+                  body: message
+                });
+              }
+            } catch (error) {
+              console.log('Error creating notification:', error);
+            }
