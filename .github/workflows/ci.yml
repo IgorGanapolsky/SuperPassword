@@ -8,39 +8,47 @@ on:
     branches: [develop, main]
 
 permissions:
-  contents: read
+  contents: write
   checks: write
   pull-requests: write
   security-events: write
+  actions: write
+  issues: write
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  setup:
-    uses: ./.github/workflows/reusable/setup.yml
-    permissions:
-      contents: write
-      checks: write
-    with:
-      node-version: "20"
-      install-dependencies: true
-
   validate:
-    needs: setup
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Restore environment
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Cache dependencies
+        id: npm-cache
         uses: actions/cache@v3
         with:
           path: |
+            node_modules
             ~/.npm
-            ~/Library/Caches/Yarn
             ~/.expo
-          key: ${{ runner.os }}-expo-${{ hashFiles('**/package-lock.json') }}
+            ~/Library/Caches/Yarn
+            ~/Library/Caches/CocoaPods
+          key: ${{ runner.os }}-deps-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-deps-
+
+      - name: Install dependencies
+        if: steps.npm-cache.outputs.cache-hit != 'true'
+        run: |
+          npm ci
+          npx expo install
 
       - name: TypeScript check
         run: npx tsc --noEmit
@@ -65,7 +73,6 @@ jobs:
         run: npx react-native doctor
 
   security:
-    needs: setup
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -101,6 +108,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
 
       - name: Setup EAS
         uses: expo/expo-github-action@v8
