@@ -13,6 +13,7 @@ declare global {
       register: (scriptURL: string) => Promise<ServiceWorkerRegistration>;
     };
   }
+}
 
 AppRegistry.registerComponent('SuperPassword', () => App);
 AppRegistry.runApplication('SuperPassword', {

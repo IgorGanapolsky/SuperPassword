@@ -11,7 +11,9 @@
     "paths": {
       "@/*": ["src/*"]
     }
-  }
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "babel.config.js", "metro.config.js"]
     "importHelpers": true,
     "baseUrl": ".",
     "paths": {
