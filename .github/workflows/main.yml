@@ -1,4 +1,10 @@
-name: Main Pipeline
+name: Main Pipeline (2025 Standard)
+
+# Consolidated workflow that handles:
+# - CI/CD pipeline
+# - Project automation
+# - Security checks
+# - Metrics collection
 
 on:
   push:

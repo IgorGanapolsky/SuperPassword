@@ -1,5 +1,8 @@
 name: Project Board Automation (2025)
 
+# DEPRECATED: This workflow has been merged into main.yml
+# This file will be removed once the PR is merged
+
 on:
   workflow_dispatch:  # Allow manual triggers
   issues:
