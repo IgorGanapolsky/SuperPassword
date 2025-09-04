@@ -11,6 +11,8 @@ permissions:
   contents: read
   security-events: write
   actions: read
+  checks: write
+  pull-requests: write
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
