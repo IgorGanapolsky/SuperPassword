@@ -1,43 +1,150 @@
-name: CI (Checks)
+name: CI Pipeline
 
 on:
-  push:
-    branches: [main]
   pull_request:
-    branches: [main]
+    branches: [develop, main]
     types: [opened, synchronize, reopened, ready_for_review]
+  push:
+    branches: [develop, main]
 
 permissions:
-  contents: read
+  contents: write
+  checks: write
+  pull-requests: write
+  security-events: write
+  actions: write
+  issues: write
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  checks:
+  validate:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v5
+      - uses: actions/checkout@v4
 
-      - name: Setup Node
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: "20"
-          cache: "npm"
+
+      - name: Cache dependencies
+        id: npm-cache
+        uses: actions/cache@v3
+        with:
+          path: |
+            node_modules
+            ~/.npm
+            ~/.expo
+            ~/Library/Caches/Yarn
+            ~/Library/Caches/CocoaPods
+          key: ${{ runner.os }}-deps-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-deps-
 
       - name: Install dependencies
-        run: npm ci --no-audit --no-fund
+        if: steps.npm-cache.outputs.cache-hit != 'true'
+        run: |
+          npm ci
+          npx expo install
 
       - name: TypeScript check
         run: npx tsc --noEmit
 
-      - name: Expo doctor
+      - name: Lint
+        run: |
+          npm run lint
+          npm run format:check
+
+      - name: Test
+        run: npm run test --coverage
+
+      - name: Upload coverage
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+
+      - name: Validate Expo config
         run: npx expo-doctor
 
-      - name: Lint
-        run: npm run lint
+      - name: Check native dependencies
+        run: npx react-native doctor
 
-      - name: Prettier check
-        run: npm run fmt
+  security:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run CodeQL Analysis
+        uses: github/codeql-action/init@v3
+        with:
+          languages: javascript
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+
+      - name: Run Dependency Review
+        uses: actions/dependency-review-action@v3
+
+      - name: OWASP Dependency Check
+        uses: dependency-check/Dependency-Check_Action@main
+        with:
+          project: "SuperPassword"
+          path: "."
+          format: "HTML"
+
+      - name: Run Secret Scan
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  build:
+    needs: [validate, security]
+    if: github.event_name == 'push' || github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Setup EAS
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Build Development
+        run: |
+          npm ci
+          eas build --platform all --profile development --non-interactive --no-wait
+        env:
+          EXPO_PUBLIC_SENTRY_DSN: ${{ secrets.EXPO_PUBLIC_SENTRY_DSN }}
+
+      - name: Store build artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: app-builds
+          path: |
+            *.apk
+            *.ipa
+
+  notify:
+    needs: [build]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Notify status
+        if: always()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          fields: repo,message,commit,author,action,eventName,ref,workflow
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}

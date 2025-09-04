@@ -1,0 +1,90 @@
+version: 1
+bot:
+  name: CodeRabbit
+  enabled: true
+
+review:
+  auto_review: true
+  auto_merge: false # For safety, require manual merge confirmation
+  review_comment_strategy: aggregate
+  auto_review_enabled: true
+  auto_fix: true
+  review_rules:
+    - name: "Code Quality"
+      conditions:
+        - paths: ["**/*.{ts,tsx,js,jsx,json}"]
+      checks:
+        - type: code-quality
+          enabled: true
+        - type: type-safety
+          enabled: true
+        - type: security
+          enabled: true
+        - type: performance
+          enabled: true
+
+  auto_review_rules:
+    - name: "Auto Review & Fix"
+      conditions:
+        - paths: ["**/*.{ts,tsx,js,jsx}"]
+      rules:
+        - id: type-safety
+          severity: error
+        - id: unused-imports
+          severity: warning
+        - id: unused-variables
+          severity: warning
+        - id: security-vulnerabilities
+          severity: error
+
+# Configure AI assistance
+ai:
+  enabled: true
+  provider: mcp # Use MCP server
+  features:
+    - code_review
+    - auto_fix
+    - security_analysis
+    - type_checking
+    - performance_optimization
+
+# Integration settings
+github:
+  labels:
+    needs_review: "needs-review"
+    approved: "approved"
+    needs_changes: "needs-changes"
+    auto_merged: "auto-merged"
+
+  status_checks:
+    require_passing: true
+    contexts:
+      - "CodeRabbit/code-quality"
+      - "CodeRabbit/security"
+      - "CodeRabbit/type-safety"
+
+notifications:
+  slack:
+    enabled: false
+    channel: "" # Add your channel if enabling
+
+# Protect against direct pushes
+branch_protection:
+  develop:
+    required_reviews: 1
+    required_status_checks: true
+    prevent_direct_push: true
+  main:
+    required_reviews: 1
+    required_status_checks: true
+    prevent_direct_push: true
+
+advanced:
+  rate_limit:
+    max_reviews_per_hour: 10
+    max_fixes_per_pr: 5
+
+  learning:
+    enabled: true
+    learn_from_approvals: true
+    learn_from_rejections: true

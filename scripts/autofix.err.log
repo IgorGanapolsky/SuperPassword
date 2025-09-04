@@ -766,3 +766,30 @@ https://eslint.org/docs/latest/use/configure/migration-guide
 If you still have problems after following the migration guide, please stop by
 https://eslint.org/chat/help to chat with the team.
 
+npm warn deprecated inflight@1.0.6: This module is not supported, and leaks memory. Do not use it. Check out lru-cache if you want a good and tested way to coalesce async requests by a key value, which is much more comprehensive and powerful.
+npm warn deprecated rimraf@3.0.2: Rimraf versions prior to v4 are no longer supported
+npm warn deprecated glob@7.2.3: Glob versions prior to v9 are no longer supported
+npm warn deprecated glob@7.2.3: Glob versions prior to v9 are no longer supported
+npm warn deprecated glob@7.2.3: Glob versions prior to v9 are no longer supported
+npm warn deprecated glob@7.2.3: Glob versions prior to v9 are no longer supported
+npm warn deprecated react-native-vector-icons@10.3.0: react-native-vector-icons package has moved to a new model of per-icon-family packages. See the https://github.com/oblador/react-native-vector-icons/blob/master/MIGRATION.md on how to migrate
+husky - install command is DEPRECATED
+(node:92618) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///Users/igorganapolsky/workspace/git/apps/SuperPassword/eslint.config.js?mtime=1756906025541 is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /Users/igorganapolsky/workspace/git/apps/SuperPassword/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+From https://github.com/IgorGanapolsky/SuperPassword
+ - [deleted]         (none)     -> origin/chore/setup-coderabbit
+ - [deleted]         (none)     -> origin/dependabot/npm_and_yarn/develop/dotenv-17.2.2
+ - [deleted]         (none)     -> origin/dependabot/npm_and_yarn/develop/typescript-eslint/eslint-plugin-8.42.0
+ - [deleted]         (none)     -> origin/dependabot/npm_and_yarn/develop/typescript-eslint/parser-8.42.0
+ - [deleted]         (none)     -> origin/fix/issue-automation
+error: cannot pull with rebase: You have unstaged changes.
+error: please commit or stash them.
+npm warn deprecated inflight@1.0.6: This module is not supported, and leaks memory. Do not use it. Check out lru-cache if you want a good and tested way to coalesce async requests by a key value, which is much more comprehensive and powerful.
+npm warn deprecated rimraf@3.0.2: Rimraf versions prior to v4 are no longer supported
+npm warn deprecated glob@7.2.3: Glob versions prior to v9 are no longer supported
+npm warn deprecated glob@7.2.3: Glob versions prior to v9 are no longer supported
+npm warn deprecated glob@7.2.3: Glob versions prior to v9 are no longer supported
+npm warn deprecated glob@7.2.3: Glob versions prior to v9 are no longer supported
+npm warn deprecated react-native-vector-icons@10.3.0: react-native-vector-icons package has moved to a new model of per-icon-family packages. See the https://github.com/oblador/react-native-vector-icons/blob/master/MIGRATION.md on how to migrate
