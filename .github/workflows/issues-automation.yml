@@ -12,6 +12,10 @@ on:
         required: false
         default: "false"
 
+env:
+  NODE_VERSION: "20"
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
 permissions:
   contents: read
   issues: write
@@ -25,6 +29,17 @@ jobs:
     if: github.event_name == 'issues' || github.event_name == 'schedule'
     steps:
       - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "npm"
+
+      - name: Load project config
+        id: config
+        run: |
+          echo "config=$(cat .github/project.yml | base64)" >> $GITHUB_OUTPUT
 
       - name: Intelligent Triage
         uses: actions/github-script@v7
