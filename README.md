@@ -1,3 +1,134 @@
+# SuperPassword
+
+[![CI Status](https://github.com/IgorGanapolsky/SuperPassword/workflows/CI%20Pipeline/badge.svg?branch=main)](https://github.com/IgorGanapolsky/SuperPassword/actions)
+[![CodeQL](https://github.com/IgorGanapolsky/SuperPassword/workflows/CodeQL/badge.svg)](https://github.com/IgorGanapolsky/SuperPassword/security/code-scanning)
+[![codecov](https://codecov.io/gh/IgorGanapolsky/SuperPassword/branch/main/graph/badge.svg)](https://codecov.io/gh/IgorGanapolsky/SuperPassword)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=IgorGanapolsky_SuperPassword&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=IgorGanapolsky_SuperPassword)
+[![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=IgorGanapolsky_SuperPassword&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=IgorGanapolsky_SuperPassword)
+[![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=IgorGanapolsky_SuperPassword&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=IgorGanapolsky_SuperPassword)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+A professional password generator React Native Expo app with material design, ready for deployment.
+
+## Features
+
+### Core Features (Free)
+
+- ✨ Clean Material Design interface with gradient background
+- 🔐 Password generation with customizable length (8-50 characters)
+- ⚙️ Toggle options for uppercase, lowercase, numbers, special characters
+- 💪 Real-time password strength meter with color coding
+- 📋 One-tap copy to clipboard with success animation
+- 📜 Password history (last 10 generated passwords) with timestamps
+- 🌓 Dark mode toggle with system preference detection
+- 📳 Haptic feedback for interactions
+
+### Premium Features ($2.99 one-time purchase)
+
+- 📜 Unlimited password history
+- ☁️ Cloud sync across devices
+- 🎯 Custom character sets and exclusion rules
+- 📦 Bulk password generation (up to 100 at once)
+- 📊 Export passwords to CSV
+- 🔒 Advanced security settings
+- 🚫 No advertisements
+
+## Tech Stack
+
+- React Native with Expo
+- TypeScript
+- React Navigation
+- React Native Paper (Material Design)
+- AsyncStorage for local data
+- Firebase (ready for integration)
+- Google AdMob (ready for integration)
+
+## CI/CD Pipeline
+
+Our CI/CD pipeline is designed to ensure code quality, security, and reliable deployments:
+
+### Workflows
+
+1. **CI Pipeline** (.github/workflows/ci.yml)
+   - Runs on all PRs and pushes to develop
+   - Validates code quality (TypeScript, lint, tests)
+   - Performs security checks
+   - Builds development versions
+
+2. **Security Pipeline** (.github/workflows/security.yml)
+   - Daily security scans
+   - Dependency vulnerability checks
+   - Code security analysis
+   - Mobile-specific security checks
+
+3. **Release Pipeline** (.github/workflows/release.yml)
+   - Triggered by version tags or manually
+   - Supports staging and production deployments
+   - Generates SBOM and release notes
+   - Handles app store submissions
+
+### Branch Protection
+
+- All work branches from `develop`
+- PRs require:
+  - CI pipeline success
+  - Code review approval
+  - Up-to-date branch status
+- `main` branch:
+  - Protected from direct pushes
+  - Requires admin approval for merges
+  - Release tags trigger deployments
+
+### Security Features
+
+- CodeQL analysis
+- OWASP dependency checking
+- Secret scanning
+- Mobile security framework integration
+- SBOM generation
+- Dependency audit
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js 16+ and npm/yarn
+- Expo CLI
+- iOS Simulator (Mac only) or Android Emulator
+
+### Installation
+
+1. Copy env and install dependencies:
+
+```bash
+cp .env.example .env
+npm install
+```
+
+2. Start the development server:
+
+```bash
+npx expo start
+```
+
+3. Run on iOS Simulator:
+
+```bash
+npx expo run:ios
+```
+
+4. Run on Android Emulator:
+
+```bash
+npx expo run:android
+```
+
+## License
+
+MIT
+
+<<<<<<< HEAD
+
 # SuperPassword - Secure Password Management App
 
 ## CI/CD Pipeline
@@ -111,14 +242,126 @@ npm run build
 
 # SecurePass - Password Generator
 
-[![CI/CD Pipeline](https://github.com/IgorGanapolsky/SuperPassword/actions/workflows/main.yml/badge.svg)](https://github.com/IgorGanapolsky/SuperPassword/actions/workflows/main.yml)
-[![codecov](https://codecov.io/gh/IgorGanapolsky/SuperPassword/branch/main/graph/badge.svg)](https://codecov.io/gh/IgorGanapolsky/SuperPassword)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](http://makeapullrequest.com)
-[![Maintainability](https://api.codeclimate.com/v1/badges/your-repo-id/maintainability)](https://codeclimate.com/github/IgorGanapolsky/SuperPassword/maintainability)
-[![Known Vulnerabilities](https://snyk.io/test/github/IgorGanapolsky/SuperPassword/badge.svg)](https://snyk.io/test/github/IgorGanapolsky/SuperPassword)
+=======
 
-A professional password generator React Native Expo app with Material Design, ready for deployment to Google Play Store and Apple App Store.
+# SuperPassword
+
+> > > > > > > develop
+
+[![CI Status](https://github.com/IgorGanapolsky/SuperPassword/workflows/CI%20Pipeline/badge.svg?branch=main)](https://github.com/IgorGanapolsky/SuperPassword/actions)
+[![CodeQL](https://github.com/IgorGanapolsky/SuperPassword/workflows/CodeQL/badge.svg)](https://github.com/IgorGanapolsky/SuperPassword/security/code-scanning)
+[![codecov](https://codecov.io/gh/IgorGanapolsky/SuperPassword/branch/main/graph/badge.svg)](https://codecov.io/gh/IgorGanapolsky/SuperPassword)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=IgorGanapolsky_SuperPassword&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=IgorGanapolsky_SuperPassword)
+[![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=IgorGanapolsky_SuperPassword&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=IgorGanapolsky_SuperPassword)
+[![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=IgorGanapolsky_SuperPassword&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=IgorGanapolsky_SuperPassword)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+## CI/CD Pipeline
+
+Our CI/CD pipeline is designed to ensure code quality, security, and reliable deployments:
+
+### Workflows
+
+1. **CI Pipeline** (.github/workflows/ci.yml)
+   - Runs on all PRs and pushes to develop
+   - Validates code quality (TypeScript, lint, tests)
+   - Performs security checks
+   - Builds development versions
+
+2. **Security Pipeline** (.github/workflows/security.yml)
+   - Daily security scans
+   - Dependency vulnerability checks
+   - Code security analysis
+   - Mobile-specific security checks
+
+3. **Release Pipeline** (.github/workflows/release.yml)
+   - Triggered by version tags or manually
+   - Supports staging and production deployments
+   - Generates SBOM and release notes
+   - Handles app store submissions
+
+### Branch Protection
+
+- All work branches from `develop`
+- PRs require:
+  - CI pipeline success
+  - Code review approval
+  - Up-to-date branch status
+- `main` branch:
+  - Protected from direct pushes
+  - Requires admin approval for merges
+  - Release tags trigger deployments
+
+### Security Features
+
+- CodeQL analysis
+- OWASP dependency checking
+- Secret scanning
+- Mobile security framework integration
+- SBOM generation
+- Dependency audit
+
+### Release Process
+
+1. Create feature branch from develop
+2. Open PR to develop
+3. Pass CI and get approval
+4. Merge to develop
+5. Create release PR to main (when ready)
+6. Get admin approval
+7. Tag release triggers deployment
+
+### Branch Strategy
+
+- `main`: Production-ready code
+- `develop`: Primary development branch
+- Feature branches: Create from `develop`, merge back to `develop`
+
+### Pull Request Process
+
+1. Create branch from `develop`
+2. Make your changes
+3. Ensure all checks pass:
+   - Linting
+   - Type checking
+   - Tests
+   - Build verification
+4. Submit PR to `develop`
+5. Once approved, merge to `develop`
+
+### Active GitHub Actions
+
+- **CI**: Runs on PRs and pushes to main/develop
+  - Linting, type checking, tests, and build verification
+- **CodeQL**: Security scanning
+  - Runs weekly and on PRs to main
+- **Dependabot**: Dependency updates
+  - Monthly schedule
+  - Security updates as needed
+
+### Development Commands
+
+```bash
+# Install dependencies
+npm install
+
+# Start development server
+npm run start
+
+# Run tests
+npm run test
+
+# Lint code
+npm run lint
+
+# Type check
+npm run typecheck
+
+# Build app
+npm run build
+```
+
+A professional password generator
 
 ## Features
 
