@@ -16,6 +16,7 @@ permissions:
   pull-requests: write
   repository-projects: write
   contents: read
+  id-token: write
 
 jobs:
   project_metrics:
@@ -24,6 +25,7 @@ jobs:
       - name: Calculate Project Metrics
         uses: actions/github-script@v7
         with:
+          github-token: ${{ secrets.PROJECT_PAT }}
           script: |
             const stats = {
               openIssues: 0,
@@ -103,6 +105,7 @@ Last updated: ${new Date().toISOString()}`;
         if: github.event_name == 'issues' && github.event.action == 'opened'
         uses: actions/github-script@v7
         with:
+          github-token: ${{ secrets.PROJECT_PAT }}
           script: |
             const projectId = "3"; // SuperPassword Project Board
 
@@ -133,6 +136,7 @@ Last updated: ${new Date().toISOString()}`;
         if: github.event_name == 'pull_request' && github.event.action == 'ready_for_review'
         uses: actions/github-script@v7
         with:
+          github-token: ${{ secrets.PROJECT_PAT }}
           script: |
             const card = await github.rest.projects.listCards({
               column_id: "In Progress"
@@ -150,6 +154,7 @@ Last updated: ${new Date().toISOString()}`;
         if: github.event_name == 'issues' && github.event.action == 'closed'
         uses: actions/github-script@v7
         with:
+          github-token: ${{ secrets.PROJECT_PAT }}
           script: |
             const columns = ['To Do', 'In Progress', 'Review'];
             for (const columnId of columns) {
@@ -171,6 +176,7 @@ Last updated: ${new Date().toISOString()}`;
         if: github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged
         uses: actions/github-script@v7
         with:
+          github-token: ${{ secrets.PROJECT_PAT }}
           script: |
             const columns = ['To Do', 'In Progress', 'Review'];
             for (const columnId of columns) {
