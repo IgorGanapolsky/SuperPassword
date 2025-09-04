@@ -5,10 +5,11 @@ on:
     types: [opened, edited, labeled, unlabeled]
 
 permissions:
-  issues: write
   contents: read
+  issues: write
   repository-projects: write
-  project: write
+  projects: write
+  id-token: write
 
 jobs:
   triage:
@@ -58,30 +59,10 @@ jobs:
             }
 
       - name: Add to project board
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          PROJECT_ID=$(gh api graphql -f query='
-            query($org: String!, $repo: String!) {
-              repository(owner: $org, name: $repo) {
-                projectsV2(first: 1) {
-                  nodes {
-                    id
-                  }
-                }
-              }
-            }' -f org=${{ github.repository_owner }} -f repo=${{ github.event.repository.name }} --jq '.data.repository.projectsV2.nodes[0].id')
-
-          if [ ! -z "$PROJECT_ID" ]; then
-            gh api graphql -f query='
-              mutation($project:ID!, $issue:ID!) {
-                addProjectV2ItemById(input: {projectId: $project, contentId: $issue}) {
-                  item {
-                    id
-                  }
-                }
-              }' -f project="$PROJECT_ID" -f issue="${{ github.event.issue.node_id }}" --silent
-          fi
+        uses: actions/add-to-project@v0.5.0
+        with:
+          project-url: https://github.com/users/IgorGanapolsky/projects/1
+          github-token: ${{ secrets.ADD_TO_PROJECT_PAT }}
 
       - name: Add analysis comment
         if: "!contains(github.event.issue.title, 'Project Status')"
