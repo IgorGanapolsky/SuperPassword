@@ -22,6 +22,9 @@ concurrency:
 jobs:
   setup:
     uses: ./.github/workflows/reusable/setup.yml
+    permissions:
+      contents: write
+      checks: write
     with:
       node-version: "20"
       install-dependencies: true
