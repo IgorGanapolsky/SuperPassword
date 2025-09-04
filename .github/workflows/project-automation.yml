@@ -1,12 +1,14 @@
-name: Project Board Automation
+name: Project Board Automation (2025)
 
 on:
   issues:
-    types: [opened, closed, reopened, assigned]
+    types: [opened, edited, closed, reopened, assigned, unassigned, labeled, unlabeled]
   pull_request:
-    types: [opened, closed, reopened, ready_for_review]
+    types: [opened, edited, closed, reopened, ready_for_review, review_requested, labeled, unlabeled]
   pull_request_review:
-    types: [submitted]
+    types: [submitted, edited, dismissed]
+  schedule:
+    - cron: '*/30 * * * *'  # Run metrics update every 30 minutes
 
 permissions:
   issues: write
@@ -15,6 +17,84 @@ permissions:
   contents: read
 
 jobs:
+  project_metrics:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Calculate Project Metrics
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const stats = {
+              openIssues: 0,
+              inProgress: 0,
+              inReview: 0,
+              completed: 0,
+              totalPRs: 0,
+              mergedPRs: 0,
+              avgReviewTime: 0,
+              avgTimeToMerge: 0
+            };
+
+            // Collect PR metrics
+            const prs = await github.rest.pulls.list({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'all',
+              per_page: 100
+            });
+
+            let totalReviewTime = 0;
+            let totalMergeTime = 0;
+
+            prs.data.forEach(pr => {
+              stats.totalPRs++;
+              if (pr.merged_at) {
+                stats.mergedPRs++;
+                const reviewTime = new Date(pr.merged_at) - new Date(pr.created_at);
+                totalMergeTime += reviewTime;
+
+                if (pr.reviews && pr.reviews.length > 0) {
+                  const firstReview = new Date(pr.reviews[0].submitted_at);
+                  totalReviewTime += firstReview - new Date(pr.created_at);
+                }
+              }
+            });
+
+            stats.avgReviewTime = totalReviewTime / stats.mergedPRs / (1000 * 60 * 60);
+            stats.avgTimeToMerge = totalMergeTime / stats.mergedPRs / (1000 * 60 * 60);
+
+            // Update status issue
+            const update = `## Project Health Dashboard
+
+### 📊 Current Sprint Metrics
+- Open Issues: ${stats.openIssues}
+- In Progress: ${stats.inProgress}
+- In Review: ${stats.inReview}
+- Completed: ${stats.completed}
+
+### 🚀 Velocity Metrics
+- Pull Requests: ${stats.totalPRs}
+- Merged PRs: ${stats.mergedPRs}
+- Merge Rate: ${((stats.mergedPRs / stats.totalPRs) * 100).toFixed(1)}%
+
+### ⏱️ Time Metrics
+- Average Time to First Review: ${stats.avgReviewTime.toFixed(1)}h
+- Average Time to Merge: ${stats.avgTimeToMerge.toFixed(1)}h
+
+### 🎯 Sprint Goals
+- [ ] Zero stale PRs (>7 days)
+- [ ] Review response < 24h
+- [ ] Test coverage > 80%
+
+Last updated: ${new Date().toISOString()}`;
+
+            await github.rest.issues.update({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: 81,
+              body: update
+            });
+
   automate-project-columns:
     runs-on: ubuntu-latest
     steps:
@@ -23,7 +103,7 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
-            const projectId = "PVT_kwDOPlP3P84B2QH7"; // SuperPassword Development
+            const projectId = "3"; // SuperPassword Project Board
 
             await github.rest.projects.createCard({
               column_id: "To Do",
