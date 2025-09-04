@@ -10,6 +10,6 @@ paths:
   - screens
 paths-ignore:
   - node_modules
-  - '**/*.test.{js,jsx,ts,tsx}'
-  - '**/__tests__/**'
-  - '**/*.d.ts'
+  - "**/*.test.{js,jsx,ts,tsx}"
+  - "**/__tests__/**"
+  - "**/*.d.ts"

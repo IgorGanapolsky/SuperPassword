@@ -30,11 +30,11 @@ branches:
 
 # Automation Settings
 automation:
-  metrics_update_interval: 30  # minutes
+  metrics_update_interval: 30 # minutes
   sla:
-    bug_response_time: 48      # hours
-    pr_review_time: 24         # hours
-    security_fix_time: 72      # hours
+    bug_response_time: 48 # hours
+    pr_review_time: 24 # hours
+    security_fix_time: 72 # hours
   auto_merge:
     enabled: true
     conditions:

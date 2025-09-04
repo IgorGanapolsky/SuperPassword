@@ -6,7 +6,7 @@ categories:
     labels: ["type: bug", "triage"]
     assignees:
       - team: bug-triage
-    sla: 48h  # Response time SLA
+    sla: 48h # Response time SLA
     priority_labels:
       - "priority: critical"
       - "priority: high"
@@ -152,7 +152,7 @@ labels:
 templates:
   welcome: |
     Thanks for creating an issue! Our team will review it shortly.
-    
+
     In the meantime:
     - 📱 For immediate support, check our [FAQ](docs/FAQ.md)
     - 🔍 Search our [knowledge base](docs/KB.md)
@@ -160,7 +160,7 @@ templates:
 
   needs_info: |
     We need some additional information to help resolve this issue:
-    
+
     Please provide:
     - [ ] Steps to reproduce
     - [ ] Expected behavior
@@ -169,7 +169,7 @@ templates:
 
   stale_warning: |
     This issue has been inactive for 60 days. It will be closed in 7 days unless there is new activity.
-    
+
     If this issue is still relevant:
     - Add a comment with current status
     - Add more details if available
@@ -182,7 +182,7 @@ sla:
     high: 24h
     medium: 48h
     low: 72h
-  
+
   resolution_time:
     critical: 24h
     high: 72h
@@ -198,7 +198,7 @@ notifications:
         - new_critical_bug
         - sla_breach
         - security_issue
-    
+
     - type: discord
       channel: "bug-reports"
       triggers:
@@ -223,7 +223,7 @@ analytics:
       threshold: 4.5
     - name: bug_resolution_rate
       threshold: 90%
-  
+
   reports:
     - name: weekly_summary
       schedule: "0 9 * * MON"

@@ -746,6 +746,7 @@ Track issue status and project health at our [Project Dashboard](../../projects/
 ### ⏱️ Response Times
 
 We aim to provide initial responses within:
+
 - 🔴 Critical issues: 2 hours
 - 🟠 High priority: 24 hours
 - 🟡 Medium priority: 48 hours
