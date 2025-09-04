@@ -8,12 +8,10 @@ on:
     branches: [develop, main]
 
 permissions:
-  contents: write
+  contents: read
   checks: write
   pull-requests: write
-  issues: write
-  repository-projects: write
-  deployments: write
+  security-events: write
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -54,6 +52,8 @@ jobs:
 
       - name: Upload coverage
         uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
 
       - name: Validate Expo config
         run: npx expo-doctor
