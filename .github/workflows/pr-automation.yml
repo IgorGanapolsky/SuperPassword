@@ -8,13 +8,17 @@ on:
   check_suite:
     types: [completed]
   schedule:
-    - cron: "*/15 * * * *" # Run every 15 minutes instead of 3
+    - cron: "*/10 * * * *" # Run every 10 minutes
   workflow_dispatch:
     inputs:
       debug:
         description: "Enable debug logging"
         required: false
         default: "false"
+
+env:
+  NODE_VERSION: "20"
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 permissions:
   contents: write
@@ -30,6 +34,17 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "npm"
+
+      - name: Load project config
+        id: config
+        run: |
+          echo "config=$(cat .github/project.yml | base64)" >> $GITHUB_OUTPUT
 
       - name: Analyze PRs
         id: analyze
