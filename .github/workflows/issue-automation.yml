@@ -8,6 +8,7 @@ permissions:
   issues: write
   contents: read
   repository-projects: write
+  project: write
 
 jobs:
   triage:
@@ -20,7 +21,7 @@ jobs:
         with:
           script: |
             const issue = context.payload.issue;
-            
+
             // Add priority label if missing
             const hasPriority = issue.labels.some(label => 
               label.name.startsWith('priority:')
@@ -88,22 +89,22 @@ jobs:
         with:
           script: |
             const issue = context.payload.issue;
-            
+
             const analysis = `
             ## Issue Analysis
-            
+
             - Type: ${issue.labels.find(l => l.name.startsWith('type:'))?.name || 'Unclassified'}
             - Priority: ${issue.labels.find(l => l.name.startsWith('priority:'))?.name || 'Unassigned'}
             - Created: ${new Date(issue.created_at).toLocaleString()}
-            
+
             ### Monitoring
             - [ ] Added to project board
             - [ ] Priority assigned
             - [ ] Labels verified
-            
+
             I'll keep monitoring this issue for updates and SLA compliance.
             `;
-            
+
             await github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
