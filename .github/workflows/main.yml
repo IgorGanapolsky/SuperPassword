@@ -75,7 +75,7 @@ jobs:
           cache: 'npm'
       
       - name: Install dependencies
-        run: npm ci
+        run: npm ci --legacy-peer-deps
       
       - name: Type check
         run: npx tsc --noEmit
@@ -125,7 +125,7 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: npm ci
+        run: npm ci --legacy-peer-deps
       
       - name: Run OWASP Dependency Check
         uses: dependency-check/Dependency-Check_Action@main
