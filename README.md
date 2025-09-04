@@ -1,4 +1,12 @@
-# SuperPassword - Secure Password Management App
+# SuperPassword
+
+[![CI Status](https://github.com/IgorGanapolsky/SuperPassword/workflows/CI%20Pipeline/badge.svg?branch=main)](https://github.com/IgorGanapolsky/SuperPassword/actions)
+[![CodeQL](https://github.com/IgorGanapolsky/SuperPassword/workflows/CodeQL/badge.svg)](https://github.com/IgorGanapolsky/SuperPassword/security/code-scanning)
+[![codecov](https://codecov.io/gh/IgorGanapolsky/SuperPassword/branch/main/graph/badge.svg)](https://codecov.io/gh/IgorGanapolsky/SuperPassword)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=IgorGanapolsky_SuperPassword&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=IgorGanapolsky_SuperPassword)
+[![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=IgorGanapolsky_SuperPassword&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=IgorGanapolsky_SuperPassword)
+[![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=IgorGanapolsky_SuperPassword&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=IgorGanapolsky_SuperPassword)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ## CI/CD Pipeline
 
@@ -55,10 +63,6 @@ Our CI/CD pipeline is designed to ensure code quality, security, and reliable de
 6. Get admin approval
 7. Tag release triggers deployment
 
-# SuperPassword
-
-## Development Workflow
-
 ### Branch Strategy
 
 - `main`: Production-ready code
@@ -109,16 +113,7 @@ npm run typecheck
 npm run build
 ```
 
-# SecurePass - Password Generator
-
-[![CI/CD Pipeline](https://github.com/IgorGanapolsky/SuperPassword/actions/workflows/main.yml/badge.svg)](https://github.com/IgorGanapolsky/SuperPassword/actions/workflows/main.yml)
-[![codecov](https://codecov.io/gh/IgorGanapolsky/SuperPassword/branch/main/graph/badge.svg)](https://codecov.io/gh/IgorGanapolsky/SuperPassword)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](http://makeapullrequest.com)
-[![Maintainability](https://api.codeclimate.com/v1/badges/your-repo-id/maintainability)](https://codeclimate.com/github/IgorGanapolsky/SuperPassword/maintainability)
-[![Known Vulnerabilities](https://snyk.io/test/github/IgorGanapolsky/SuperPassword/badge.svg)](https://snyk.io/test/github/IgorGanapolsky/SuperPassword)
-
-A professional password generator React Native Expo app with Material Design, ready for deployment to Google Play Store and Apple App Store.
+A professional password generator
 
 ## Features
 
