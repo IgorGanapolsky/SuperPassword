@@ -1,0 +1,15 @@
+name: "SuperPassword CodeQL config"
+queries:
+  - uses: security-and-quality
+  - uses: security-extended
+
+paths:
+  - src
+  - app
+  - components
+  - screens
+paths-ignore:
+  - node_modules
+  - "**/*.test.{js,jsx,ts,tsx}"
+  - "**/__tests__/**"
+  - "**/*.d.ts"
