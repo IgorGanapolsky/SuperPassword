@@ -1,188 +1,161 @@
 ---
-name: Project Board Sync
+name: Project Sync (Deprecated)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  noop:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "This workflow is deprecated. Status updates are handled by SuperPassword Main Pipeline."
 
 on:
   issues:
     types: [opened, closed, reopened, assigned]
   pull_request:
     types: [opened, closed, reopened, ready_for_review]
-  project_card:
-    types: [created, moved]
+  schedule:
+    # Update status every hour
+    - cron: '0 * * * *'
+  workflow_dispatch:
+    # Allow manual trigger
 
 permissions:
   contents: read
   issues: write
   pull-requests: write
-  repository-projects: write
-  project: write
 
 jobs:
-  sync-project:
+  update-project-status:
     runs-on: ubuntu-latest
     steps:
-      - name: Update Project Status
+      - name: Update Issue #81 with Project Status
         uses: actions/github-script@v7
         with:
           github-token: ${{ secrets.PROJECT_PAT }}
           script: |
-            const statusIssue = await github.rest.issues.get({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: 81
-            });
+            console.log('Starting project status update...');
+            
+            try {
+              // Get all open issues and PRs
+              const [issues, prs] = await Promise.all([
+                github.rest.issues.listForRepo({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  state: 'open',
+                  per_page: 100
+                }),
+                github.rest.pulls.list({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  state: 'open',
+                  per_page: 100
+                })
+              ]);
 
-            const stats = {
-              openIssues: 0,
-              inProgress: 0,
-              readyForReview: 0,
-              completed: 0
-            };
+              // Filter out PR issues and the status issue itself
+              const actualIssues = issues.data.filter(issue => 
+                !issue.pull_request && issue.number !== 81
+              );
 
-            // Get project items
-            const project = await github.rest.projects.listForRepo({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              state: 'open'
-            });
+              // Calculate stats
+              const stats = {
+                openIssues: actualIssues.length,
+                openPRs: prs.data.length,
+                inProgress: actualIssues.filter(issue => 
+                  issue.assignees.length > 0
+                ).length,
+                bugs: actualIssues.filter(issue => 
+                  issue.labels.some(label => label.name.includes('bug'))
+                ).length,
+                features: actualIssues.filter(issue => 
+                  issue.labels.some(label => label.name.includes('enhancement') || label.name.includes('feature'))
+                ).length
+              };
 
-            if (project.data.length > 0) {
-              const columns = await github.rest.projects.listColumns({
-                project_id: project.data[0].id
+              // Get recent activity (last 7 days)
+              const weekAgo = new Date();
+              weekAgo.setDate(weekAgo.getDate() - 7);
+              
+              const recentActivity = actualIssues.filter(issue => 
+                new Date(issue.updated_at) > weekAgo
+              ).length;
+
+              // Calculate health metrics
+              const totalWork = stats.openIssues + stats.openPRs;
+              const activeWork = stats.inProgress + stats.openPRs;
+              const activityRate = totalWork > 0 ? Math.round((recentActivity / totalWork) * 100) : 0;
+              const progressRate = stats.openIssues > 0 ? Math.round((stats.inProgress / stats.openIssues) * 100) : 0;
+
+              const updateBody = `# 📊 SuperPassword Project Status
+
+*Last updated: ${new Date().toLocaleString('en-US', { 
+                timeZone: 'America/New_York', 
+                dateStyle: 'full', 
+                timeStyle: 'medium' 
+              })}*
+
+## 📈 Current Metrics
+
+| Metric | Count | Status |
+|--------|-------|--------|
+| 📋 Open Issues | ${stats.openIssues} | ${stats.openIssues > 10 ? '🔴 High' : stats.openIssues > 5 ? '🟡 Medium' : '🟢 Good'} |
+| 🔧 Open PRs | ${stats.openPRs} | ${stats.openPRs > 5 ? '🔴 High' : stats.openPRs > 2 ? '🟡 Medium' : '🟢 Good'} |
+| 🏃 In Progress | ${stats.inProgress} | ${progressRate}% of issues |
+| 🐛 Bugs | ${stats.bugs} | ${stats.bugs > 5 ? '🔴 Critical' : stats.bugs > 2 ? '🟡 Moderate' : '🟢 Low'} |
+| ✨ Features | ${stats.features} | ${stats.features} planned |
+
+## 🎯 Health Dashboard
+
+### Activity Level: ${activityRate >= 50 ? '🟢 High' : activityRate >= 25 ? '🟡 Moderate' : '🔴 Low'}
+- **Recent Activity**: ${recentActivity} items updated in the last 7 days
+- **Activity Rate**: ${activityRate}% of items show recent activity
+
+### Progress Health: ${progressRate >= 40 ? '🟢 Good' : progressRate >= 20 ? '🟡 Fair' : '🔴 Needs Attention'}
+- **Work in Progress**: ${progressRate}% of issues are actively assigned
+- **Velocity**: ${stats.inProgress + stats.openPRs} items in active development
+
+## 📋 Issue Breakdown
+
+\`\`\`
+📊 Distribution:
+├── 🐛 Bugs: ${stats.bugs}
+├── ✨ Features: ${stats.features}
+└── 📝 Other: ${stats.openIssues - stats.bugs - stats.features}
+\`\`\`
+
+## 🎯 Recommendations
+
+${stats.openIssues > 15 ? '⚠️ **High Issue Count**: Consider prioritizing issue resolution\n' : ''}
+${stats.bugs > 5 ? '🐛 **Bug Alert**: Multiple bugs detected - prioritize bug fixes\n' : ''}
+${progressRate < 30 ? '📈 **Low Progress Rate**: Consider assigning more issues to active development\n' : ''}
+${activityRate < 25 ? '💡 **Low Activity**: Project may need more regular updates\n' : ''}
+${stats.openIssues <= 5 && stats.bugs <= 2 ? '✅ **Healthy Project**: Good balance of issues and activity\n' : ''}
+
+## 🔄 Automation Status
+
+- ✅ Auto-labeling active
+- ✅ Project board sync enabled
+- ✅ Status updates every hour
+- ✅ Manual updates available
+
+---
+
+*This status is automatically updated by GitHub Actions. For manual refresh, trigger the "Project Board Sync" workflow.*`;
+
+              // Update the status issue
+              await github.rest.issues.update({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: 81,
+                body: updateBody
               });
 
-              for (const column of columns.data) {
-                const cards = await github.rest.projects.listCards({
-                  column_id: column.id
-                });
-
-                switch(column.name.toLowerCase()) {
-                  case 'to do':
-                    stats.openIssues += cards.data.length;
-                    break;
-                  case 'in progress':
-                    stats.inProgress += cards.data.length;
-                    break;
-                  case 'review':
-                    stats.readyForReview += cards.data.length;
-                    break;
-                  case 'done':
-                    stats.completed += cards.data.length;
-                    break;
-                }
-              }
+              console.log('✅ Successfully updated project status issue #81');
+              console.log(`📊 Stats: ${stats.openIssues} issues, ${stats.openPRs} PRs, ${stats.inProgress} in progress`);
+              
+            } catch (error) {
+              console.error('❌ Error updating project status:', error);
+              throw error;
             }
-
-            const update = `## Project Status Update
-
-### Current Stats
-- 📝 Open Issues: ${stats.openIssues}
-- 🏃 In Progress: ${stats.inProgress}
-- 👀 Ready for Review: ${stats.readyForReview}
-- ✅ Completed: ${stats.completed}
-
-### Health Metrics
-- Completion Rate: ${Math.round((stats.completed / (stats.completed + stats.openIssues)) * 100)}%
-- Review Rate: ${Math.round((stats.readyForReview / stats.inProgress) * 100)}%
-
-Last updated: ${new Date().toISOString()}`;
-
-            await github.rest.issues.update({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: 81,
-              body: update
-            });
-
-name: Project Board Sync
-
-on:
-  issues:
-    types: [opened, closed, reopened, assigned]
-  pull_request:
-    types: [opened, closed, reopened, ready_for_review]
-  project_card:
-    types: [created, moved]
-
-permissions:
-  contents: read
-  issues: write
-  pull-requests: write
-  repository-projects: write
-  project: write
-
-jobs:
-  sync-project:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Update Project Status
-        uses: actions/github-script@v7
-        with:
-          github-token: ${{ secrets.PROJECT_PAT }}
-          script: |
-            const statusIssue = await github.rest.issues.get({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: 81
-            });
-
-            const stats = {
-              openIssues: 0,
-              inProgress: 0,
-              readyForReview: 0,
-              completed: 0
-            };
-
-            // Get project items
-            const project = await github.rest.projects.listForRepo({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              state: 'open'
-            });
-
-            if (project.data.length > 0) {
-              const columns = await github.rest.projects.listColumns({
-                project_id: project.data[0].id
-              });
-
-              for (const column of columns.data) {
-                const cards = await github.rest.projects.listCards({
-                  column_id: column.id
-                });
-
-                switch(column.name.toLowerCase()) {
-                  case 'to do':
-                    stats.openIssues += cards.data.length;
-                    break;
-                  case 'in progress':
-                    stats.inProgress += cards.data.length;
-                    break;
-                  case 'review':
-                    stats.readyForReview += cards.data.length;
-                    break;
-                  case 'done':
-                    stats.completed += cards.data.length;
-                    break;
-                }
-              }
-            }
-
-            const update = `## Project Status Update
-
-### Current Stats
-- 📝 Open Issues: ${stats.openIssues}
-- 🏃 In Progress: ${stats.inProgress}
-- 👀 Ready for Review: ${stats.readyForReview}
-- ✅ Completed: ${stats.completed}
-
-### Health Metrics
-- Completion Rate: ${Math.round((stats.completed / (stats.completed + stats.openIssues)) * 100)}%
-- Review Rate: ${Math.round((stats.readyForReview / stats.inProgress) * 100)}%
-
-Last updated: ${new Date().toISOString()}`;
-
-            await github.rest.issues.update({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: 81,
-              body: update
-            });

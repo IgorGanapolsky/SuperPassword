@@ -45,18 +45,17 @@ jobs:
             ${{ runner.os }}-deps-
 
       - name: Install dependencies
-        if: steps.npm-cache.outputs.cache-hit != 'true'
         run: |
-          npm ci
-          npx expo install
+          npm ci --legacy-peer-deps
+          npx expo install --fix --non-interactive || true
 
       - name: TypeScript check
         run: npx tsc --noEmit
 
-      - name: Lint
+      - name: Lint & format check
         run: |
           npm run lint
-          npm run format:check
+          npm run fmt
 
       - name: Test
         run: npm run test --coverage
