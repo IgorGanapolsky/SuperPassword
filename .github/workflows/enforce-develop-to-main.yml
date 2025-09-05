@@ -1,0 +1,19 @@
+name: enforce-develop-to-main
+
+on:
+  pull_request_target:
+    branches: [main]
+    types: [opened, synchronize, reopened, ready_for_review]
+
+jobs:
+  enforce:
+    name: require develop as source
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fail if head branch is not develop
+        run: |
+          echo "Head ref: ${{ github.head_ref }}"
+          if [ "${{ github.head_ref }}" != "develop" ]; then
+            echo "Only PRs from 'develop' are allowed into 'main'. Current: '${{ github.head_ref }}'"
+            exit 1
+          fi
