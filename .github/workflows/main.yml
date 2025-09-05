@@ -160,6 +160,9 @@ jobs:
     name: Project Sync
     runs-on: ubuntu-latest
     if: github.event_name == 'schedule' || github.event_name == 'issues' || github.event_name == 'issue_comment'
+    env:
+      PROJECTS_V2_OWNER: IgorGanapolsky
+      PROJECTS_V2_NUMBER: 1
     steps:
       - uses: actions/checkout@v4
       - uses: actions/github-script@v7
@@ -168,6 +171,8 @@ jobs:
           script: |
             const owner = context.repo.owner;
             const repo = context.repo.repo;
+            const projectOwner = process.env.PROJECTS_V2_OWNER || owner;
+            const projectNumber = parseInt(process.env.PROJECTS_V2_NUMBER || '1', 10);
 
             // Helpers
             function median(nums) {
@@ -189,6 +194,78 @@ jobs:
               if (mo < 12) return `${mo}mo`;
               const yr = Math.floor(mo/12);
               return `${yr}y`;
+            }
+
+            // Fetch Projects v2 swimlane counts (Status field) via GraphQL
+            async function fetchProjectsV2Swimlanes(login, number) {
+              // Get project and discover Status-like field name
+              const header = await github.graphql(`
+                query($login: String!, $number: Int!) {
+                  user(login: $login) {
+                    projectV2(number: $number) {
+                      id
+                      title
+                      fields(first: 50) {
+                        nodes {
+                          __typename
+                          ... on ProjectV2SingleSelectField { id name options { id name } }
+                          ... on ProjectV2IterationField { id name }
+                          ... on ProjectV2Field { id name }
+                        }
+                      }
+                    }
+                  }
+                }
+              `, { login, number });
+
+              const project = header?.user?.projectV2;
+              if (!project) return null;
+
+              const statusField = (project.fields.nodes || []).find(f =>
+                (f.__typename === 'ProjectV2SingleSelectField') && /status|state/i.test(f.name)
+              ) || (project.fields.nodes || []).find(f => f.__typename === 'ProjectV2SingleSelectField');
+
+              const statusFieldName = statusField?.name || 'Status';
+              const counts = { todo: 0, inProgress: 0, review: 0, done: 0, other: 0 };
+
+              let hasNextPage = true;
+              let after = null;
+              while (hasNextPage) {
+                const page = await github.graphql(`
+                  query($id: ID!, $statusName: String!, $after: String) {
+                    node(id: $id) {
+                      ... on ProjectV2 {
+                        items(first: 100, after: $after) {
+                          pageInfo { hasNextPage endCursor }
+                          nodes {
+                            fieldValueByName(name: $statusName) {
+                              __typename
+                              ... on ProjectV2ItemFieldSingleSelectValue { name }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                `, { id: project.id, statusName: statusFieldName, after });
+
+                const items = page?.node?.items;
+                if (!items) break;
+
+                for (const it of items.nodes) {
+                  const val = it.fieldValueByName?.name?.toLowerCase?.() || 'unknown';
+                  if (/^to\s*do|backlog|todo$/.test(val)) counts.todo++;
+                  else if (/in\s*progress|doing|active/.test(val)) counts.inProgress++;
+                  else if (/review|qa|ready\s*for\s*review/.test(val)) counts.review++;
+                  else if (/done|closed|complete/.test(val)) counts.done++;
+                  else counts.other++;
+                }
+
+                hasNextPage = items.pageInfo.hasNextPage;
+                after = items.pageInfo.endCursor;
+              }
+
+              return { counts, statusFieldName, projectTitle: project.title };
             }
 
             // Always compute, we update on schedule and events
@@ -247,7 +324,19 @@ jobs:
 
             const fmtDate = new Date().toLocaleString('en-US', { timeZone: 'America/New_York', dateStyle: 'full', timeStyle: 'medium' });
 
-            const body = `# 📊 SuperPassword Project Status\n\n*Last updated: ${fmtDate}*\n\n## 📈 Current Metrics\n\n| Metric | Count | Status |\n| --- | ---: | --- |\n| 📋 Open Issues | ${issueCount} | ${issueHealth} |\n| 🔧 Open PRs | ${prCount} | ${prHealth} |\n| 🏃 In Progress | ${inProgress} | ${progressRate}% of issues |\n| 🐛 Bugs | ${bugCount} | ${bugHealth} |\n| ✨ Features | ${featureCount} | ${featureCount} planned |\n\n## 🚀 Delivery (last 30 days)\n- Merged PRs: ${throughput}\n- Median PR lead time: ${fmtDuration(medianLead)}\n\n## 📊 Activity (last 7 days)\n- Active items updated: ${activityCount}\n- Activity rate: ${activityRate}% (${activityHealth})\n\n${priorities.length ? '## 🔝 Top Priorities\n' + priorities.join('\n') + '\n' : ''}\n\n## 🎯 Recommendations\n${recs.map(r => `- ${r}`).join('\n')}\n\n---\n\nAutomation: hourly + on repo events. Manual refresh via local script or rerun workflow.`;
+            // Projects v2 swimlanes (if available)
+            let pv2Section = '';
+            try {
+              const pv2 = await fetchProjectsV2Swimlanes(projectOwner, projectNumber);
+              if (pv2) {
+                const { counts, statusFieldName, projectTitle } = pv2;
+                pv2Section = `\n## 🗂️ Project Board (Projects v2: ${projectTitle})\n\nStatus field: ${statusFieldName}\n\n| To Do | In Progress | Review | Done | Other |\n|---:|---:|---:|---:|---:|\n| ${counts.todo} | ${counts.inProgress} | ${counts.review} | ${counts.done} | ${counts.other} |\n`;
+              }
+            } catch (e) {
+              pv2Section = `\n> Projects v2 data unavailable (${String(e).slice(0,140)}).`;
+            }
+
+            const body = `# 📊 SuperPassword Project Status\n\n*Last updated: ${fmtDate}*\n\n## 📈 Current Metrics\n\n| Metric | Count | Status |\n| --- | ---: | --- |\n| 📋 Open Issues | ${issueCount} | ${issueHealth} |\n| 🔧 Open PRs | ${prCount} | ${prHealth} |\n| 🏃 In Progress | ${inProgress} | ${progressRate}% of issues |\n| 🐛 Bugs | ${bugCount} | ${bugHealth} |\n| ✨ Features | ${featureCount} | ${featureCount} planned |\n\n## 🚀 Delivery (last 30 days)\n- Merged PRs: ${throughput}\n- Median PR lead time: ${fmtDuration(medianLead)}\n\n## 📊 Activity (last 7 days)\n- Active items updated: ${activityCount}\n- Activity rate: ${activityRate}% (${activityHealth})\n${pv2Section}\n${priorities.length ? '## 🔝 Top Priorities\n' + priorities.join('\n') + '\n' : ''}\n\n## 🎯 Recommendations\n${recs.map(r => `- ${r}`).join('\n')}\n\n---\n\nAutomation: hourly + on repo events. Manual refresh via local script or rerun workflow.`;
 
             // Ensure the status issue exists; create if missing, then update
             try {
