@@ -776,3 +776,5 @@ We aim to provide initial responses within:
 - 🔍 [Knowledge Base](docs/KB.md)
 - 💭 [Discord Community](https://discord.gg/superpassword)
 - 📧 Email: support@securepass.app
+
+<!-- temp: trigger enforce check -->
