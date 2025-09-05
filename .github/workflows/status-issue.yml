@@ -1,5 +1,14 @@
 ---
-name: Status Issue Updater
+name: Status Issue Updater (Deprecated)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  noop:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Deprecated. Use main pipeline's Project Sync job for updates."
 
 on:
   schedule:
