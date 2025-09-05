@@ -1,17 +1,23 @@
 module.exports = {
-  preset: 'ts-jest',
-  testEnvironment: 'node',
-  moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
+  preset: "jest-expo",
+  testEnvironment: "node",
+  moduleFileExtensions: ["ts", "tsx", "js", "jsx", "json", "node"],
   transform: {
-    '^.+\\.(ts|tsx)$': 'ts-jest',
+    "^.+\\.(js|jsx|ts|tsx)$": "babel-jest",
   },
-  testRegex: '(/__tests__/.*|(\\.|/)(test|spec))\\.(jsx?|tsx?)$',
-  coverageDirectory: 'coverage',
+  testRegex: "(/__tests__/.*|(\\.|/)(test|spec))\\.(jsx?|tsx?)$",
+  coverageDirectory: "coverage",
   collectCoverageFrom: [
-    'src/**/*.{ts,tsx}',
-    '!src/**/*.d.ts',
-    '!src/**/*.test.{ts,tsx}',
-    '!src/**/__tests__/**',
+    "src/**/*.{ts,tsx}",
+    "!src/**/*.d.ts",
+    "!src/**/*.test.{ts,tsx}",
+    "!src/**/__tests__/**",
+    "!**/coverage/**",
+    "!**/node_modules/**",
+    "!**/babel.config.js",
+    "!**/jest.setup.js",
+    "!**/jest.config.js",
+    "!**/.eslintrc.js",
   ],
   coverageThreshold: {
     global: {
@@ -21,5 +27,14 @@ module.exports = {
       statements: 80,
     },
   },
-  setupFiles: ['<rootDir>/jest.setup.js'],
+  transformIgnorePatterns: [
+    "node_modules/(?!((jest-)?react-native|@react-native(-community)?)|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|@unimodules/.*|unimodules|sentry-expo|native-base|react-native-svg)",
+  ],
+  setupFiles: [
+    "<rootDir>/jest.setup.js",
+    "@testing-library/jest-native/extend-expect",
+  ],
+  moduleNameMapper: {
+    "^@/(.*)$": "<rootDir>/src/$1",
+  },
 };

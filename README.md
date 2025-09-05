@@ -37,29 +37,34 @@ A professional password generator React Native Expo app with material design, le
 ## Tech Stack (2025 Standards)
 
 ### Core
+
 - React Native with Expo SDK 53
 - TypeScript 5.x
 - React Navigation 7.x
 - React Native Paper (Material Design)
 
 ### Testing
+
 - Jest + React Testing Library
 - Component testing with @testing-library/react-native
 - E2E testing with Maestro
 - Contract testing with Pact
 
 ### State & Storage
+
 - AsyncStorage for local data
 - Firebase Cloud Storage
 - Redux Toolkit for state management
 
 ### Security & Analytics
+
 - Firebase Authentication
 - Google AdMob
 - Sentry error tracking
 - API contract validation
 
 ### Performance
+
 - Lighthouse CI integration
 - Real User Monitoring (RUM)
 - Performance budgets
@@ -140,130 +145,10 @@ npx expo run:android
 
 MIT
 
-<<<<<<< HEAD
-
-# SuperPassword - Secure Password Management App
-
-## CI/CD Pipeline
-
-Our CI/CD pipeline is designed to ensure code quality, security, and reliable deployments:
-
-### Workflows
-
-1. **CI Pipeline** (.github/workflows/ci.yml)
-   - Runs on all PRs and pushes to develop
-   - Validates code quality (TypeScript, lint, tests)
-   - Performs security checks
-   - Builds development versions
-
-2. **Security Pipeline** (.github/workflows/security.yml)
-   - Daily security scans
-   - Dependency vulnerability checks
-   - Code security analysis
-   - Mobile-specific security checks
-
-3. **Release Pipeline** (.github/workflows/release.yml)
-   - Triggered by version tags or manually
-   - Supports staging and production deployments
-   - Generates SBOM and release notes
-   - Handles app store submissions
-
-### Branch Protection
-
-- All work branches from `develop`
-- PRs require:
-  - CI pipeline success
-  - Code review approval
-  - Up-to-date branch status
-- `main` branch:
-  - Protected from direct pushes
-  - Requires admin approval for merges
-  - Release tags trigger deployments
-
-### Security Features
-
-- CodeQL analysis
-- OWASP dependency checking
-- Secret scanning
-- Mobile security framework integration
-- SBOM generation
-- Dependency audit
-
-### Release Process
-
-1. Create feature branch from develop
-2. Open PR to develop
-3. Pass CI and get approval
-4. Merge to develop
-5. Create release PR to main (when ready)
-6. Get admin approval
-7. Tag release triggers deployment
-
 # SuperPassword
 
-## Development Workflow
-
-### Branch Strategy
-
-- `main`: Production-ready code
-- `develop`: Primary development branch
-- Feature branches: Create from `develop`, merge back to `develop`
-
-### Pull Request Process
-
-1. Create branch from `develop`
-2. Make your changes
-3. Ensure all checks pass:
-   - Linting
-   - Type checking
-   - Tests
-   - Build verification
-4. Submit PR to `develop`
-5. Once approved, merge to `develop`
-
-### Active GitHub Actions
-
-- **CI**: Runs on PRs and pushes to main/develop
-  - Linting, type checking, tests, and build verification
-- **CodeQL**: Security scanning
-  - Runs weekly and on PRs to main
-- **Dependabot**: Dependency updates
-  - Monthly schedule
-  - Security updates as needed
-
-### Development Commands
-
-```bash
-# Install dependencies
-npm install
-
-# Start development server
-npm run start
-
-# Run tests
-npm run test
-
-# Lint code
-npm run lint
-
-# Type check
-npm run typecheck
-
-# Build app
-npm run build
-```
-
-# SecurePass - Password Generator
-
-=======
-
-# SuperPassword
-
-> > > > > > > develop
-
-[![CI Status](https://github.com/IgorGanapolsky/SuperPassword/workflows/CI%20Pipeline/badge.svg?branch=main)](https://github.com/IgorGanapolsky/SuperPassword/actions)
-[![CodeQL](https://github.com/IgorGanapolsky/SuperPassword/workflows/CodeQL/badge.svg)](https://github.com/IgorGanapolsky/SuperPassword/security/code-scanning)
-[![codecov](https://codecov.io/gh/IgorGanapolsky/SuperPassword/branch/main/graph/badge.svg)](https://codecov.io/gh/IgorGanapolsky/SuperPassword)
+[![Main Pipeline](https://github.com/IgorGanapolsky/SuperPassword/workflows/Main%20Pipeline/badge.svg)](https://github.com/IgorGanapolsky/SuperPassword/actions)
+[![Code Coverage](https://codecov.io/gh/IgorGanapolsky/SuperPassword/branch/main/graph/badge.svg)](https://codecov.io/gh/IgorGanapolsky/SuperPassword)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=IgorGanapolsky_SuperPassword&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=IgorGanapolsky_SuperPassword)
 [![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=IgorGanapolsky_SuperPassword&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=IgorGanapolsky_SuperPassword)
 [![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=IgorGanapolsky_SuperPassword&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=IgorGanapolsky_SuperPassword)
@@ -861,6 +746,33 @@ npx tsc --noEmit
 
 MIT
 
-## Support
+## Issue Management & Support
 
-For support, email support@securepass.app
+### 🐛 Reporting Issues
+
+SuperPassword uses GitHub Issues for bug tracking and feature requests. Before creating an issue, please:
+
+1. Search existing issues to avoid duplicates
+2. Use our issue templates:
+   - 🐛 [Report a Bug](../../issues/new?template=bug_report.yml)
+   - 💡 [Request a Feature](../../issues/new?template=feature_request.yml)
+
+### 📊 Issue Status Dashboard
+
+Track issue status and project health at our [Project Dashboard](../../projects/3)
+
+### ⏱️ Response Times
+
+We aim to provide initial responses within:
+
+- 🔴 Critical issues: 2 hours
+- 🟠 High priority: 24 hours
+- 🟡 Medium priority: 48 hours
+- 🟢 Low priority: 72 hours
+
+### 💬 Community & Support
+
+- 📱 [FAQ](docs/FAQ.md)
+- 🔍 [Knowledge Base](docs/KB.md)
+- 💭 [Discord Community](https://discord.gg/superpassword)
+- 📧 Email: support@securepass.app

@@ -36,3 +36,10 @@ yarn-error.*
 # typescript
 *.tsbuildinfo
 .env
+
+# test coverage
+coverage/
+
+# script logs
+scripts/*.log
+scripts/*.err.log
