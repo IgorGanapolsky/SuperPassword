@@ -1,6 +1,7 @@
 name: SuperPassword Main Pipeline
 
 on:
+  workflow_dispatch: {}
   push:
     branches:
       - develop
@@ -159,12 +160,40 @@ jobs:
   project-sync:
     name: Project Sync
     runs-on: ubuntu-latest
-    if: github.event_name == 'schedule' || github.event_name == 'issues' || github.event_name == 'issue_comment'
+    # Avoid infinite loops on self-updates and restrict to relevant events
+    if: >-
+      github.event_name == 'schedule' ||
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'issues' && github.actor != 'github-actions[bot]' && github.event.issue.number != 81) ||
+      (github.event_name == 'issue_comment' && github.actor != 'github-actions[bot]')
+    concurrency:
+      group: project-sync
+      cancel-in-progress: true
     env:
       PROJECTS_V2_OWNER: IgorGanapolsky
       PROJECTS_V2_NUMBER: 1
     steps:
       - uses: actions/checkout@v4
+
+      - name: Diagnostics - Projects v2 access
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.PROJECT_PAT || secrets.GITHUB_TOKEN }}
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const projectOwner = process.env.PROJECTS_V2_OWNER || owner;
+            const projectNumber = parseInt(process.env.PROJECTS_V2_NUMBER || '1', 10);
+            try {
+              const resp = await github.graphql(`
+                query($login:String!, $number:Int!){ user(login:$login){ projectV2(number:$number){ id title } } }
+              `, { login: projectOwner, number: projectNumber });
+              core.info('Projects v2 header OK: ' + JSON.stringify(resp));
+            } catch (e) {
+              core.warning('Projects v2 header error: ' + (e?.message || String(e)));
+              if (e?.errors) core.warning('Errors: ' + JSON.stringify(e.errors));
+            }
+
       - uses: actions/github-script@v7
         with:
           github-token: ${{ secrets.PROJECT_PAT || secrets.GITHUB_TOKEN }}
@@ -173,6 +202,18 @@ jobs:
             const repo = context.repo.repo;
             const projectOwner = process.env.PROJECTS_V2_OWNER || owner;
             const projectNumber = parseInt(process.env.PROJECTS_V2_NUMBER || '1', 10);
+
+            // Guard again inside the script to be extra safe
+            try {
+              if (context.eventName === 'issues') {
+                const num = context?.payload?.issue?.number;
+                const actor = context?.actor;
+                if (num === 81 || actor === 'github-actions[bot]') {
+                  core.info('Skipping self-triggered status issue update run.');
+                  return;
+                }
+              }
+            } catch {}
 
             // Helpers
             function median(nums) {
