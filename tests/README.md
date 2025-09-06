@@ -1,0 +1,2 @@
+This directory contains text-based validations for the GitHub Actions workflow "SuperPassword Main Pipeline".
+Framework: We rely on the project's existing test runner (e.g., Jest or Vitest). No new dependencies are introduced.
