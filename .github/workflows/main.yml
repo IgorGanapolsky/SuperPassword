@@ -175,11 +175,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Diagnostics - token presence
-        run: |
-          if [ -n "${{ secrets.PROJECT_PAT }}" ]; then echo "PROJECT_PAT=present"; else echo "PROJECT_PAT=missing"; fi
-          echo "WORKFLOW_PERMS: contents=${{ github.event.pull_request ? 'pr' : 'repo' }} issues=write checks=write"
-
       - name: Diagnostics - Projects v2 access
         uses: actions/github-script@v7
         with:
