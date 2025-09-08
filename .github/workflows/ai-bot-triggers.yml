@@ -1,0 +1,52 @@
+name: AI Bot Triggers (Claude/Cursor)
+
+on:
+  pull_request_target:
+    types: [opened, reopened, ready_for_review]
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+jobs:
+  trigger-bots:
+    name: Trigger Claude and Cursor
+    runs-on: ubuntu-latest
+    steps:
+      - name: Post trigger comments for AI reviewers
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const { owner, repo } = context.repo;
+            const pr = context.payload.pull_request;
+            if (!pr) {
+              core.info('No PR in context; skipping.');
+              return;
+            }
+
+            const issue_number = pr.number;
+
+            // Trigger commands (adjust if your bots use different commands)
+            const CLAUDE_CMD = process.env.CLAUDE_TRIGGER_COMMAND || '/claude review';
+            const CURSOR_CMD = process.env.CURSOR_TRIGGER_COMMAND || '/cursor review';
+
+            // Avoid duplicate comments if already posted on this PR
+            const existing = await github.paginate(github.rest.issues.listComments, { owner, repo, issue_number, per_page: 100 });
+            const already = existing.some(c => (c.body||'').includes(CLAUDE_CMD)) && existing.some(c => (c.body||'').includes(CURSOR_CMD));
+            if (already) {
+              core.info('Trigger comments already present.');
+              return;
+            }
+
+            const body = [
+              'Automated AI review triggers:',
+              '',
+              `- ${CLAUDE_CMD}`,
+              `- ${CURSOR_CMD}`,
+              '',
+              '> If your integration uses different commands, update .github/workflows/ai-bot-triggers.yml env defaults.'
+            ].join('\n');
+
+            await github.rest.issues.createComment({ owner, repo, issue_number, body });
