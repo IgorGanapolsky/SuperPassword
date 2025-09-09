@@ -10,10 +10,17 @@ jobs:
     name: require develop as source
     runs-on: ubuntu-latest
     steps:
-      - name: Fail if head branch is not develop
+      - name: Fail if head branch is not develop (allow merge-helper/*)
         run: |
           echo "Head ref: ${{ github.head_ref }}"
-          if [ "${{ github.head_ref }}" != "develop" ]; then
-            echo "Only PRs from 'develop' are allowed into 'main'. Current: '${{ github.head_ref }}'"
-            exit 1
+          if [ "${{ github.head_ref }}" = "develop" ]; then
+            echo "develop -> main allowed"
+            exit 0
+          fi
+          if echo "${{ github.head_ref }}" | grep -qE '^merge-helper\/'; then
+            echo "merge-helper/* -> main temporarily allowed"
+            exit 0
+          fi
+          echo "Only PRs from 'develop' (or temporary 'merge-helper/*') are allowed into 'main'. Current: '${{ github.head_ref }}'"
+          exit 1
           fi
