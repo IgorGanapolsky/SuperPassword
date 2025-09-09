@@ -5,8 +5,7 @@ on:
     types: [opened, labeled, assigned, closed]
   pull_request:
     types: [opened, ready_for_review, closed]
-  project_card:
-    types: [moved]
+  workflow_dispatch:
 
 permissions:
   issues: write
@@ -17,46 +16,62 @@ jobs:
   auto-add-to-project:
     name: Auto-add to Project
     runs-on: ubuntu-latest
+    if: |
+      github.event_name == 'issues' && 
+      (contains(github.event.issue.labels.*.name, 'priority:high') || 
+       contains(github.event.issue.labels.*.name, 'priority:critical'))
     steps:
       - name: Add to project
-        uses: actions/add-to-project@v0.5.0
+        uses: actions/add-to-project@v1.0.2
         with:
           project-url: https://github.com/users/IgorGanapolsky/projects/1
           github-token: ${{ secrets.PROJECT_PAT }}
-          labeled: priority:high, priority:critical
-          label-operator: OR
 
-  move-to-in-progress:
-    name: Move to In Progress when assigned
-    runs-on: ubuntu-latest
-    if: github.event.issue.assignee != null || github.event.pull_request.assignee != null
-    steps:
-      - uses: alex-page/github-project-automation-plus@v0.9.0
-        with:
-          project: SuperPassword
-          column: In Progress
-          repo-token: ${{ secrets.PROJECT_PAT }}
-
-  move-to-review:
-    name: Move to Review when PR ready
-    runs-on: ubuntu-latest
-    if: github.event.pull_request && github.event.action == 'ready_for_review'
-    steps:
-      - uses: alex-page/github-project-automation-plus@v0.9.0
-        with:
-          project: SuperPassword
-          column: Review
-          repo-token: ${{ secrets.PROJECT_PAT }}
-
-  move-to-done:
-    name: Move to Done when closed
+  move-card-when-issue-assigned:
+    name: Move card when issue assigned
     runs-on: ubuntu-latest
     if: |
-      (github.event.issue && github.event.action == 'closed') ||
-      (github.event.pull_request && github.event.pull_request.merged == true)
+      github.event_name == 'issues' && 
+      github.event.action == 'assigned' && 
+      github.event.issue.assignee != null
     steps:
-      - uses: alex-page/github-project-automation-plus@v0.9.0
+      - name: Move issue to In Progress
+        uses: leonsteinhaeuser/project-beta-automations@v2.2.1
         with:
-          project: SuperPassword
-          column: Done
-          repo-token: ${{ secrets.PROJECT_PAT }}
+          gh_token: ${{ secrets.PROJECT_PAT }}
+          organization: IgorGanapolsky
+          project_id: 1
+          resource_node_id: ${{ github.event.issue.node_id }}
+          status_value: "In Progress"
+
+  move-card-when-pr-ready:
+    name: Move card when PR ready for review
+    runs-on: ubuntu-latest
+    if: |
+      github.event_name == 'pull_request' && 
+      github.event.action == 'ready_for_review'
+    steps:
+      - name: Move PR to Review
+        uses: leonsteinhaeuser/project-beta-automations@v2.2.1
+        with:
+          gh_token: ${{ secrets.PROJECT_PAT }}
+          organization: IgorGanapolsky
+          project_id: 1
+          resource_node_id: ${{ github.event.pull_request.node_id }}
+          status_value: "Review"
+
+  move-card-when-closed:
+    name: Move card when issue/PR closed
+    runs-on: ubuntu-latest
+    if: |
+      (github.event_name == 'issues' && github.event.action == 'closed') ||
+      (github.event_name == 'pull_request' && github.event.pull_request.merged == true)
+    steps:
+      - name: Move to Done
+        uses: leonsteinhaeuser/project-beta-automations@v2.2.1
+        with:
+          gh_token: ${{ secrets.PROJECT_PAT }}
+          organization: IgorGanapolsky
+          project_id: 1
+          resource_node_id: ${{ github.event.issue.node_id || github.event.pull_request.node_id }}
+          status_value: "Done"
