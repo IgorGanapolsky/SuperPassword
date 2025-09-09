@@ -22,6 +22,10 @@ on:
   issue_comment:
     types: [created]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
   issues: write
@@ -51,6 +55,15 @@ jobs:
         with:
           node-version: "20"
           cache: "npm"
+      - name: Cache dependencies (CodeQL)
+        uses: actions/cache@v3
+        with:
+          path: |
+            node_modules
+            ~/.npm
+          key: ${{ runner.os }}-deps-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-deps-
       - run: |
           npm ci --legacy-peer-deps
           npm run build --if-present
@@ -126,6 +139,16 @@ jobs:
         with:
           node-version: "20"
           cache: "npm"
+
+      - name: Cache dependencies (Security)
+        uses: actions/cache@v3
+        with:
+          path: |
+            node_modules
+            ~/.npm
+          key: ${{ runner.os }}-deps-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-deps-
 
       - name: Install dependencies
         run: npm ci --legacy-peer-deps
