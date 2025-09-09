@@ -357,6 +357,16 @@ jobs:
               }
             } catch (e) {
               pv2Section = `\n> Projects v2 data unavailable (${String(e).slice(0,140)}).`;
+              try {
+                await github.rest.issues.createComment({
+                  owner,
+                  repo,
+                  issue_number: STATUS_ISSUE,
+                  body: `⚠️ Projects v2 access error: ${String(e).slice(0,300)}`
+                });
+              } catch (ce) {
+                core.info(`Could not comment PV2 error on #${STATUS_ISSUE}: ${String(ce).slice(0,200)}`);
+              }
             }
 
             const body = `# 📊 SuperPassword Project Status\n\n*Last updated: ${fmtDate}*\n\n## 📈 Current Metrics\n\n| Metric | Count | Status |\n| --- | ---: | --- |\n| 📋 Open Issues | ${issueCount} | ${issueHealth} |\n| 🔧 Open PRs | ${prCount} | ${prHealth} |\n| 🏃 In Progress | ${inProgress} | ${progressRate}% of issues |\n| 🐛 Bugs | ${bugCount} | ${bugHealth} |\n| ✨ Features | ${featureCount} | ${featureCount} planned |\n\n## 🚀 Delivery (last 30 days)\n- Merged PRs: ${throughput}\n- Median PR lead time: ${fmtDuration(medianLead)}\n\n## 📊 Activity (last 7 days)\n- Active items updated: ${activityCount}\n- Activity rate: ${activityRate}% (${activityHealth})\n${pv2Section}\n${priorities.length ? '## 🔝 Top Priorities\n' + priorities.join('\n') + '\n' : ''}\n\n## 🎯 Recommendations\n${recs.map(r => `- ${r}`).join('\n')}\n\n---\n\nAutomation: hourly + on repo events. Manual refresh via local script or rerun workflow.`;
