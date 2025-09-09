@@ -486,8 +486,27 @@ jobs:
       (github.event_name == 'issues' && github.event.action == 'opened') ||
       (github.event_name == 'pull_request' && contains(fromJson('["opened","reopened","ready_for_review"]'), github.event.action))
     steps:
+      - name: Check token availability
+        id: tokens
+        run: |
+          if [ -n "${{ secrets.PROJECT_PAT }}" ]; then
+            echo "token=PROJECT_PAT" >> $GITHUB_OUTPUT
+          elif [ -n "${{ secrets.GITHUB_TOKEN }}" ]; then
+            echo "token=GITHUB_TOKEN" >> $GITHUB_OUTPUT
+          else
+            echo "No token available" >&2
+            exit 0
+          fi
+
       - name: Add to Projects v2 board
+        if: steps.tokens.outputs.token != ''
         uses: actions/add-to-project@v1
         with:
           project-url: https://github.com/users/IgorGanapolsky/projects/1
-          github-token: ${{ secrets.PROJECT_PAT || secrets.GITHUB_TOKEN }}
+          github-token: ${{ steps.tokens.outputs.token == 'PROJECT_PAT' && secrets.PROJECT_PAT || secrets.GITHUB_TOKEN }}
+
+      - name: Soft-fail on permission errors
+        if: failure()
+        run: |
+          echo "add-to-project failed (likely permission). Continuing without failing pipeline."
+        continue-on-error: true
