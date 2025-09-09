@@ -477,3 +477,17 @@ jobs:
             } catch (error) {
               console.error('Error creating notification:', error);
             }
+
+  # Auto-add newly opened Issues and PRs to Projects v2 board
+  add-to-project:
+    name: Add to Projects v2
+    runs-on: ubuntu-latest
+    if: >-
+      (github.event_name == 'issues' && github.event.action == 'opened') ||
+      (github.event_name == 'pull_request' && contains(fromJson('["opened","reopened","ready_for_review"]'), github.event.action))
+    steps:
+      - name: Add to Projects v2 board
+        uses: actions/add-to-project@v1
+        with:
+          project-url: https://github.com/users/IgorGanapolsky/projects/1
+          github-token: ${{ secrets.PROJECT_PAT || secrets.GITHUB_TOKEN }}
