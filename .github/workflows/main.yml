@@ -36,123 +36,109 @@ permissions:
   id-token: write
 
 jobs:
-  # Security Analysis
-  codeql:
-    name: CodeQL
+  setup:
+    name: Setup Environment
     runs-on: ubuntu-latest
     if: github.event_name == 'push' || github.event_name == 'pull_request'
-    permissions:
-      security-events: write
-      actions: read
-      contents: read
     steps:
-      - uses: actions/checkout@v4
-      - uses: github/codeql-action/init@v3
-        with:
-          languages: javascript
-          queries: security-and-quality
-      - uses: actions/setup-node@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: "20"
           cache: "npm"
-      - name: Cache dependencies (CodeQL)
-        uses: actions/cache@v3
-        with:
-          path: |
-            node_modules
-            ~/.npm
-          key: ${{ runner.os }}-deps-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-deps-
-      - run: |
-          npm ci --legacy-peer-deps
-          npm run build --if-present
-      - uses: github/codeql-action/analyze@v3
-        with:
-          category: "/language:javascript"
-
-  # Code Validation
-  validate:
-    name: Validate
-    runs-on: ubuntu-latest
-    needs: codeql
-    if: github.event_name == 'push' || github.event_name == 'pull_request'
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-          cache: "npm"
-
-      - name: Cache dependencies
-        uses: actions/cache@v3
-        with:
-          path: |
-            node_modules
-            ~/.npm
-            ~/.expo
-          key: ${{ runner.os }}-deps-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-deps-
-
       - name: Install dependencies
         run: npm ci --legacy-peer-deps
+      - name: Upload dependencies
+        uses: actions/upload-artifact@v4
+        with:
+          name: node-modules-${{ github.run_id }}
+          path: node_modules
 
-      - name: Align Expo dependencies
-        run: npx expo install --fix --non-interactive || true
-
-      - name: Type check
-        run: npx tsc --noEmit
-
-      - name: Lint
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    needs: setup
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Download dependencies
+        uses: actions/download-artifact@v4
+        with:
+          name: node-modules-${{ github.run_id }}
+          path: node_modules
+      - name: Lint and Format Check
         run: |
           npm run lint
           npm run fmt
 
-      - name: Test
-        run: npm test -- --coverage
-
-      - name: Upload coverage
-        uses: codecov/codecov-action@v3
+  typecheck:
+    name: Type Check
+    runs-on: ubuntu-latest
+    needs: setup
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          fail_ci_if_error: false
+          node-version: "20"
+      - name: Download dependencies
+        uses: actions/download-artifact@v4
+        with:
+          name: node-modules-${{ github.run_id }}
+          path: node_modules
+      - name: Run type check
+        run: npx tsc --noEmit
 
-      - name: SonarCloud Analysis
-        uses: SonarSource/sonarcloud-github-action@master
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SONAR_TOKEN: ${{ secrets.SONARCLOUD_TOKEN }}
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    needs: setup
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Download dependencies
+        uses: actions/download-artifact@v4
+        with:
+          name: node-modules-${{ github.run_id }}
+          path: node_modules
+      - name: Run tests
+        run: npm test -- --coverage
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-${{ github.run_id }}
+          path: coverage
 
-  # Security Checks
   security:
     name: Security
     runs-on: ubuntu-latest
-    needs: validate
-    if: github.event_name == 'push' || github.event_name == 'pull_request'
+    needs: setup
     permissions:
       security-events: write
       contents: read
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: "20"
-          cache: "npm"
-
-      - name: Cache dependencies (Security)
-        uses: actions/cache@v3
+      - name: Download dependencies
+        uses: actions/download-artifact@v4
         with:
-          path: |
-            node_modules
-            ~/.npm
-          key: ${{ runner.os }}-deps-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-deps-
-
-      - name: Install dependencies
-        run: npm ci --legacy-peer-deps
-
+          name: node-modules-${{ github.run_id }}
+          path: node_modules
       - name: Run OWASP Dependency Check
         uses: dependency-check/Dependency-Check_Action@main
         with:
@@ -164,13 +150,11 @@ jobs:
             --enableRetired
             --scan ./
             --out ./reports/
-
       - name: Upload SARIF
         uses: github/codeql-action/upload-sarif@v3
         if: always()
         with:
           sarif_file: reports/dependency-check-report.sarif
-
       - name: Run Snyk
         uses: snyk/actions/node@v0.4.0
         env:
@@ -178,7 +162,147 @@ jobs:
         with:
           args: --severity-threshold=high
 
-  # Project Board and Issue Management
+  codeql:
+    name: CodeQL
+    runs-on: ubuntu-latest
+    needs: setup
+    permissions:
+      security-events: write
+      actions: read
+      contents: read
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Download dependencies
+        uses: actions/download-artifact@v4
+        with:
+          name: node-modules-${{ github.run_id }}
+          path: node_modules
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: javascript
+          queries: security-and-quality
+      - name: Autobuild
+        run: npm run build --if-present
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:javascript"
+
+  sonar:
+    name: SonarCloud Analysis
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Sonar needs full history
+      - name: Download coverage report
+        uses: actions/download-artifact@v4
+        with:
+          name: coverage-${{ github.run_id }}
+          path: coverage
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONARCLOUD_TOKEN }}
+
+  build:
+    name: Build
+    needs: [lint, typecheck, sonar, security, codeql]
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Download dependencies
+        uses: actions/download-artifact@v4
+        with:
+          name: node-modules-${{ github.run_id }}
+          path: node_modules
+      - name: Setup Expo
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+      - name: Build Development
+        if: github.ref == 'refs/heads/develop'
+        run: |
+          eas build --platform all --profile development --non-interactive
+      - name: Build Production
+        if: github.ref == 'refs/heads/main'
+        run: |
+          eas build --platform all --profile production --non-interactive
+      - name: Submit to Stores
+        if: github.ref == 'refs/heads/main'
+        run: |
+          eas submit --platform all --latest
+
+  notify:
+    name: Notify
+    runs-on: ubuntu-latest
+    needs: [build]
+    if: always() && (github.event_name == 'push' || github.event_name == 'pull_request')
+    steps:
+      - name: Notify on failure
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            try {
+              const { repo, owner } = context.repo;
+              const run_url = `https://github.com/${owner}/${repo}/actions/runs/${context.runId}`;
+              
+              const message = `⚠️ CI Pipeline failed for ${context.sha}\nSee details: ${run_url}`;
+              
+              if (context.payload.pull_request) {
+                await github.rest.issues.createComment({
+                  owner,
+                  repo,
+                  issue_number: context.payload.pull_request.number,
+                  body: message
+                });
+              }
+            } catch (error) {
+              console.error('Error creating notification:', error);
+            }
+
+      - name: Notify on success
+        if: success()
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            try {
+              const { repo, owner } = context.repo;
+              const run_url = `https://github.com/${owner}/${repo}/actions/runs/${context.runId}`;
+              
+              const message = `✅ CI Pipeline passed successfully!\nSee details: ${run_url}`;
+              
+              if (context.payload.pull_request) {
+                await github.rest.issues.createComment({
+                  owner,
+                  repo,
+                  issue_number: context.payload.pull_request.number,
+                  body: message
+                });
+              }
+            } catch (error) {
+              console.error('Error creating notification:', error);
+            }
+
   project-sync:
     name: Project Sync
     runs-on: ubuntu-latest
@@ -359,7 +483,7 @@ jobs:
               pv2Section = `\n> Projects v2 data unavailable (${String(e).slice(0,140)}).`;
             }
 
-            const body = `# 📊 SuperPassword Project Status\n\n*Last updated: ${fmtDate}*\n\n## 📈 Current Metrics\n\n| Metric | Count | Status |\n| --- | ---: | --- |\n| 📋 Open Issues | ${issueCount} | ${issueHealth} |\n| 🔧 Open PRs | ${prCount} | ${prHealth} |\n| 🏃 In Progress | ${inProgress} | ${progressRate}% of issues |\n| 🐛 Bugs | ${bugCount} | ${bugHealth} |\n| ✨ Features | ${featureCount} | ${featureCount} planned |\n\n## 🚀 Delivery (last 30 days)\n- Merged PRs: ${throughput}\n- Median PR lead time: ${fmtDuration(medianLead)}\n\n## 📊 Activity (last 7 days)\n- Active items updated: ${activityCount}\n- Activity rate: ${activityRate}% (${activityHealth})\n${pv2Section}\n${priorities.length ? '## 🔝 Top Priorities\n' + priorities.join('\n') + '\n' : ''}\n\n## 🎯 Recommendations\n${recs.map(r => `- ${r}`).join('\n')}\n\n---\n\nAutomation: hourly + on repo events. Manual refresh via local script or rerun workflow.`;
+            const body = `# 📊 SuperPassword Project Status\n\n*Last updated: ${fmtDate}*\n\n## 📈 Current Metrics\n\n| Metric | Count | Status |\n| --- | ---: | --- |\n| 📋 Open Issues | ${issueCount} | ${issueHealth} |\n| 🔧 Open PRs | ${prCount} | ${prHealth} |\n| 🏃 In Progress | ${inProgress} | ${progressRate}% of issues |\n| 🐛 Bugs | ${bugCount} | ${bugHealth} |\n| ✨ Features | ${featureCount} | ${featureCount} planned |\n\n## 🚀 Delivery (last 30 days)\n- Merged PRs: ${throughput}\n- Median PR lead time: ${fmtDuration(medianLead)}\n\n## 📊 Activity (last 7 days)\n- Active items updated: ${activityCount}\n- Activity rate: ${activityRate}% (${activityHealth})${pv2Section}${priorities.length ? '## 🔝 Top Priorities\n' + priorities.join('\n') + '\n' : ''}\n\n## 🎯 Recommendations\n${recs.map(r => `- ${r}`).join('\n')}\n\n---\n\nAutomation: hourly + on repo events. Manual refresh via local script or rerun workflow.`;
 
             // Ensure the status issue exists; create if missing, then update
             try {
@@ -384,96 +508,4 @@ jobs:
               if (labels.length) {
                 await github.rest.issues.addLabels({ owner, repo, issue_number: context.payload.issue.number, labels });
               }
-            }
-
-  # Build and Deploy
-  build:
-    name: Build
-    needs: [validate, security]
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-          cache: "npm"
-
-      - name: Setup Expo
-        uses: expo/expo-github-action@v8
-        with:
-          eas-version: latest
-          token: ${{ secrets.EXPO_TOKEN }}
-
-      - name: Install dependencies
-        run: npm ci --legacy-peer-deps
-
-      - name: Build Development
-        if: github.ref == 'refs/heads/develop'
-        run: |
-          eas build --platform all --profile development --non-interactive
-
-      - name: Build Production
-        if: github.ref == 'refs/heads/main'
-        run: |
-          eas build --platform all --profile production --non-interactive
-
-      - name: Submit to Stores
-        if: github.ref == 'refs/heads/main'
-        run: |
-          eas submit --platform all --latest
-
-  # Notifications
-  notify:
-    name: Notify
-    runs-on: ubuntu-latest
-    needs: [validate, security, build]
-    if: always() && (github.event_name == 'push' || github.event_name == 'pull_request')
-    steps:
-      - name: Notify on failure
-        if: failure()
-        uses: actions/github-script@v7
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            try {
-              const { repo, owner } = context.repo;
-              const run_url = `https://github.com/${owner}/${repo}/actions/runs/${context.runId}`;
-              
-              const message = `⚠️ CI Pipeline failed for ${context.sha}\nSee details: ${run_url}`;
-              
-              if (context.payload.pull_request) {
-                await github.rest.issues.createComment({
-                  owner,
-                  repo,
-                  issue_number: context.payload.pull_request.number,
-                  body: message
-                });
-              }
-            } catch (error) {
-              console.error('Error creating notification:', error);
-            }
-
-      - name: Notify on success
-        if: success()
-        uses: actions/github-script@v7
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            try {
-              const { repo, owner } = context.repo;
-              const run_url = `https://github.com/${owner}/${repo}/actions/runs/${context.runId}`;
-              
-              const message = `✅ CI Pipeline passed successfully!\nSee details: ${run_url}`;
-              
-              if (context.payload.pull_request) {
-                await github.rest.issues.createComment({
-                  owner,
-                  repo,
-                  issue_number: context.payload.pull_request.number,
-                  body: message
-                });
-              }
-            } catch (error) {
-              console.error('Error creating notification:', error);
             }
