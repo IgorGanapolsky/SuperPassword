@@ -1,0 +1,136 @@
+name: CI (Optimized)
+
+on:
+  push:
+    branches: [develop, main]
+    paths-ignore:
+      - "**.md"
+      - "docs/**"
+      - ".github/workflows/main.yml" # Don't trigger on old pipeline changes
+  pull_request:
+    branches: [develop, main]
+    paths-ignore:
+      - "**.md"
+      - "docs/**"
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # Single job with matrix for parallel testing
+  test:
+    name: Test & Validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      security-events: write
+      checks: write
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # For better caching
+
+      - name: Setup Node & Cache
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Restore dependencies cache
+        id: cache-deps
+        uses: actions/cache@v3
+        with:
+          path: |
+            node_modules
+            ~/.npm
+            ~/.expo
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - name: Install dependencies
+        if: steps.cache-deps.outputs.cache-hit != 'true'
+        run: npm ci --legacy-peer-deps
+
+      - name: Run all checks in parallel
+        run: |
+          npm run lint &
+          npm run fmt &
+          npx tsc --noEmit &
+          npm test -- --coverage --maxWorkers=2 &
+          wait
+
+      - name: Upload coverage
+        if: always()
+        uses: codecov/codecov-action@v3
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: false
+
+  # Security scanning (separate for clarity, runs in parallel)
+  security:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    if: github.event_name == 'pull_request'
+    permissions:
+      security-events: write
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: javascript
+          queries: security-extended
+
+      - uses: github/codeql-action/analyze@v3
+
+  # EAS Build validation (only on protected branches)
+  build:
+    name: Build Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
+    needs: test
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Setup Expo
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          expo-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Restore dependencies cache
+        uses: actions/cache@v3
+        with:
+          path: |
+            node_modules
+            ~/.npm
+            ~/.expo
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Prebuild check
+        run: npx expo prebuild --no-install --platform all
+
+      - name: Build preview (dry-run)
+        if: github.ref == 'refs/heads/develop'
+        run: eas build --platform all --profile preview --non-interactive --no-wait || true

@@ -1,0 +1,62 @@
+name: Project Kanban Management
+
+on:
+  issues:
+    types: [opened, labeled, assigned, closed]
+  pull_request:
+    types: [opened, ready_for_review, closed]
+  project_card:
+    types: [moved]
+
+permissions:
+  issues: write
+  pull-requests: write
+  repository-projects: write
+
+jobs:
+  auto-add-to-project:
+    name: Auto-add to Project
+    runs-on: ubuntu-latest
+    steps:
+      - name: Add to project
+        uses: actions/add-to-project@v0.5.0
+        with:
+          project-url: https://github.com/users/IgorGanapolsky/projects/1
+          github-token: ${{ secrets.PROJECT_PAT }}
+          labeled: priority:high, priority:critical
+          label-operator: OR
+
+  move-to-in-progress:
+    name: Move to In Progress when assigned
+    runs-on: ubuntu-latest
+    if: github.event.issue.assignee != null || github.event.pull_request.assignee != null
+    steps:
+      - uses: alex-page/github-project-automation-plus@v0.9.0
+        with:
+          project: SuperPassword
+          column: In Progress
+          repo-token: ${{ secrets.PROJECT_PAT }}
+
+  move-to-review:
+    name: Move to Review when PR ready
+    runs-on: ubuntu-latest
+    if: github.event.pull_request && github.event.action == 'ready_for_review'
+    steps:
+      - uses: alex-page/github-project-automation-plus@v0.9.0
+        with:
+          project: SuperPassword
+          column: Review
+          repo-token: ${{ secrets.PROJECT_PAT }}
+
+  move-to-done:
+    name: Move to Done when closed
+    runs-on: ubuntu-latest
+    if: |
+      (github.event.issue && github.event.action == 'closed') ||
+      (github.event.pull_request && github.event.pull_request.merged == true)
+    steps:
+      - uses: alex-page/github-project-automation-plus@v0.9.0
+        with:
+          project: SuperPassword
+          column: Done
+          repo-token: ${{ secrets.PROJECT_PAT }}
