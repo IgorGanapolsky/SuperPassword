@@ -1,16 +1,17 @@
 // Web entry point
 
 import { AppRegistry } from "react-native";
+
 import { App } from "./App";
 
 // Declare DOM types for web
 declare global {
   interface Window {
-    addEventListener: (type: string, listener: EventListener) => void;
+    addEventListener: (_type: string, _listener: EventListener) => void;
   }
   interface Navigator {
     serviceWorker: {
-      register: (scriptURL: string) => Promise<ServiceWorkerRegistration>;
+      register: (_scriptURL: string) => Promise<ServiceWorkerRegistration>;
     };
   }
 }

@@ -7,9 +7,9 @@ const scheme = process.env.APP_SCHEME ?? "securepass";
 const owner = process.env.EXPO_OWNER ?? "igorganapolsky";
 
 const iosBundleId =
-  process.env.IOS_BUNDLE_ID ?? "com.igorganapolsky.superpassword";
+  process.env.IOS_BUNDLE_ID ?? "com.securepass.generator";
 const androidPackage =
-  process.env.ANDROID_PACKAGE ?? "com.igorganapolsky.superpassword";
+  process.env.ANDROID_PACKAGE ?? "com.securepass.generator";
 const easProjectId =
   process.env.EAS_PROJECT_ID || "9cd42433-a590-418c-82bc-b5f884a1caed";
 const isUuid = (v?: string) =>
@@ -37,6 +37,7 @@ const config: ExpoConfig = {
     supportsTablet: true,
     bundleIdentifier: iosBundleId,
     buildNumber: "1",
+    googleServicesFile: "./GoogleService-Info.plist",
     infoPlist: {
       NSUserTrackingUsageDescription:
         "This identifier will be used to deliver personalized ads to you.",
@@ -55,6 +56,7 @@ const config: ExpoConfig = {
       foregroundImage: "./assets/adaptive-icon.png",
       backgroundColor: "#667eea",
     },
+    googleServicesFile: "./google-services.json",
     permissions: [
       "INTERNET",
       "VIBRATE",
@@ -64,12 +66,26 @@ const config: ExpoConfig = {
   },
   web: { favicon: "./assets/favicon.png", bundler: "metro" },
   plugins: [
+    "@react-native-firebase/app",
     "expo-font",
     [
       "sentry-expo",
       {
-        organization: process.env.SENTRY_ORG,
-        project: process.env.SENTRY_PROJECT,
+        organization: "igorganapolsky",
+        project: "superpassword",
+        authToken: process.env.SENTRY_AUTH_TOKEN,
+        hooks: {
+          postPublish: [
+            {
+              file: "sentry-expo/upload-sourcemaps",
+              config: {
+                organization: "igorganapolsky",
+                project: "superpassword",
+                authToken: process.env.SENTRY_AUTH_TOKEN,
+              },
+            },
+          ],
+        },
       },
     ],
     [
@@ -93,28 +109,6 @@ const config: ExpoConfig = {
   },
   updates: { fallbackToCacheTimeout: 0 },
   assetBundlePatterns: ["**/*"],
-  plugins: [
-    [
-      "sentry-expo",
-      {
-        organization: "igorganapolsky",
-        project: "superpassword",
-        authToken: process.env.SENTRY_AUTH_TOKEN,
-        hooks: {
-          postPublish: [
-            {
-              file: "sentry-expo/upload-sourcemaps",
-              config: {
-                organization: "igorganapolsky",
-                project: "superpassword",
-                authToken: process.env.SENTRY_AUTH_TOKEN,
-              },
-            },
-          ],
-        },
-      },
-    ],
-  ],
 };
 
 export default config;

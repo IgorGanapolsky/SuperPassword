@@ -22,7 +22,7 @@ import { promisify } from "util";
 
 const execAsync = promisify(exec);
 const REPO = process.env.REPO || "IgorGanapolsky/SuperPassword";
-const [OWNER, REPO_NAME] = REPO.split("/");
+const [_OWNER, _REPO_NAME] = REPO.split("/");
 
 // Labels for tracking guardian actions
 const LABELS = {
@@ -52,7 +52,7 @@ async function gh(command) {
 async function ensureLabels() {
   console.log("Ensuring guardian labels exist...");
 
-  for (const [key, label] of Object.entries(LABELS)) {
+  for (const [_key, label] of Object.entries(LABELS)) {
     try {
       await gh(
         `label create "${label}" --repo ${REPO} --color "E1E400" --description "Repo Guardian automated label" 2>/dev/null || true`,

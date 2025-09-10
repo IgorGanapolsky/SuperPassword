@@ -29,7 +29,7 @@ import { PasswordEntry } from "@/types";
 import { getPasswordStrengthLabel } from "@/utils/passwordGenerator";
 
 export const HistoryScreen: React.FC = () => {
-  const { theme, isDark } = useTheme();
+  const { theme } = useTheme();
   const [history, setHistory] = useState<PasswordEntry[]>([]);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isPremium, setIsPremium] = useState(false);
@@ -256,9 +256,6 @@ export const HistoryScreen: React.FC = () => {
     clearButton: {
       fontSize: fontSize.md,
       fontWeight: "600",
-    },
-    list: {
-      flex: 1,
     },
     passwordItem: {
       padding: spacing.md,

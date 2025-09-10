@@ -81,7 +81,7 @@ export const SettingsScreen: React.FC = () => {
 
   const handleExportData = async () => {
     try {
-      const data = await StorageService.exportData();
+      await StorageService.exportData();
       // In a real app, you would share this data or save it to a file
       Alert.alert("Export Ready", "Your data has been prepared for export.");
     } catch (error) {

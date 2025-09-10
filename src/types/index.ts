@@ -18,6 +18,7 @@ export interface PasswordEntry {
   isFavorite?: boolean;
 }
 
+// eslint-disable-next-line no-unused-vars
 export enum PasswordStrength {
   VeryWeak = 0,
   Weak = 1,

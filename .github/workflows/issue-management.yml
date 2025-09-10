@@ -1,0 +1,170 @@
+name: Issue Management
+
+on:
+  issues:
+    types: [opened, edited, labeled, unlabeled, assigned, unassigned, reopened]
+  issue_comment:
+    types: [created]
+  schedule:
+    - cron: "0 * * * *" # Run hourly
+
+permissions:
+  issues: write
+  contents: read
+
+jobs:
+  issue-triage:
+    name: Triage New Issues
+    runs-on: ubuntu-latest
+    if: github.event.action == 'opened'
+    steps:
+      - name: Add initial labels
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const issue = context.payload.issue;
+            
+            // Add triage label
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issue.number,
+              labels: ['status: triage']
+            });
+            
+            // Add comment for new issues
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issue.number,
+              body: `👋 Thanks for opening this issue!\n\nOur team will review it shortly. In the meantime, please make sure you've provided all the necessary details including:\n- Steps to reproduce (for bugs)\n- Expected vs actual behavior\n- Environment details\n\nWe'll triage this issue within 24-48 hours.`
+            });
+
+  update-issue-status:
+    name: Update Issue Status
+    runs-on: ubuntu-latest
+    if: github.event.action == 'assigned' || github.event.action == 'unassigned'
+    steps:
+      - name: Update labels based on assignment
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const issue = context.payload.issue;
+            
+            if (github.event.action === 'assigned') {
+              // Remove triage label and add in-progress
+              await github.rest.issues.removeLabel({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                name: 'status: triage'
+              }).catch(err => { 
+                // Ignore if label doesn't exist
+              });
+              
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                labels: ['status: in-progress']
+              });
+            } else if (github.event.action === 'unassigned') {
+              // Remove in-progress and add unassigned
+              await github.rest.issues.removeLabel({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                name: 'status: in-progress'
+              }).catch(err => { 
+                // Ignore if label doesn't exist
+              });
+              
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                labels: ['status: unassigned']
+              });
+            }
+
+  monitor-sla:
+    name: Monitor SLA Compliance
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule'
+    steps:
+      - name: Check SLA violations
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const { data: issues } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              per_page: 100
+            });
+            
+            const now = new Date();
+            
+            for (const issue of issues) {
+              // Skip PRs
+              if (issue.pull_request) continue;
+              
+              const created = new Date(issue.created_at);
+              const hoursOld = (now - created) / (1000 * 60 * 60);
+              
+              // Check for SLA violations
+              const labels = issue.labels.map(label => label.name);
+              let slaHours = 168; // Default 7 days
+              
+              if (labels.includes('priority: high')) {
+                slaHours = 24;
+              } else if (labels.includes('priority: medium')) {
+                slaHours = 72;
+              } else if (labels.includes('priority: low')) {
+                slaHours = 168;
+              }
+              
+              // If SLA is violated, add label and comment
+              if (hoursOld > slaHours) {
+                // Check if already labeled
+                if (!labels.includes('sla: violated')) {
+                  await github.rest.issues.addLabels({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    issue_number: issue.number,
+                    labels: ['sla: violated']
+                  });
+                  
+                  await github.rest.issues.createComment({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    issue_number: issue.number,
+                    body: `⚠️ **SLA Alert**\n\nThis issue has been open for ${Math.round(hoursOld)} hours, which exceeds the SLA of ${slaHours} hours for its priority level. Please prioritize this issue.`
+                  });
+                }
+              }
+              
+              // Add age labels
+              if (hoursOld > 24 && !labels.includes('age: stale')) {
+                // Remove fresh label if exists
+                if (labels.includes('age: fresh')) {
+                  await github.rest.issues.removeLabel({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    issue_number: issue.number,
+                    name: 'age: fresh'
+                  }).catch(err => {});
+                }
+                
+                // Add stale label
+                await github.rest.issues.addLabels({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: issue.number,
+                  labels: ['age: stale']
+                });
+              }
+            }

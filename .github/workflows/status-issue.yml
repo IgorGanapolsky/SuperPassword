@@ -8,4 +8,8 @@ jobs:
   noop:
     runs-on: ubuntu-latest
     steps:
-      - run: echo "Deprecated. Use main pipeline's Project Sync job for updates."
+      - name: Deprecation Notice
+        run: |
+          echo "This workflow has been deprecated."
+          echo "Issue management is now handled by the new 'Issue Management' workflow."
+          echo "See: .github/workflows/issue-management.yml"

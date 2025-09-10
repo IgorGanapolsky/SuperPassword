@@ -10,6 +10,7 @@ import { Provider as PaperProvider } from "react-native-paper";
 import { ErrorFallback } from "@/components/ErrorFallback";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { AppNavigator } from "@/navigation/AppNavigator";
+import { FirebaseService } from "@/services/firebase";
 import {
   initializeSentry,
   captureException,
@@ -31,6 +32,9 @@ export default function App() {
       try {
         // Initialize Sentry first (safe initialization)
         await initializeSentry();
+        // Initialize Firebase
+        await FirebaseService.initRemoteConfig();
+        await FirebaseService.auth.signInAnonymously();
 
         // Pre-load fonts
         if (Platform.OS !== "web") {

@@ -1,53 +1,54 @@
-// Stub implementation for Firebase - replace when adding back @react-native-firebase packages
+import analytics from "@react-native-firebase/analytics";
+import auth from "@react-native-firebase/auth";
+import crashlytics from "@react-native-firebase/crashlytics";
+import firestore from "@react-native-firebase/firestore";
+import remoteConfig from "@react-native-firebase/remote-config";
+
+// Initialize and export the services
+const firebaseAuth = auth();
+const firebaseFirestore = firestore();
+const firebaseAnalytics = analytics();
+const firebaseCrashlytics = crashlytics();
+const firebaseRemoteConfig = remoteConfig();
+
+/**
+ * Initializes Remote Config with default values and fetches latest.
+ */
+async function initRemoteConfig(): Promise<void> {
+  try {
+    await firebaseRemoteConfig.setDefaults({
+      show_banner_ad: true,
+      interstitial_ad_frequency: 5,
+    });
+    const fetched = await firebaseRemoteConfig.fetchAndActivate();
+    if (fetched) {
+      console.log("Remote config updated.");
+    }
+  } catch (error) {
+    console.error("Error initializing Remote Config:", error);
+    firebaseCrashlytics.recordError(error as Error);
+  }
+}
+
+/**
+ * Logs an error to Crashlytics with additional context.
+ * @param error The error object or message.
+ * @param context Additional key-value pairs for context.
+ */
+function logError(error: unknown, context?: Record<string, any>): void {
+  const err = error instanceof Error ? error : new Error(String(error));
+  if (context) {
+    firebaseCrashlytics.setAttributes(context);
+  }
+  firebaseCrashlytics.recordError(err);
+}
 
 export const FirebaseService = {
-  get auth() {
-    return {
-      currentUser: null,
-      signInAnonymously: () => Promise.resolve({ user: null }),
-      signOut: () => Promise.resolve(),
-    };
-  },
-  get firestore() {
-    return {
-      collection: () => ({
-        doc: () => ({
-          get: () => Promise.resolve({ exists: false }),
-          set: () => Promise.resolve(),
-        }),
-      }),
-    };
-  },
-  get analytics() {
-    return {
-      logEvent: (event: string, params?: any) => {
-        console.log(`Analytics event: ${event}`, params);
-        return Promise.resolve();
-      },
-    };
-  },
-  get crashlytics() {
-    return {
-      setAttribute: () => Promise.resolve(),
-      recordError: (error: Error) => {
-        console.error("Crashlytics stub:", error);
-        return Promise.resolve();
-      },
-    };
-  },
-  get remoteConfig() {
-    return {
-      getValue: (key: string) => ({ asString: () => "default" }),
-      setDefaults: () => Promise.resolve(),
-      fetchAndActivate: () => Promise.resolve(true),
-    };
-  },
-  async initRemoteConfig() {
-    console.log("Firebase RemoteConfig stub: initialized");
-    return Promise.resolve();
-  },
-  logError(error: unknown, context?: Record<string, any>) {
-    const err = error instanceof Error ? error : new Error(String(error));
-    console.error("Firebase error log:", err, context);
-  },
+  auth: firebaseAuth,
+  firestore: firebaseFirestore,
+  analytics: firebaseAnalytics,
+  crashlytics: firebaseCrashlytics,
+  remoteConfig: firebaseRemoteConfig,
+  initRemoteConfig,
+  logError,
 };

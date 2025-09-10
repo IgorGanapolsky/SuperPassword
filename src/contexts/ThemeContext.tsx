@@ -18,7 +18,7 @@ type ThemeContextValue = {
   theme: ThemeColors;
   themeMode: ThemeMode;
   isDark: boolean;
-  toggleTheme: (mode: ThemeMode) => Promise<void> | void;
+  toggleTheme: (_mode: ThemeMode) => Promise<void> | void;
 };
 
 const ThemeContext = createContext<ThemeContextValue | undefined>(undefined);
@@ -51,11 +51,11 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({
     [isDark],
   );
 
-  const toggleTheme = useCallback(async (mode: ThemeMode) => {
-    setThemeMode(mode);
+  const toggleTheme = useCallback(async (_mode: ThemeMode) => {
+    setThemeMode(_mode);
     const preferences = await StorageService.getUserPreferences();
     if (preferences) {
-      preferences.theme = mode;
+      preferences.theme = _mode;
       await StorageService.saveUserPreferences(preferences);
     }
   }, []);

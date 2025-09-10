@@ -1,4 +1,5 @@
 import Constants from "expo-constants";
+import React from 'react';
 import * as Sentry from "sentry-expo";
 
 let isInitialized = false;

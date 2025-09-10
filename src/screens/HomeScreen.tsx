@@ -38,7 +38,7 @@ import {
 } from "@/utils/passwordGenerator";
 
 export const HomeScreen: React.FC = () => {
-  const { theme, isDark } = useTheme();
+  const { theme } = useTheme();
   const copyAnimationValue = useRef(new Animated.Value(0)).current;
   const scaleAnimation = useRef(new Animated.Value(1)).current;
 
@@ -57,7 +57,7 @@ export const HomeScreen: React.FC = () => {
     excludeCharacters: "",
   });
   const [isPremium, setIsPremium] = useState(false);
-  const [generationCount, setGenerationCount] = useState(0);
+  
   const [showCopiedAnimation, setShowCopiedAnimation] = useState(false);
 
   // Load user preferences and premium status
@@ -98,7 +98,7 @@ export const HomeScreen: React.FC = () => {
 
       setPassword(newPassword);
       setPasswordStrength(strength);
-      setGenerationCount((prev) => prev + 1);
+      
 
       // Haptic feedback
       if (Platform.OS === "ios") {
@@ -249,12 +249,12 @@ export const HomeScreen: React.FC = () => {
     strengthContainer: {
       marginTop: spacing.md,
       padding: spacing.md,
-      backgroundColor: isDark ? theme.background : "#f8f9fa",
+      backgroundColor: theme.surface,
       borderRadius: borderRadius.md,
     },
     strengthBar: {
       height: 8,
-      backgroundColor: isDark ? theme.surface : "#e9ecef",
+      backgroundColor: theme.divider,
       borderRadius: borderRadius.sm,
       overflow: "hidden",
       marginBottom: spacing.sm,
