@@ -1,6 +1,17 @@
 name: Agent Executor
 
 on:
+  workflow_dispatch:
+    inputs:
+      issue_number:
+        description: 'Issue number to work on'
+        type: number
+        required: true
+      dry_run:
+        description: 'Plan-only mode (no execution)'
+        type: boolean
+        default: true
+  
   workflow_call:
     inputs:
       issue_number:
