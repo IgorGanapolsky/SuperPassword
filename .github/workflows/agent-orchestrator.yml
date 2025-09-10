@@ -67,10 +67,10 @@ jobs:
   prepare:
     name: Prepare Agents
     needs: discover
-    if: needs.discover.outputs.count > 0
     runs-on: ubuntu-latest
     outputs:
       issues_matrix: ${{ steps.prepare.outputs.issues }}
+      has_issues: ${{ steps.prepare.outputs.has_issues }}
     steps:
       - name: Prepare Issue Matrix
         id: prepare
@@ -78,6 +78,15 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           echo "Preparing issue matrix for agent execution..."
+          
+          # Check if we have issues
+          if [[ "${{ needs.discover.outputs.count }}" == "0" ]]; then
+            echo "No issues found to process"
+            echo "issues=[]" >> $GITHUB_OUTPUT
+            echo "has_issues=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          
           ISSUES='${{ needs.discover.outputs.issues }}'
           
           # Process and claim issues
@@ -117,12 +126,20 @@ jobs:
             fi
           done
           
+          # Check if we have any claimed issues
+          ISSUE_COUNT=$(echo "$CLAIMED_ISSUES" | jq 'length')
+          if [[ "$ISSUE_COUNT" == "0" ]]; then
+            echo "has_issues=false" >> $GITHUB_OUTPUT
+          else  
+            echo "has_issues=true" >> $GITHUB_OUTPUT
+          fi
+          
           echo "issues=$CLAIMED_ISSUES" >> $GITHUB_OUTPUT
   
   execute:
     name: Execute Agent (${{ matrix.issue.number }})
     needs: prepare
-    if: needs.prepare.result == 'success' && needs.prepare.outputs.issues_matrix != '[]'
+    if: needs.prepare.outputs.has_issues == 'true'
     strategy:
       matrix:
         issue: ${{ fromJson(needs.prepare.outputs.issues_matrix) }}
