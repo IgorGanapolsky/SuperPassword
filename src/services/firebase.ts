@@ -17,8 +17,8 @@ const firebaseRemoteConfig = remoteConfig();
 async function initRemoteConfig(): Promise<void> {
   try {
     await firebaseRemoteConfig.setDefaults({
-      show_banner_ad: true,
-      interstitial_ad_frequency: 5,
+      show_banner_ad: false,
+      interstitial_ad_frequency: 10,
     });
     const fetched = await firebaseRemoteConfig.fetchAndActivate();
     if (fetched) {

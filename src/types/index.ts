@@ -7,6 +7,7 @@ export interface PasswordOptions {
   excludeAmbiguous: boolean;
   customCharacters?: string;
   excludeCharacters?: string;
+  passwordType: "numeric" | "alphanumeric" | "alphabetical";
 }
 
 export interface PasswordEntry {
