@@ -115,7 +115,8 @@ export class BiometricAuthService {
       let errorMessage = 'Authentication failed';
       let warning: string | undefined;
 
-      switch (result.error) {
+      const error = result.error as string;
+      switch (error) {
         case 'UserCancel':
           errorMessage = 'Authentication cancelled';
           break;
@@ -141,7 +142,7 @@ export class BiometricAuthService {
           warning = 'Biometric authentication is temporarily disabled';
           break;
         default:
-          errorMessage = result.error || 'Unknown authentication error';
+          errorMessage = error || 'Unknown authentication error';
       }
 
       return {
