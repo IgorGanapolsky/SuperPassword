@@ -35,10 +35,18 @@ async function initRemoteConfig(): Promise<void> {
  * @param error The error object or message.
  * @param context Additional key-value pairs for context.
  */
-function logError(error: unknown, context?: Record<string, any>): void {
+function logError(
+  error: unknown,
+  context?: Record<string, string | number | boolean>,
+): void {
   const err = error instanceof Error ? error : new Error(String(error));
   if (context) {
-    firebaseCrashlytics.setAttributes(context);
+    // Convert all values to strings as required by Crashlytics
+    const stringContext: Record<string, string> = {};
+    for (const [key, value] of Object.entries(context)) {
+      stringContext[key] = String(value);
+    }
+    firebaseCrashlytics.setAttributes(stringContext);
   }
   firebaseCrashlytics.recordError(err);
 }
