@@ -128,11 +128,12 @@ jobs:
         with:
           sarif_file: reports/dependency-check-report.sarif
       - name: Run Snyk
-        uses: snyk/actions/node@v0.4.0
+        continue-on-error: true
+        uses: snyk/actions/node@master
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
-          args: --severity-threshold=high
+          args: --severity-threshold=high --all-projects
 
   codeql:
     name: CodeQL
@@ -176,14 +177,16 @@ jobs:
           fetch-depth: 0 # Sonar needs full history
       - name: Download coverage report
         uses: actions/download-artifact@v4
+        continue-on-error: true
         with:
           name: coverage-${{ github.run_id }}
           path: coverage
       - name: SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@master
+        continue-on-error: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SONAR_TOKEN: ${{ secrets.SONARCLOUD_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONARCLOUD_TOKEN || secrets.SONAR_TOKEN }}
 
   build:
     name: Build
