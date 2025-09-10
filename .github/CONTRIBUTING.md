@@ -40,6 +40,7 @@ When creating an issue, please follow these guidelines:
 5. Include screenshots or animated GIFs if possible
 
 Our automated issue management system will:
+
 - Automatically triage new issues
 - Apply appropriate labels based on content
 - Monitor SLA compliance

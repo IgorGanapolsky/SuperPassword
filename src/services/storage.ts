@@ -20,10 +20,12 @@ export class StorageService {
       if (data) {
         const history = JSON.parse(data);
         // Convert timestamp strings back to Date objects
-        return history.map((entry: PasswordEntry & { timestamp: string | Date }) => ({
-          ...entry,
-          timestamp: new Date(entry.timestamp),
-        }));
+        return history.map(
+          (entry: PasswordEntry & { timestamp: string | Date }) => ({
+            ...entry,
+            timestamp: new Date(entry.timestamp),
+          }),
+        );
       }
       return [];
     } catch (error) {

@@ -1,5 +1,5 @@
 import Constants from "expo-constants";
-import React from 'react';
+import React from "react";
 import * as Sentry from "sentry-expo";
 
 let isInitialized = false;
@@ -84,12 +84,16 @@ export const addBreadcrumb = (message: string, category?: string): void => {
  * Get the Sentry error boundary component
  * Returns null if Sentry is not initialized
  */
-export const getErrorBoundary = (): React.ComponentType<{children: React.ReactNode}> | null => {
+export const getErrorBoundary = (): React.ComponentType<{
+  children: React.ReactNode;
+}> | null => {
   if (!isInitialized) {
     return null;
   }
 
-  return Sentry.Native.ErrorBoundary as React.ComponentType<{children: React.ReactNode}>;
+  return Sentry.Native.ErrorBoundary as React.ComponentType<{
+    children: React.ReactNode;
+  }>;
 };
 
 /**
