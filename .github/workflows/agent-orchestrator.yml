@@ -64,74 +64,75 @@ jobs:
           echo "issues=$ISSUES" >> $GITHUB_OUTPUT
           echo "count=$COUNT" >> $GITHUB_OUTPUT
 
-  dispatch:
-    name: Dispatch Agent (${{ matrix.issue.number }})
+  prepare:
+    name: Prepare Agents
     needs: discover
     if: needs.discover.outputs.count > 0
     runs-on: ubuntu-latest
+    outputs:
+      issues_matrix: ${{ steps.prepare.outputs.issues }}
+    steps:
+      - name: Prepare Issue Matrix
+        id: prepare
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "Preparing issue matrix for agent execution..."
+          ISSUES='${{ needs.discover.outputs.issues }}'
+          
+          # Process and claim issues
+          CLAIMED_ISSUES="[]"
+          for row in $(echo "$ISSUES" | jq -r '.[] | @base64'); do
+            _jq() {
+              echo ${row} | base64 --decode | jq -r ${1}
+            }
+            
+            ISSUE_NUM=$(_jq '.number')
+            ISSUE_TITLE=$(_jq '.title')
+            
+            echo "Processing issue #$ISSUE_NUM: $ISSUE_TITLE"
+            
+            # Check if already in progress
+            CURRENT_LABELS=$(gh issue view $ISSUE_NUM \
+              --repo ${{ github.repository }} \
+              --json labels \
+              --jq '.labels | map(.name) | join(",")')
+            
+            if [[ "$CURRENT_LABELS" != *"ai:in-progress"* ]]; then
+              # Claim the issue
+              gh issue edit $ISSUE_NUM \
+                --repo ${{ github.repository }} \
+                --add-label "ai:in-progress" \
+                --remove-label "ai:ready" || true
+              
+              gh issue comment $ISSUE_NUM \
+                --repo ${{ github.repository }} \
+                --body "🤖 **Agent Claimed**: Starting autonomous work on this issue.
+              
+              Mode: ${{ inputs.dry_run && 'Plan-only (dry run)' || 'Full execution' }}
+              Run: [${{ github.run_id }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})"
+              
+              # Add to claimed issues
+              CLAIMED_ISSUES=$(echo "$CLAIMED_ISSUES" | jq ". += [{\"number\": $ISSUE_NUM}]")
+            fi
+          done
+          
+          echo "issues=$CLAIMED_ISSUES" >> $GITHUB_OUTPUT
+  
+  execute:
+    name: Execute Agent (${{ matrix.issue.number }})
+    needs: prepare
+    if: needs.prepare.outputs.issues_matrix != '[]'
     strategy:
       matrix:
-        issue: ${{ fromJson(needs.discover.outputs.issues) }}
+        issue: ${{ fromJson(needs.prepare.outputs.issues_matrix) }}
       max-parallel: ${{ inputs.max_agents || 2 }}
       fail-fast: false
-    
-    permissions:
-      contents: write
-      issues: write
-      pull-requests: write
-      actions: write
-    
-    steps:
-      - name: Pre-flight Check
-        id: preflight
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          echo "🚀 Preparing to dispatch agent for issue #${{ matrix.issue.number }}"
-          echo "   Title: ${{ matrix.issue.title }}"
-          
-          # Double-check issue is still ready
-          CURRENT_LABELS=$(gh issue view ${{ matrix.issue.number }} \
-            --repo ${{ github.repository }} \
-            --json labels \
-            --jq '.labels | map(.name) | join(",")')
-          
-          if [[ "$CURRENT_LABELS" == *"ai:in-progress"* ]]; then
-            echo "⚠️ Issue already in progress, skipping"
-            echo "skip=true" >> $GITHUB_OUTPUT
-          else
-            echo "✅ Issue ready for agent"
-            echo "skip=false" >> $GITHUB_OUTPUT
-          fi
-      
-      - name: Claim Issue
-        if: steps.preflight.outputs.skip != 'true'
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          echo "🏷️ Claiming issue for agent work..."
-          
-          # Add in-progress label
-          gh issue edit ${{ matrix.issue.number }} \
-            --repo ${{ github.repository }} \
-            --add-label "ai:in-progress" \
-            --remove-label "ai:ready" || true
-          
-          # Add comment
-          gh issue comment ${{ matrix.issue.number }} \
-            --repo ${{ github.repository }} \
-            --body "🤖 **Agent Claimed**: Starting autonomous work on this issue.
-          
-          Mode: ${{ inputs.dry_run && 'Plan-only (dry run)' || 'Full execution' }}
-          Run: [${{ github.run_id }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})"
-      
-      - name: Dispatch Executor
-        if: steps.preflight.outputs.skip != 'true'
-        uses: ./.github/workflows/agent-executor.yml@develop
-        with:
-          issue_number: ${{ matrix.issue.number }}
-          dry_run: ${{ inputs.dry_run || true }}
-        secrets: inherit
+    uses: ./.github/workflows/agent-executor.yml
+    with:
+      issue_number: ${{ matrix.issue.number }}
+      dry_run: ${{ inputs.dry_run || true }}
+    secrets: inherit
 
   summary:
     name: Orchestration Summary
