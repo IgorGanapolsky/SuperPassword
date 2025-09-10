@@ -47,7 +47,7 @@ export default function App() {
           const defaultPreferences = {
             theme: "system" as const,
             defaultOptions: {
-              length: 16,
+              length: 12,
               includeUppercase: true,
               includeLowercase: true,
               includeNumbers: true,

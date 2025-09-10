@@ -1,3 +1,6 @@
+// Define global __DEV__
+global.__DEV__ = true;
+
 // Mock expo modules
 jest.mock("expo-constants", () => ({
   default: {

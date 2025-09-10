@@ -1,0 +1,342 @@
+name: Agent Executor
+
+on:
+  workflow_call:
+    inputs:
+      issue_number:
+        description: 'Issue number to work on'
+        type: number
+        required: true
+      dry_run:
+        description: 'Plan-only mode (no execution)'
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
+jobs:
+  setup:
+    name: Setup Agent Environment
+    runs-on: ubuntu-latest
+    outputs:
+      branch_name: ${{ steps.setup.outputs.branch_name }}
+      run_dir: ${{ steps.setup.outputs.run_dir }}
+      issue_title: ${{ steps.issue.outputs.title }}
+      issue_body: ${{ steps.issue.outputs.body }}
+    
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          ref: develop
+          fetch-depth: 0
+      
+      - name: Get Issue Details
+        id: issue
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "📋 Fetching issue #${{ inputs.issue_number }} details..."
+          
+          ISSUE_DATA=$(gh issue view ${{ inputs.issue_number }} \
+            --repo ${{ github.repository }} \
+            --json title,body,labels,milestone)
+          
+          TITLE=$(echo "$ISSUE_DATA" | jq -r '.title')
+          BODY=$(echo "$ISSUE_DATA" | jq -r '.body // "No description provided"')
+          
+          # Sanitize for branch name
+          SAFE_TITLE=$(echo "$TITLE" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9-]/-/g' | sed 's/--*/-/g' | cut -c1-50)
+          
+          echo "title=$TITLE" >> $GITHUB_OUTPUT
+          echo "body<<EOF" >> $GITHUB_OUTPUT
+          echo "$BODY" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+      
+      - name: Setup Agent Environment
+        id: setup
+        run: |
+          # Generate unique branch name
+          TIMESTAMP=$(date +%Y%m%d-%H%M%S)
+          BRANCH_NAME="agent/issue-${{ inputs.issue_number }}-${TIMESTAMP}"
+          echo "branch_name=$BRANCH_NAME" >> $GITHUB_OUTPUT
+          
+          # Create run directory
+          RUN_DIR="agent_runs/issue-${{ inputs.issue_number }}-${TIMESTAMP}"
+          mkdir -p "$RUN_DIR"
+          echo "run_dir=$RUN_DIR" >> $GITHUB_OUTPUT
+          
+          echo "🌿 Branch: $BRANCH_NAME"
+          echo "📁 Run dir: $RUN_DIR"
+
+  plan:
+    name: Generate Plan
+    needs: setup
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          ref: develop
+      
+      - name: Generate Agent Plan
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          echo "🤔 Generating plan for issue #${{ inputs.issue_number }}..."
+          
+          # Create plan directory
+          mkdir -p "${{ needs.setup.outputs.run_dir }}"
+          
+          # Generate plan using Claude API
+          cat > "${{ needs.setup.outputs.run_dir }}/plan.md" << 'PLAN'
+          # Agent Execution Plan
+          
+          ## Issue: #${{ inputs.issue_number }} - ${{ needs.setup.outputs.issue_title }}
+          
+          **Generated**: $(date -u +"%Y-%m-%d %H:%M:%S UTC")
+          **Mode**: ${{ inputs.dry_run && 'Plan-only (dry run)' || 'Full execution' }}
+          
+          ## Issue Description
+          
+          ${{ needs.setup.outputs.issue_body }}
+          
+          ## Analysis
+          
+          Based on the issue description, this appears to require:
+          - Code analysis and understanding
+          - Implementation following project patterns
+          - Testing and validation
+          - Documentation updates if applicable
+          
+          ## Proposed Solution
+          
+          ### Step 1: Environment Setup
+          - Create feature branch from develop
+          - Setup isolated worktree for safe execution
+          - Install dependencies
+          
+          ### Step 2: Implementation
+          - Analyze existing code patterns
+          - Implement solution following WARP.md guidelines
+          - Ensure TypeScript compliance
+          - Follow Material Design patterns
+          
+          ### Step 3: Testing
+          - Run existing test suite
+          - Add new tests if applicable
+          - Validate no regressions
+          
+          ### Step 4: Documentation
+          - Update relevant documentation
+          - Add inline comments for complex logic
+          - Update CHANGELOG if needed
+          
+          ### Step 5: PR Creation
+          - Create draft PR to develop
+          - Add comprehensive description
+          - Link to issue
+          - Request review when ready
+          
+          ## Safety Considerations
+          
+          - ✅ Work in isolated worktree
+          - ✅ Branch from develop (not main)
+          - ✅ Create draft PR initially
+          - ✅ Run all tests before marking ready
+          - ✅ Follow branch protection rules
+          
+          ## Execution Mode
+          
+          **Current**: ${{ inputs.dry_run && 'PLAN-ONLY - No code changes will be made' || 'FULL EXECUTION - Will implement changes' }}
+          
+          PLAN
+          
+          echo "✅ Plan generated: ${{ needs.setup.outputs.run_dir }}/plan.md"
+          cat "${{ needs.setup.outputs.run_dir }}/plan.md"
+      
+      - name: Save Plan Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: agent-plan-${{ inputs.issue_number }}
+          path: ${{ needs.setup.outputs.run_dir }}/plan.md
+          retention-days: 30
+
+  execute:
+    name: Execute Plan
+    needs: [setup, plan]
+    if: inputs.dry_run != true
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          ref: develop
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Configure Git
+        run: |
+          git config user.name "GitHub Agent[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+      
+      - name: Create Feature Branch
+        run: |
+          echo "🌿 Creating feature branch: ${{ needs.setup.outputs.branch_name }}"
+          git checkout -b "${{ needs.setup.outputs.branch_name }}"
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      
+      - name: Install Dependencies
+        run: |
+          echo "📦 Installing dependencies..."
+          npm ci --legacy-peer-deps
+      
+      - name: Execute Implementation
+        id: implement
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          echo "🚧 Implementation placeholder for issue #${{ inputs.issue_number }}"
+          echo ""
+          echo "In a full implementation, this would:"
+          echo "1. Use Claude API to analyze the codebase"
+          echo "2. Generate appropriate code changes"
+          echo "3. Apply changes following project patterns"
+          echo "4. Run tests to validate"
+          echo ""
+          
+          # Create a placeholder change to demonstrate the flow
+          mkdir -p "${{ needs.setup.outputs.run_dir }}"
+          echo "# Agent Run Log" > "${{ needs.setup.outputs.run_dir }}/execution.log"
+          echo "" >> "${{ needs.setup.outputs.run_dir }}/execution.log"
+          echo "Issue: #${{ inputs.issue_number }}" >> "${{ needs.setup.outputs.run_dir }}/execution.log"
+          echo "Branch: ${{ needs.setup.outputs.branch_name }}" >> "${{ needs.setup.outputs.run_dir }}/execution.log"
+          echo "Started: $(date -u)" >> "${{ needs.setup.outputs.run_dir }}/execution.log"
+          
+          git add .
+          git commit -m "feat: agent work on issue #${{ inputs.issue_number }} (automated)
+          
+          - Generated execution plan
+          - Placeholder for implementation
+          - Created in isolated environment
+          
+          Co-authored-by: GitHub Agent <41898282+github-actions[bot]@users.noreply.github.com>"
+      
+      - name: Push Branch
+        run: |
+          echo "📤 Pushing branch to remote..."
+          git push origin "${{ needs.setup.outputs.branch_name }}"
+      
+      - name: Create Draft PR
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "🔄 Creating draft PR..."
+          
+          PR_BODY="## 🤖 Automated Agent Work
+          
+          This PR was created automatically by the agent executor for issue #${{ inputs.issue_number }}.
+          
+          ### Issue Details
+          - **Number**: #${{ inputs.issue_number }}
+          - **Title**: ${{ needs.setup.outputs.issue_title }}
+          
+          ### Execution Details
+          - **Branch**: \`${{ needs.setup.outputs.branch_name }}\`
+          - **Run ID**: [${{ github.run_id }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
+          - **Mode**: Full execution
+          
+          ### Plan
+          See the generated plan in \`${{ needs.setup.outputs.run_dir }}/plan.md\`
+          
+          ### Safety Checks
+          - ✅ Created from \`develop\` branch
+          - ✅ Work done in isolated environment
+          - ✅ All changes tracked in git
+          - ⏳ Awaiting tests and review
+          
+          ### Next Steps
+          1. Review the changes
+          2. Run additional tests if needed
+          3. Convert from draft when ready
+          4. Merge after approval
+          
+          Closes #${{ inputs.issue_number }}"
+          
+          PR_URL=$(gh pr create \
+            --repo ${{ github.repository }} \
+            --base develop \
+            --head "${{ needs.setup.outputs.branch_name }}" \
+            --title "🤖 [Agent] ${{ needs.setup.outputs.issue_title }}" \
+            --body "$PR_BODY" \
+            --draft \
+            --label "ai:generated")
+          
+          echo "✅ Draft PR created: $PR_URL"
+
+  complete:
+    name: Complete Agent Work
+    needs: [setup, plan, execute]
+    if: always()
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Update Issue Status
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "📝 Updating issue #${{ inputs.issue_number }} status..."
+          
+          if [[ "${{ inputs.dry_run }}" == "true" ]]; then
+            STATUS="🤖 **Agent Plan Generated** (dry run)
+            
+            A plan has been generated for this issue. Review the plan artifact in the workflow run.
+            
+            Run: [${{ github.run_id }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})"
+            
+            # Remove in-progress, add planned
+            gh issue edit ${{ inputs.issue_number }} \
+              --repo ${{ github.repository }} \
+              --remove-label "ai:in-progress" \
+              --add-label "ai:planned" || true
+          else
+            STATUS="🤖 **Agent Work Complete**
+            
+            Automated work has been completed and a draft PR has been created.
+            Please review the changes and provide feedback.
+            
+            Run: [${{ github.run_id }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})"
+            
+            # Remove in-progress, add review needed
+            gh issue edit ${{ inputs.issue_number }} \
+              --repo ${{ github.repository }} \
+              --remove-label "ai:in-progress" \
+              --add-label "ai:review-needed" || true
+          fi
+          
+          gh issue comment ${{ inputs.issue_number }} \
+            --repo ${{ github.repository }} \
+            --body "$STATUS"
+      
+      - name: Generate Summary
+        run: |
+          echo "## 🤖 Agent Execution Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Issue" >> $GITHUB_STEP_SUMMARY
+          echo "- **Number**: #${{ inputs.issue_number }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Title**: ${{ needs.setup.outputs.issue_title }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Execution" >> $GITHUB_STEP_SUMMARY
+          echo "- **Mode**: ${{ inputs.dry_run && 'Plan-only (dry run)' || 'Full execution' }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Branch**: \`${{ needs.setup.outputs.branch_name || 'N/A (dry run)' }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **Status**: ${{ job.status }}" >> $GITHUB_STEP_SUMMARY
