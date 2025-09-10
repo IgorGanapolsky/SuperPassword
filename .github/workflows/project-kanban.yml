@@ -24,7 +24,7 @@ jobs:
       - name: Add to project
         uses: actions/add-to-project@v1.0.2
         with:
-          project-url: https://github.com/users/IgorGanapolsky/projects/1
+          project-url: https://github.com/users/IgorGanapolsky/projects/3
           github-token: ${{ secrets.PROJECT_PAT }}
 
   move-card-when-issue-assigned:
@@ -39,8 +39,8 @@ jobs:
         uses: leonsteinhaeuser/project-beta-automations@v2.2.1
         with:
           gh_token: ${{ secrets.PROJECT_PAT }}
-          organization: IgorGanapolsky
-          project_id: 1
+          user: IgorGanapolsky
+          project_id: 3
           resource_node_id: ${{ github.event.issue.node_id }}
           status_value: "In Progress"
 
@@ -55,8 +55,8 @@ jobs:
         uses: leonsteinhaeuser/project-beta-automations@v2.2.1
         with:
           gh_token: ${{ secrets.PROJECT_PAT }}
-          organization: IgorGanapolsky
-          project_id: 1
+          user: IgorGanapolsky
+          project_id: 3
           resource_node_id: ${{ github.event.pull_request.node_id }}
           status_value: "Review"
 
@@ -71,7 +71,7 @@ jobs:
         uses: leonsteinhaeuser/project-beta-automations@v2.2.1
         with:
           gh_token: ${{ secrets.PROJECT_PAT }}
-          organization: IgorGanapolsky
-          project_id: 1
+          user: IgorGanapolsky
+          project_id: 3
           resource_node_id: ${{ github.event.issue.node_id || github.event.pull_request.node_id }}
           status_value: "Done"
