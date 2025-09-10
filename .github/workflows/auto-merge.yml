@@ -1,0 +1,186 @@
+name: Auto Merge
+
+on:
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - labeled
+      - unlabeled
+      - ready_for_review
+  pull_request_review:
+    types:
+      - submitted
+  check_suite:
+    types:
+      - completed
+  workflow_run:
+    workflows:
+      - "SuperPassword Main Pipeline"
+      - "CI (Optimized)"
+      - "Claude Automated Review"
+    types:
+      - completed
+
+permissions:
+  contents: write
+  pull-requests: write
+  checks: read
+
+jobs:
+  auto-merge:
+    name: Auto Merge PR
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+    
+    steps:
+      - name: Check Auto-Merge Eligibility
+        id: check
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const { owner, repo } = context.repo;
+            const pr = context.payload.pull_request;
+            
+            if (!pr) {
+              console.log('No PR in context');
+              core.setOutput('should_merge', 'false');
+              return;
+            }
+            
+            // Check for auto-merge label
+            const hasAutoMergeLabel = pr.labels?.some(label => 
+              label.name === 'auto-merge' || 
+              label.name === 'ready-to-merge' ||
+              label.name === '🚀 auto-merge'
+            );
+            
+            // Check for bot PRs (dependabot, renovate, etc)
+            const isBotPR = pr.user.type === 'Bot' || 
+              pr.user.login.includes('bot') ||
+              pr.user.login.includes('dependabot');
+            
+            // Check for critical/security PRs
+            const isCritical = pr.labels?.some(label => 
+              label.name === 'critical' || 
+              label.name === 'security' ||
+              label.name === '🚨 critical'
+            );
+            
+            const shouldMerge = hasAutoMergeLabel || (isBotPR && !isCritical);
+            
+            console.log(`PR #${pr.number}: auto-merge=${hasAutoMergeLabel}, bot=${isBotPR}, critical=${isCritical}`);
+            console.log(`Should merge: ${shouldMerge}`);
+            
+            core.setOutput('should_merge', shouldMerge.toString());
+            core.setOutput('pr_number', pr.number.toString());
+
+      - name: Enable Auto-Merge
+        if: steps.check.outputs.should_merge == 'true'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const { owner, repo } = context.repo;
+            const pr_number = parseInt('${{ steps.check.outputs.pr_number }}');
+            
+            try {
+              // Get PR details
+              const { data: pr } = await github.rest.pulls.get({
+                owner,
+                repo,
+                pull_number: pr_number
+              });
+              
+              // Enable auto-merge
+              const result = await github.graphql(`
+                mutation($pullRequestId: ID!, $mergeMethod: PullRequestMergeMethod!) {
+                  enablePullRequestAutoMerge(input: {
+                    pullRequestId: $pullRequestId,
+                    mergeMethod: $mergeMethod
+                  }) {
+                    pullRequest {
+                      autoMergeRequest {
+                        enabledAt
+                        mergeMethod
+                      }
+                    }
+                  }
+                }
+              `, {
+                pullRequestId: pr.node_id,
+                mergeMethod: 'SQUASH' // or 'MERGE' or 'REBASE'
+              });
+              
+              console.log(`Auto-merge enabled for PR #${pr_number}`);
+              
+              // Add comment
+              await github.rest.issues.createComment({
+                owner,
+                repo,
+                issue_number: pr_number,
+                body: `🤖 **Auto-merge enabled!**\n\nThis PR will be automatically merged once all required checks pass.\n\n_Merge method: Squash and merge_`
+              });
+              
+            } catch (error) {
+              console.error('Failed to enable auto-merge:', error);
+              
+              // Fallback: Try to merge directly if all checks pass
+              try {
+                const { data: checks } = await github.rest.checks.listForRef({
+                  owner,
+                  repo,
+                  ref: pr.head.sha
+                });
+                
+                const allChecksPassed = checks.check_runs.every(check => 
+                  check.status === 'completed' && 
+                  (check.conclusion === 'success' || check.conclusion === 'skipped')
+                );
+                
+                if (allChecksPassed) {
+                  await github.rest.pulls.merge({
+                    owner,
+                    repo,
+                    pull_number: pr_number,
+                    merge_method: 'squash'
+                  });
+                  
+                  console.log(`PR #${pr_number} merged directly`);
+                } else {
+                  console.log('Not all checks passed yet, waiting...');
+                }
+              } catch (mergeError) {
+                console.error('Failed to merge PR:', mergeError);
+              }
+            }
+
+  # Clean up after merge
+  post-merge-cleanup:
+    name: Post-Merge Cleanup
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.merged == true
+    
+    steps:
+      - name: Delete merged branch
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const { owner, repo } = context.repo;
+            const pr = context.payload.pull_request;
+            
+            if (pr && pr.head.repo.full_name === `${owner}/${repo}`) {
+              try {
+                await github.rest.git.deleteRef({
+                  owner,
+                  repo,
+                  ref: `heads/${pr.head.ref}`
+                });
+                console.log(`Deleted branch: ${pr.head.ref}`);
+              } catch (error) {
+                console.log(`Could not delete branch: ${error.message}`);
+              }
+            }
