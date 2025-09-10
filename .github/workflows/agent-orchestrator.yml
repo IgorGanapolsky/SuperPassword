@@ -122,7 +122,7 @@ jobs:
   execute:
     name: Execute Agent (${{ matrix.issue.number }})
     needs: prepare
-    if: needs.prepare.outputs.issues_matrix != '[]'
+    if: needs.prepare.result == 'success' && needs.prepare.outputs.issues_matrix != '[]'
     strategy:
       matrix:
         issue: ${{ fromJson(needs.prepare.outputs.issues_matrix) }}
@@ -136,7 +136,7 @@ jobs:
 
   summary:
     name: Orchestration Summary
-    needs: [discover, prepare, execute]
+    needs: discover
     if: always()
     runs-on: ubuntu-latest
     

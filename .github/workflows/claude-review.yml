@@ -90,26 +90,36 @@ jobs:
               temperature: 0.2,
               messages: [{ role: 'user', content: prompt }]
             };
-            const res = await fetch('https://api.anthropic.com/v1/messages', {
-              method: 'POST',
-              headers: {
-                'content-type': 'application/json',
-                'x-api-key': apiKey,
-                'anthropic-version': '2023-06-01'
-              },
-              body: JSON.stringify(body)
-            });
-            if (!res.ok) {
-              const t = await res.text();
-              core.warning(`Claude API error: ${res.status} ${t.slice(0,300)}`);
-              core.setOutput('review', `Claude API error ${res.status}.`);
+            
+            try {
+              const res = await fetch('https://api.anthropic.com/v1/messages', {
+                method: 'POST',
+                headers: {
+                  'content-type': 'application/json',
+                  'x-api-key': apiKey,
+                  'anthropic-version': '2023-06-01'
+                },
+                body: JSON.stringify(body)
+              });
+              
+              if (!res.ok) {
+                const t = await res.text();
+                core.warning(`Claude API error: ${res.status} ${t.slice(0,300)}`);
+                core.setOutput('review', `Claude API error ${res.status}.`);
+                core.setOutput('ok', 'false');
+                return;
+              }
+              
+              const data = await res.json();
+              const text = (data && data.content && data.content[0] && data.content[0].text) || 'No content';
+              core.setOutput('review', text);
+              core.setOutput('ok', 'true');
+              console.log('Claude review generated successfully');
+            } catch (error) {
+              core.warning(`Claude API exception: ${error.message}`);
+              core.setOutput('review', 'Claude API exception occurred.');
               core.setOutput('ok', 'false');
-              return;
             }
-            const data = await res.json();
-            const text = (data && data.content && data.content[0] && data.content[0].text) || 'No content';
-            core.setOutput('review', text);
-            core.setOutput('ok', 'true');
 
       - name: Post review as PR comment
         if: steps.call.outputs.ok == 'true'
@@ -126,6 +136,7 @@ jobs:
             await github.rest.issues.createComment({ owner, repo, issue_number, body });
 
       - name: Set commit status (Claude Review)
+        if: always()
         uses: actions/github-script@v7
         env:
           SHA: ${{ steps.prep.outputs.sha }}
@@ -136,9 +147,19 @@ jobs:
             const { owner, repo } = context.repo;
             const sha = process.env.SHA;
             const ok = (process.env.OK === 'true');
-            await github.rest.repos.createCommitStatus({
-              owner, repo, sha,
-              state: ok ? 'success' : 'failure',
-              context: 'Claude Review',
-              description: ok ? 'Claude review posted' : 'Claude review unavailable'
-            });
+            
+            console.log(`Setting Claude Review status: SHA=${sha}, OK=${process.env.OK}, ok=${ok}`);
+            
+            try {
+              await github.rest.repos.createCommitStatus({
+                owner, repo, sha,
+                state: ok ? 'success' : 'failure',
+                context: 'Claude Review',
+                description: ok ? 'Claude review posted successfully' : 'Claude review could not be generated',
+                target_url: `https://github.com/${owner}/${repo}/actions/runs/${context.runId}`
+              });
+              console.log(`Status set successfully: ${ok ? 'success' : 'failure'}`);
+            } catch (error) {
+              core.error(`Failed to set commit status: ${error.message}`);
+              throw error;
+            }
