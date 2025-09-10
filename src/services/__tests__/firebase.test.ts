@@ -62,7 +62,7 @@ describe("FirebaseService", () => {
 
     it("setAttribute resolves without error", async () => {
       await expect(
-        FirebaseService.crashlytics.setAttribute(),
+        FirebaseService.crashlytics.setAttribute("test_key", "test_value"),
       ).resolves.toBeUndefined();
     });
   });
@@ -75,7 +75,7 @@ describe("FirebaseService", () => {
 
     it("setDefaults resolves without error", async () => {
       await expect(
-        FirebaseService.remoteConfig.setDefaults(),
+        FirebaseService.remoteConfig.setDefaults({ test_key: "test_value" }),
       ).resolves.toBeUndefined();
     });
 

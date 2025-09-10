@@ -49,7 +49,7 @@ module.exports = [
         ...globals.browser,
         ...globals.node,
         ...globals.es2021,
-        "__DEV__": "readonly",
+        __DEV__: "readonly",
       },
     },
     plugins: {
@@ -64,7 +64,10 @@ module.exports = [
       ...reactPlugin.configs.recommended.rules,
       ...reactHooksPlugin.configs.recommended.rules,
       "no-unused-vars": "off",
-      "@typescript-eslint/no-unused-vars": ["warn", { "argsIgnorePattern": "^_" }],
+      "@typescript-eslint/no-unused-vars": [
+        "warn",
+        { argsIgnorePattern: "^_" },
+      ],
       "react/react-in-jsx-scope": "off",
       "react-native/no-inline-styles": "off",
       "react-native/sort-styles": "off",
@@ -83,7 +86,9 @@ module.exports = [
             ["internal"],
             ["parent", "sibling", "index"],
           ],
-          pathGroups: [{ pattern: "@/**", group: "internal", position: "after" }],
+          pathGroups: [
+            { pattern: "@/**", group: "internal", position: "after" },
+          ],
           pathGroupsExcludedImportTypes: ["builtin"],
           alphabetize: { order: "asc", caseInsensitive: true },
         },
@@ -109,14 +114,23 @@ module.exports = [
 
   // Node.js config files
   {
-    files: ["*.js", "*.cjs", "scripts/**/*.js", "scripts/**/*.mjs", ".github/scripts/**/*.mjs"],
+    files: [
+      "*.js",
+      "*.cjs",
+      "scripts/**/*.js",
+      "scripts/**/*.mjs",
+      ".github/scripts/**/*.mjs",
+    ],
     languageOptions: {
       globals: {
         ...globals.node,
       },
     },
     rules: {
-      "no-unused-vars": ["error", { "varsIgnorePattern": "^_" , "argsIgnorePattern": "^_" }],
-    }
+      "no-unused-vars": [
+        "error",
+        { varsIgnorePattern: "^_", argsIgnorePattern: "^_" },
+      ],
+    },
   },
 ];

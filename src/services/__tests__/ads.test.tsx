@@ -72,7 +72,7 @@ describe("Banner", () => {
 
   it("renders nothing in production", () => {
     global.__DEV__ = false;
-    const { container } = render(<Banner />);
-    expect(container.children.length).toBe(0);
+    const { toJSON } = render(<Banner />);
+    expect(toJSON()).toBeNull();
   });
 });

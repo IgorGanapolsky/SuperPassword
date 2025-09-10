@@ -6,8 +6,7 @@ const slug = process.env.APP_SLUG ?? "superpassword";
 const scheme = process.env.APP_SCHEME ?? "securepass";
 const owner = process.env.EXPO_OWNER ?? "igorganapolsky";
 
-const iosBundleId =
-  process.env.IOS_BUNDLE_ID ?? "com.securepass.generator";
+const iosBundleId = process.env.IOS_BUNDLE_ID ?? "com.securepass.generator";
 const androidPackage =
   process.env.ANDROID_PACKAGE ?? "com.securepass.generator";
 const easProjectId =
