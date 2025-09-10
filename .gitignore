@@ -43,3 +43,6 @@ coverage/
 # script logs
 scripts/*.log
 scripts/*.err.log
+.aider*
+.env
+.env

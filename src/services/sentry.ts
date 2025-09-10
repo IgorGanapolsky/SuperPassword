@@ -84,12 +84,12 @@ export const addBreadcrumb = (message: string, category?: string): void => {
  * Get the Sentry error boundary component
  * Returns null if Sentry is not initialized
  */
-export const getErrorBoundary = (): React.ComponentType<any> | null => {
+export const getErrorBoundary = (): React.ComponentType<{children: React.ReactNode}> | null => {
   if (!isInitialized) {
     return null;
   }
 
-  return Sentry.Native.ErrorBoundary;
+  return Sentry.Native.ErrorBoundary as React.ComponentType<{children: React.ReactNode}>;
 };
 
 /**

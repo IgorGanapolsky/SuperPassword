@@ -386,7 +386,7 @@ export const PremiumScreen: React.FC = () => {
               <View key={index} style={styles.featureItem}>
                 <View style={styles.featureIcon}>
                   <MaterialCommunityIcons
-                    name={feature.icon as any}
+                    name={feature.icon as keyof typeof MaterialCommunityIcons.glyphMap}
                     size={24}
                     color={theme.success}
                   />
@@ -445,7 +445,7 @@ export const PremiumScreen: React.FC = () => {
             <View key={index} style={styles.featureItem}>
               <View style={styles.featureIcon}>
                 <MaterialCommunityIcons
-                  name={feature.icon as any}
+                  name={feature.icon as keyof typeof MaterialCommunityIcons.glyphMap}
                   size={24}
                   color={feature.premium ? theme.primary : theme.textSecondary}
                 />

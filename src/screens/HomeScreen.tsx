@@ -176,7 +176,7 @@ export const HomeScreen: React.FC = () => {
     });
   };
 
-  const updateOption = (key: keyof PasswordOptions, value: any) => {
+  const updateOption = (key: keyof PasswordOptions, value: PasswordOptions[keyof PasswordOptions]) => {
     const newOptions = { ...options, [key]: value };
     setOptions(newOptions);
 
