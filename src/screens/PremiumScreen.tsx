@@ -96,7 +96,7 @@ export const PremiumScreen: React.FC = () => {
   const { theme } = useTheme();
   const [isPremium, setIsPremium] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [selectedPrice] = useState("2.99");
+  const [selectedPrice] = useState("1.99");
   const scaleAnimation = new Animated.Value(1);
 
   useEffect(() => {
