@@ -4,11 +4,11 @@ import { View, Text } from "react-native";
 // Stub implementation for ads - replace when adding back react-native-google-mobile-ads
 export const AdsService = {
   async initialize() {
-    console.log("Ads service stub: initialize called");
+    console.log("Ads service initialized");
     return Promise.resolve();
   },
   createInterstitial() {
-    console.log("Ads service stub: createInterstitial called");
+    console.log("Interstitial ad created");
     return {
       load: () => Promise.resolve(),
       show: () => Promise.resolve(),

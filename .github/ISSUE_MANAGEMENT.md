@@ -40,6 +40,7 @@ Provides additional project board automation:
 ### New Issues
 
 When a new issue is created:
+
 1. It automatically gets the `status: triage` label
 2. A welcome comment is added with instructions
 3. The issue is added to the "To Do" column of the project board
@@ -47,11 +48,13 @@ When a new issue is created:
 ### Assignment
 
 When an issue is assigned:
+
 1. The `status: triage` label is removed
 2. The `status: in-progress` label is added
 3. The issue is moved to the "In Progress" column
 
 When an issue is unassigned:
+
 1. The `status: in-progress` label is removed
 2. The `status: unassigned` label is added
 3. The issue is moved back to the "To Do" column
@@ -59,23 +62,27 @@ When an issue is unassigned:
 ### SLA Monitoring
 
 The system checks hourly for SLA violations:
+
 - High priority issues: 24 hours
 - Medium priority issues: 72 hours
 - Low priority issues: 168 hours (1 week)
 
 When an SLA is violated:
+
 1. The `sla: violated` label is added
 2. A comment is added to notify the team
 
 ### Aging
 
 Issues are automatically labeled based on their age:
+
 - Fresh issues (less than 24 hours): `age: fresh`
 - Stale issues (more than 24 hours): `age: stale`
 
 ## Configuration
 
 The system is configured through:
+
 - `.github/issue-management.yml`: Main configuration file
 - `.github/project.yml`: Project board configuration
 - `.github/project-views.yml`: Project views configuration

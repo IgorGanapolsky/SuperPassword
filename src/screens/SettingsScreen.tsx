@@ -41,7 +41,10 @@ export const SettingsScreen: React.FC = () => {
     setIsPremium(status);
   };
 
-  const updatePreference = async (key: keyof UserPreferences, value: UserPreferences[keyof UserPreferences]) => {
+  const updatePreference = async (
+    key: keyof UserPreferences,
+    value: UserPreferences[keyof UserPreferences],
+  ) => {
     if (!preferences) return;
 
     const updatedPreferences = { ...preferences, [key]: value };

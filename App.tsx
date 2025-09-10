@@ -47,7 +47,7 @@ export default function App() {
           const defaultPreferences = {
             theme: "system" as const,
             defaultOptions: {
-              length: 16,
+              length: 12,
               includeUppercase: true,
               includeLowercase: true,
               includeNumbers: true,
@@ -106,20 +106,9 @@ export default function App() {
   // Conditionally wrap with Sentry error boundary if initialized
   const ErrorBoundary = getErrorBoundary();
   if (ErrorBoundary) {
-    return (
-      <ErrorBoundary
-        fallback={({
-          error,
-          resetError,
-        }: {
-          error: Error;
-          resetError: () => void;
-        }) => <ErrorFallback error={error} resetError={resetError} />}
-        showDialog
-      >
-        {content}
-      </ErrorBoundary>
-    );
+    // Sentry's ErrorBoundary doesn't support fallback prop directly
+    // We'll use our own ErrorFallback component
+    return <ErrorBoundary>{content}</ErrorBoundary>;
   }
 
   return content;

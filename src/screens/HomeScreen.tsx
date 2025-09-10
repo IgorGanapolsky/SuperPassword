@@ -55,9 +55,10 @@ export const HomeScreen: React.FC = () => {
     excludeAmbiguous: false,
     customCharacters: "",
     excludeCharacters: "",
+    passwordType: "alphanumeric" as const,
   });
   const [isPremium, setIsPremium] = useState(false);
-  
+
   const [showCopiedAnimation, setShowCopiedAnimation] = useState(false);
 
   // Load user preferences and premium status
@@ -98,7 +99,6 @@ export const HomeScreen: React.FC = () => {
 
       setPassword(newPassword);
       setPasswordStrength(strength);
-      
 
       // Haptic feedback
       if (Platform.OS === "ios") {
@@ -176,7 +176,10 @@ export const HomeScreen: React.FC = () => {
     });
   };
 
-  const updateOption = (key: keyof PasswordOptions, value: PasswordOptions[keyof PasswordOptions]) => {
+  const updateOption = (
+    key: keyof PasswordOptions,
+    value: PasswordOptions[keyof PasswordOptions],
+  ) => {
     const newOptions = { ...options, [key]: value };
     setOptions(newOptions);
 
