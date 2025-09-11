@@ -15,7 +15,7 @@ on:
       dry_run:
         description: 'Plan-only mode (no execution)'
         type: boolean
-        default: true
+        default: false
   
   schedule:
     # Run every 2 hours during business hours
@@ -142,7 +142,7 @@ jobs:
     uses: ./.github/workflows/agent-executor.yml
     with:
       issue_number: '${{ matrix.issue.number }}'
-      dry_run: ${{ inputs.dry_run || true }}
+      dry_run: ${{ inputs.dry_run || false }}
     secrets: inherit
 
   summary:
