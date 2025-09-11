@@ -22,8 +22,9 @@ on:
     - cron: '0 8,10,12,14,16,18 * * 1-5'
 
 permissions:
-  contents: read
-  issues: read
+  contents: write
+  issues: write
+  pull-requests: write
   actions: write
 
 concurrency:
