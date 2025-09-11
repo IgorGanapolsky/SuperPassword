@@ -1,6 +1,6 @@
-import * as SecureStore from 'expo-secure-store';
-import * as Crypto from 'expo-crypto';
 import CryptoJS from 'crypto-js';
+import * as Crypto from 'expo-crypto';
+import * as SecureStore from 'expo-secure-store';
 
 /**
  * SecureStorageService provides encrypted storage for sensitive data
@@ -69,7 +69,7 @@ export class SecureStorageService {
   /**
    * Store data securely with encryption
    */
-  static async secureStore(key: string, value: any): Promise<void> {
+  static async secureStore(key: string, value: unknown): Promise<void> {
     try {
       const jsonString = JSON.stringify(value);
       const encrypted = await this.encryptData(jsonString);

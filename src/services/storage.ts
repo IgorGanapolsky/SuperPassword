@@ -1,8 +1,9 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import { PasswordEntry, UserPreferences, User, AdConfig } from "@/types";
-import { SecureStorageService } from "./SecureStorageService";
+
 import { BiometricAuthService } from "./BiometricAuthService";
+import { SecureStorageService } from "./SecureStorageService";
 
 const STORAGE_KEYS = {
   PASSWORD_HISTORY: "passwordHistory", // Simplified keys for secure storage
@@ -39,7 +40,7 @@ export class StorageService {
       
       if (history) {
         // Convert timestamp strings back to Date objects
-        return history.map((entry: any) => ({
+        return history.map((entry: unknown) => ({
           ...entry,
           timestamp: new Date(entry.timestamp),
         }));
