@@ -2,9 +2,19 @@
 
 import { AppRegistry } from "react-native";
 
-import App from "../App";
+import { App } from "./App";
 
-// DOM types are already available globally, no need to redeclare
+// Declare DOM types for web
+declare global {
+  interface Window {
+    addEventListener: (_type: string, _listener: EventListener) => void;
+  }
+  interface Navigator {
+    serviceWorker: {
+      register: (_scriptURL: string) => Promise<ServiceWorkerRegistration>;
+    };
+  }
+}
 
 AppRegistry.registerComponent("SuperPassword", () => App);
 AppRegistry.runApplication("SuperPassword", {

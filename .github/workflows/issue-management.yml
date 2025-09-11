@@ -24,7 +24,7 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const issue = context.payload.issue;
-
+            
             // Add triage label
             await github.rest.issues.addLabels({
               owner: context.repo.owner,
@@ -32,7 +32,7 @@ jobs:
               issue_number: issue.number,
               labels: ['status: triage']
             });
-
+            
             // Add comment for new issues
             await github.rest.issues.createComment({
               owner: context.repo.owner,
@@ -52,7 +52,7 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const issue = context.payload.issue;
-
+            
             if (github.event.action === 'assigned') {
               // Remove triage label and add in-progress
               await github.rest.issues.removeLabel({
@@ -105,9 +105,9 @@ jobs:
               state: 'open',
               per_page: 100
             });
-
+            
             const now = new Date();
-
+            
             for (const issue of issues) {
               // Skip PRs
               if (issue.pull_request) continue;

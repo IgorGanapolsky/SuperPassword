@@ -106,9 +106,20 @@ export default function App() {
   // Conditionally wrap with Sentry error boundary if initialized
   const ErrorBoundary = getErrorBoundary();
   if (ErrorBoundary) {
-    // Sentry's ErrorBoundary doesn't support fallback prop directly
-    // We'll use our own ErrorFallback component
-    return <ErrorBoundary>{content}</ErrorBoundary>;
+    return (
+      <ErrorBoundary
+        fallback={({
+          error,
+          resetError,
+        }: {
+          error: Error;
+          resetError: () => void;
+        }) => <ErrorFallback error={error} resetError={resetError} />}
+        showDialog
+      >
+        {content}
+      </ErrorBoundary>
+    );
   }
 
   return content;

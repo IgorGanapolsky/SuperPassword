@@ -205,14 +205,16 @@ jobs:
         with:
           eas-version: latest
           token: ${{ secrets.EXPO_TOKEN }}
-      - name: Build Development
-        if: github.ref == 'refs/heads/develop'
+      - name: Build Development (Disabled - Use Smart Build)
+        if: false # Disabled to save EAS credits - use eas-smart-build.yml instead
         run: |
-          eas build --platform all --profile development --non-interactive
-      - name: Build Production
-        if: github.ref == 'refs/heads/main'
+          # eas build --platform all --profile development --non-interactive
+          echo "⚠️ Automatic builds disabled to save credits. Use Smart EAS Build workflow instead."
+      - name: Build Production (Disabled - Use Smart Build)
+        if: false # Disabled to save EAS credits - use eas-smart-build.yml instead
         run: |
-          eas build --platform all --profile production --non-interactive
+          # eas build --platform all --profile production --non-interactive
+          echo "⚠️ Automatic builds disabled to save credits. Use Smart EAS Build workflow instead."
       - name: Submit to Stores
         if: github.ref == 'refs/heads/main'
         run: |

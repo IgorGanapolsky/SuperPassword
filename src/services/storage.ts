@@ -2,30 +2,49 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import { PasswordEntry, UserPreferences, User, AdConfig } from "@/types";
 
+import { BiometricAuthService } from "./BiometricAuthService";
+import { SecureStorageService } from "./SecureStorageService";
+
 const STORAGE_KEYS = {
-  PASSWORD_HISTORY: "@SecurePass:passwordHistory",
-  USER_PREFERENCES: "@SecurePass:userPreferences",
-  USER_DATA: "@SecurePass:userData",
-  AD_CONFIG: "@SecurePass:adConfig",
-  FIRST_LAUNCH: "@SecurePass:firstLaunch",
-  PREMIUM_STATUS: "@SecurePass:premiumStatus",
-  LAST_SYNC: "@SecurePass:lastSync",
+  PASSWORD_HISTORY: "passwordHistory", // Simplified keys for secure storage
+  USER_PREFERENCES: "userPreferences",
+  USER_DATA: "userData",
+  AD_CONFIG: "adConfig",
+  FIRST_LAUNCH: "firstLaunch",
+  PREMIUM_STATUS: "premiumStatus",
+  LAST_SYNC: "lastSync",
 };
+
+// Keys that contain sensitive data and need secure storage
+// Currently all sensitive data uses SecureStorageService directly
+// const SECURE_KEYS = [
+//   STORAGE_KEYS.PASSWORD_HISTORY,
+//   STORAGE_KEYS.USER_DATA,
+//   STORAGE_KEYS.PREMIUM_STATUS,
+// ];
 
 export class StorageService {
   // Password History
   static async getPasswordHistory(): Promise<PasswordEntry[]> {
     try {
-      const data = await AsyncStorage.getItem(STORAGE_KEYS.PASSWORD_HISTORY);
-      if (data) {
-        const history = JSON.parse(data);
-        // Convert timestamp strings back to Date objects
-        return history.map(
-          (entry: PasswordEntry & { timestamp: string | Date }) => ({
-            ...entry,
-            timestamp: new Date(entry.timestamp),
-          }),
+      // Require biometric authentication for password access
+      if (await BiometricAuthService.shouldPromptForAuth()) {
+        await BiometricAuthService.requireAuthentication(
+          'Authenticate to view password history'
         );
+      }
+
+      // Use secure storage for password history
+      const history = await SecureStorageService.secureRetrieve<PasswordEntry[]>(
+        STORAGE_KEYS.PASSWORD_HISTORY
+      );
+      
+      if (history) {
+        // Convert timestamp strings back to Date objects
+        return history.map((entry) => ({
+          ...entry,
+          timestamp: new Date(entry.timestamp),
+        }));
       }
       return [];
     } catch (error) {
@@ -36,9 +55,10 @@ export class StorageService {
 
   static async savePasswordHistory(history: PasswordEntry[]): Promise<void> {
     try {
-      await AsyncStorage.setItem(
+      // Use secure storage for password history
+      await SecureStorageService.secureStore(
         STORAGE_KEYS.PASSWORD_HISTORY,
-        JSON.stringify(history),
+        history
       );
     } catch (error) {
       console.error("Error saving password history:", error);
@@ -79,7 +99,12 @@ export class StorageService {
 
   static async clearPasswordHistory(): Promise<void> {
     try {
-      await AsyncStorage.removeItem(STORAGE_KEYS.PASSWORD_HISTORY);
+      // Require authentication before clearing sensitive data
+      await BiometricAuthService.requireAuthentication(
+        'Authenticate to clear password history'
+      );
+      
+      await SecureStorageService.secureRemove(STORAGE_KEYS.PASSWORD_HISTORY);
     } catch (error) {
       console.error("Error clearing password history:", error);
       throw error;

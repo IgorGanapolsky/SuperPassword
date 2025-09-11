@@ -1,6 +1,10 @@
 import * as Sentry from "sentry-expo";
 
-import { initializeSentry, captureMessage, addBreadcrumb } from "../sentry";
+import {
+  initializeSentry,
+  captureMessage,
+  addBreadcrumb,
+} from "../sentry";
 
 jest.mock("sentry-expo", () => ({
   init: jest.fn(),

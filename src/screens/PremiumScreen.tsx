@@ -96,7 +96,7 @@ export const PremiumScreen: React.FC = () => {
   const { theme } = useTheme();
   const [isPremium, setIsPremium] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [selectedPrice] = useState("2.99");
+  const [selectedPrice] = useState("1.99");
   const scaleAnimation = new Animated.Value(1);
 
   useEffect(() => {
@@ -386,9 +386,7 @@ export const PremiumScreen: React.FC = () => {
               <View key={index} style={styles.featureItem}>
                 <View style={styles.featureIcon}>
                   <MaterialCommunityIcons
-                    name={
-                      feature.icon as keyof typeof MaterialCommunityIcons.glyphMap
-                    }
+                    name={feature.icon as keyof typeof MaterialCommunityIcons.glyphMap}
                     size={24}
                     color={theme.success}
                   />
@@ -447,9 +445,7 @@ export const PremiumScreen: React.FC = () => {
             <View key={index} style={styles.featureItem}>
               <View style={styles.featureIcon}>
                 <MaterialCommunityIcons
-                  name={
-                    feature.icon as keyof typeof MaterialCommunityIcons.glyphMap
-                  }
+                  name={feature.icon as keyof typeof MaterialCommunityIcons.glyphMap}
                   size={24}
                   color={feature.premium ? theme.primary : theme.textSecondary}
                 />

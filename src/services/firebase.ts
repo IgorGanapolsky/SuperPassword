@@ -17,8 +17,8 @@ const firebaseRemoteConfig = remoteConfig();
 async function initRemoteConfig(): Promise<void> {
   try {
     await firebaseRemoteConfig.setDefaults({
-      show_banner_ad: true,
-      interstitial_ad_frequency: 5,
+      show_banner_ad: false,
+      interstitial_ad_frequency: 10,
     });
     const fetched = await firebaseRemoteConfig.fetchAndActivate();
     if (fetched) {
@@ -35,10 +35,7 @@ async function initRemoteConfig(): Promise<void> {
  * @param error The error object or message.
  * @param context Additional key-value pairs for context.
  */
-function logError(
-  error: unknown,
-  context?: Record<string, string | number | boolean>,
-): void {
+function logError(error: unknown, context?: Record<string, string | number | boolean>): void {
   const err = error instanceof Error ? error : new Error(String(error));
   if (context) {
     // Convert all values to strings as required by Crashlytics

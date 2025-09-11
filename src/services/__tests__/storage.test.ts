@@ -27,17 +27,7 @@ describe("StorageService", () => {
       id: "123",
       password: "testPass123",
       timestamp: new Date("2025-01-01"),
-      strength: 3,
-      options: {
-        length: 12,
-        includeUppercase: true,
-        includeLowercase: true,
-        includeNumbers: true,
-        includeSymbols: true,
-        excludeAmbiguous: false,
-        customCharacters: "",
-        excludeCharacters: "",
-      },
+      label: "Test Password",
     };
 
     it("gets password history", async () => {
@@ -128,20 +118,11 @@ describe("StorageService", () => {
   describe("User Preferences", () => {
     const mockPreferences: UserPreferences = {
       theme: "dark",
-      defaultOptions: {
-        length: 12,
-        includeLowercase: true,
-        includeUppercase: true,
-        includeNumbers: true,
-        includeSymbols: true,
-        excludeAmbiguous: false,
-        customCharacters: "",
-        excludeCharacters: "",
-      },
-      autoSave: true,
-      hapticFeedback: true,
-      showPasswordStrength: true,
-      quickCopyEnabled: true,
+      defaultLength: 12,
+      useLowercase: true,
+      useUppercase: true,
+      useNumbers: true,
+      useSymbols: true,
     };
 
     it("gets user preferences", async () => {
@@ -171,12 +152,10 @@ describe("StorageService", () => {
 
   describe("User Data", () => {
     const mockUser: User = {
-      id: "user123",
+      id: "123",
       email: "test@example.com",
       isPremium: false,
       createdAt: new Date("2025-01-01"),
-      trialUsed: false,
-      passwordCount: 0,
     };
 
     it("gets user data", async () => {
@@ -217,12 +196,10 @@ describe("StorageService", () => {
 
   describe("Premium Status", () => {
     const mockUser: User = {
-      id: "user123",
+      id: "123",
       email: "test@example.com",
       isPremium: true,
       createdAt: new Date("2025-01-01"),
-      trialUsed: false,
-      passwordCount: 0,
     };
 
     it("returns true for lifetime premium user", async () => {
