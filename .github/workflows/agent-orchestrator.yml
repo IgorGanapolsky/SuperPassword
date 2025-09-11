@@ -75,7 +75,7 @@ jobs:
     if: needs.discover.outputs.count > 0
     runs-on: ubuntu-latest
     outputs:
-      issues_matrix: ${{ steps.prepare.outputs.issues }}
+      issues_matrix: ${{ steps.prepare.outputs.issues_matrix }}
     steps:
       - name: Prepare Issue Matrix
         id: prepare
@@ -122,7 +122,7 @@ jobs:
             fi
           done
           
-          echo "issues=$CLAIMED_ISSUES" >> $GITHUB_OUTPUT
+          echo "issues_matrix=$CLAIMED_ISSUES" >> $GITHUB_OUTPUT
   
   execute:
     name: Execute Agent (${{ matrix.issue.number }})
