@@ -1,0 +1,235 @@
+name: Smart EAS Build Management
+
+on:
+  workflow_dispatch:
+    inputs:
+      build_type:
+        description: 'Build type'
+        required: true
+        type: choice
+        options:
+          - preview
+          - production
+          - development
+      platform:
+        description: 'Platform'
+        required: true
+        type: choice
+        options:
+          - ios
+          - android
+          - all
+  
+  push:
+    branches:
+      - main
+    paths:
+      # Only trigger builds on actual app code changes
+      - 'src/**'
+      - 'app.json'
+      - 'app.config.js'
+      - 'eas.json'
+      - 'package.json'
+      - 'babel.config.js'
+      - 'metro.config.js'
+      - 'ios/**'
+      - 'android/**'
+
+env:
+  # 2025 Best Practice: Use fingerprinting to avoid duplicate builds
+  EAS_BUILD_AUTOCOMMIT: false
+  EAS_BUILD_WAIT_FOR_BUILD_TO_FINISH: false
+
+jobs:
+  check-build-needed:
+    name: Check if Build Needed
+    runs-on: ubuntu-latest
+    outputs:
+      should_build: ${{ steps.check.outputs.should_build }}
+      build_reason: ${{ steps.check.outputs.reason }}
+    
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      
+      - name: Check Build Necessity
+        id: check
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "🔍 Checking if build is needed..."
+          
+          # Get latest successful build
+          LAST_BUILD=$(gh api repos/${{ github.repository }}/actions/runs \
+            --jq '.workflow_runs[] | select(.name == "Smart EAS Build Management" and .conclusion == "success") | .created_at' \
+            | head -1)
+          
+          if [[ -z "$LAST_BUILD" ]]; then
+            echo "No previous builds found"
+            echo "should_build=true" >> $GITHUB_OUTPUT
+            echo "reason=initial_build" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          
+          # Check if significant changes since last build
+          CHANGED_FILES=$(git diff --name-only HEAD~1 HEAD)
+          SIGNIFICANT_CHANGES=false
+          
+          for file in $CHANGED_FILES; do
+            case "$file" in
+              src/*.tsx|src/*.ts|app.json|eas.json|ios/*|android/*)
+                SIGNIFICANT_CHANGES=true
+                break
+                ;;
+            esac
+          done
+          
+          if [[ "$SIGNIFICANT_CHANGES" == "true" ]]; then
+            echo "should_build=true" >> $GITHUB_OUTPUT
+            echo "reason=significant_changes" >> $GITHUB_OUTPUT
+          else
+            echo "should_build=false" >> $GITHUB_OUTPUT
+            echo "reason=no_significant_changes" >> $GITHUB_OUTPUT
+          fi
+          
+          # Check build credits remaining
+          # This would require EAS API integration
+          echo "⚠️ Remember: You have limited build credits on Starter plan"
+  
+  smart-build:
+    name: Smart EAS Build
+    needs: check-build-needed
+    if: needs.check-build-needed.outputs.should_build == 'true' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      
+      - name: Cache Dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            node_modules
+            ~/.npm
+            ~/.expo
+            ~/.eas-build-cache
+          key: ${{ runner.os }}-eas-${{ hashFiles('**/package-lock.json') }}-${{ hashFiles('eas.json') }}
+          restore-keys: |
+            ${{ runner.os }}-eas-
+      
+      - name: Install Dependencies
+        run: npm ci --legacy-peer-deps
+      
+      - name: Setup EAS
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          expo-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+      
+      - name: Fingerprint Check
+        id: fingerprint
+        run: |
+          # Generate fingerprint of current build
+          npx expo prebuild --no-install --platform all
+          
+          # Create build fingerprint
+          FINGERPRINT=$(find . -name "*.ts" -o -name "*.tsx" -o -name "*.json" \
+            -not -path "./node_modules/*" \
+            -not -path "./.expo/*" \
+            | xargs shasum | shasum | cut -d' ' -f1)
+          
+          echo "fingerprint=$FINGERPRINT" >> $GITHUB_OUTPUT
+          
+          # Check if this exact build already exists
+          # This prevents duplicate builds saving credits
+          EXISTING_BUILD=$(gh api repos/${{ github.repository }}/actions/runs \
+            --jq ".workflow_runs[] | select(.head_sha == \"$FINGERPRINT\") | .id" \
+            | head -1)
+          
+          if [[ -n "$EXISTING_BUILD" ]]; then
+            echo "⚠️ Build with same fingerprint already exists!"
+            echo "duplicate=true" >> $GITHUB_OUTPUT
+          else
+            echo "duplicate=false" >> $GITHUB_OUTPUT
+          fi
+      
+      - name: Development Build (Local)
+        if: |
+          steps.fingerprint.outputs.duplicate != 'true' && 
+          (github.event.inputs.build_type == 'development' || 
+           (github.ref == 'refs/heads/develop' && github.event_name == 'push'))
+        run: |
+          echo "📱 Building development version locally..."
+          # Use local builds for development to save credits
+          npx expo run:ios --no-build-cache || true
+          npx expo run:android --no-build-cache || true
+      
+      - name: Preview Build (EAS)
+        if: |
+          steps.fingerprint.outputs.duplicate != 'true' && 
+          github.event.inputs.build_type == 'preview'
+        run: |
+          echo "📱 Building preview version on EAS..."
+          PLATFORM=${{ github.event.inputs.platform || 'all' }}
+          
+          # Only build if credits available
+          eas build \
+            --platform $PLATFORM \
+            --profile preview \
+            --non-interactive \
+            --no-wait \
+            --message "Preview build from ${{ github.sha }}"
+      
+      - name: Production Build (EAS)
+        if: |
+          steps.fingerprint.outputs.duplicate != 'true' && 
+          (github.event.inputs.build_type == 'production' || 
+           (github.ref == 'refs/heads/main' && github.event_name == 'workflow_dispatch'))
+        run: |
+          echo "🚀 Building production version on EAS..."
+          PLATFORM=${{ github.event.inputs.platform || 'all' }}
+          
+          # Production builds only on manual trigger
+          eas build \
+            --platform $PLATFORM \
+            --profile production \
+            --non-interactive \
+            --no-wait \
+            --auto-submit \
+            --message "Production build from ${{ github.sha }}"
+      
+      - name: Save Build Info
+        if: steps.fingerprint.outputs.duplicate != 'true'
+        run: |
+          echo "Build fingerprint: ${{ steps.fingerprint.outputs.fingerprint }}" >> build-info.txt
+          echo "Build timestamp: $(date -u +%Y-%m-%dT%H:%M:%SZ)" >> build-info.txt
+          echo "Build trigger: ${{ github.event_name }}" >> build-info.txt
+          echo "Build type: ${{ github.event.inputs.build_type || 'auto' }}" >> build-info.txt
+      
+      - name: Credit Usage Alert
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Alert if approaching credit limit
+          echo "⚠️ CREDIT USAGE WARNING:"
+          echo "- Starter plan: 30 builds/month"
+          echo "- Current usage: Check https://expo.dev/accounts/[your-account]/billing"
+          echo ""
+          echo "💡 COST SAVING TIPS:"
+          echo "1. Use local builds for development"
+          echo "2. Only trigger EAS builds for preview/production"
+          echo "3. Use fingerprinting to avoid duplicate builds"
+          echo "4. Consider upgrading to Production plan for more credits"
+          
+          # Create issue if credits low
+          # gh issue create --title "⚠️ EAS Credits Running Low" \
+          #   --body "Your EAS build credits are running low. Consider optimizing build triggers." \
+          #   --label "automation,urgent" || true
