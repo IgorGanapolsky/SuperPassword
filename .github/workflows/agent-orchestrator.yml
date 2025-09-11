@@ -66,8 +66,9 @@ jobs:
           echo "📋 Found $COUNT ready issues"
           echo "$ISSUES" | jq '.'
           
-          # Output for matrix
-          echo "issues=$ISSUES" >> $GITHUB_OUTPUT
+          # Output for matrix - JSON must be single line
+          ISSUES_JSON=$(echo "$ISSUES" | jq -c '.')
+          echo "issues=$ISSUES_JSON" >> $GITHUB_OUTPUT
           echo "count=$COUNT" >> $GITHUB_OUTPUT
 
   prepare:
