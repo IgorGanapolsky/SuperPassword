@@ -38,14 +38,14 @@ jobs:
         run: |
           echo "🔍 Discovering issues labeled 'ai:ready'..."
           
-          # Query for open issues with ai:ready label, not already in progress
+          # Query for open issues with ai:ready label, not already in progress, exclude bot-managed
           ISSUES=$(gh issue list \
             --repo ${{ github.repository }} \
             --label "ai:ready" \
             --state open \
             --json number,title,labels,assignees \
             --limit 10 \
-            --jq '[.[] | select(.assignees | length == 0) | select(.labels | map(.name) | contains(["ai:in-progress"]) | not)]')
+            --jq '[.[] | select(.assignees | length == 0) | select(.labels | map(.name) | contains(["ai:in-progress"]) | not) | select(.labels | map(.name) | contains(["bot-managed"]) | not)]')
           
           # Limit to max_agents input
           MAX_AGENTS=${{ inputs.max_agents || 2 }}
