@@ -110,7 +110,7 @@ jobs:
               gh issue edit $ISSUE_NUM \
                 --repo ${{ github.repository }} \
                 --add-label "ai:in-progress" \
-                --remove-label "ai:ready" || true
+                --remove-label "ai:ready" > /dev/null 2>&1 || true
               
               COMMENT_BODY="🤖 **Agent Claimed**: Starting autonomous work on this issue.
               
@@ -119,7 +119,7 @@ jobs:
               
               gh issue comment $ISSUE_NUM \
                 --repo ${{ github.repository }} \
-                --body "$COMMENT_BODY"
+                --body "$COMMENT_BODY" > /dev/null 2>&1
               
               # Add to claimed issues
               CLAIMED_ISSUES=$(echo "$CLAIMED_ISSUES" | jq ". += [{\"number\": $ISSUE_NUM}]")
