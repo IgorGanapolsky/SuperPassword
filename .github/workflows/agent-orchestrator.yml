@@ -5,8 +5,13 @@ on:
     inputs:
       max_agents:
         description: 'Maximum concurrent agents'
-        type: number
-        default: 2
+        type: choice
+        options:
+          - '1'
+          - '2'
+          - '3'
+          - '4'
+        default: '2'
       dry_run:
         description: 'Plan-only mode (no execution)'
         type: boolean
