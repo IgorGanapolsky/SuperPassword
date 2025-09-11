@@ -112,12 +112,14 @@ jobs:
                 --add-label "ai:in-progress" \
                 --remove-label "ai:ready" || true
               
-              gh issue comment $ISSUE_NUM \
-                --repo ${{ github.repository }} \
-                --body "🤖 **Agent Claimed**: Starting autonomous work on this issue.
+              COMMENT_BODY="🤖 **Agent Claimed**: Starting autonomous work on this issue.
               
               Mode: ${{ inputs.dry_run && 'Plan-only (dry run)' || 'Full execution' }}
               Run: [${{ github.run_id }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})"
+              
+              gh issue comment $ISSUE_NUM \
+                --repo ${{ github.repository }} \
+                --body "$COMMENT_BODY"
               
               # Add to claimed issues
               CLAIMED_ISSUES=$(echo "$CLAIMED_ISSUES" | jq ". += [{\"number\": $ISSUE_NUM}]")
