@@ -62,7 +62,7 @@ jobs:
                 }
               }
             }
-          ' -f owner="${{ env.PROJECT_OWNER }}" -f number="${{ env.PROJECT_NUMBER }}")
+          ' -f owner="${{ env.PROJECT_OWNER }}" -F number=${{ env.PROJECT_NUMBER }})
           
           PROJECT_ID=$(echo "$PROJECT_DATA" | jq -r '.data.user.projectV2.id')
           STATUS_FIELD_ID=$(echo "$PROJECT_DATA" | jq -r '.data.user.projectV2.fields.nodes[] | select(.name == "Status") | .id')
