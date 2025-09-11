@@ -136,7 +136,7 @@ jobs:
 
   summary:
     name: Orchestration Summary
-    needs: [discover, dispatch]
+    needs: [discover, execute]
     if: always()
     runs-on: ubuntu-latest
     
