@@ -1,0 +1,352 @@
+name: Billing Guardian - Autonomous Protection System
+
+on:
+  schedule:
+    - cron: '0 */4 * * *'  # Check every 4 hours
+  workflow_dispatch:
+  repository_dispatch:
+    types: [billing-check]
+
+env:
+  # Critical thresholds
+  MAX_GITHUB_ACTIONS_PER_DAY: 30
+  MAX_EAS_BUILDS_PER_MONTH: 5  # Starter plan limit
+  MAX_EAS_BUILDS_PER_WEEK: 2
+  EMERGENCY_SHUTDOWN: false
+
+permissions:
+  contents: write
+  actions: write
+  issues: write
+  pull-requests: write
+
+jobs:
+  guardian-check:
+    name: Billing Protection Guardian
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    
+    steps:
+      - name: Checkout with Worktree Support
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: develop
+      
+      - name: Setup Guardian Environment
+        run: |
+          # Create guardian workspace
+          mkdir -p .guardian/{logs,state,alerts}
+          
+          # Initialize state file
+          if [ ! -f .guardian/state/billing.json ]; then
+            echo '{
+              "github_actions": {
+                "daily_runs": 0,
+                "weekly_runs": 0,
+                "last_reset": "'$(date -u +"%Y-%m-%d")'",
+                "alerts_sent": 0
+              },
+              "eas": {
+                "monthly_builds": 0,
+                "weekly_builds": 0,
+                "last_build": null,
+                "credits_used": 0,
+                "alerts_sent": 0
+              },
+              "emergency_mode": false
+            }' > .guardian/state/billing.json
+          fi
+      
+      - name: GitHub Actions Usage Analysis
+        id: github-check
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "🔍 Analyzing GitHub Actions usage..."
+          
+          # Get workflow runs from last 24 hours
+          RUNS_24H=$(gh api repos/${{ github.repository }}/actions/runs \
+            --jq '[.workflow_runs[] | select(.created_at > (now - 86400 | todate))] | length')
+          
+          # Get workflow runs from last 7 days
+          RUNS_7D=$(gh api repos/${{ github.repository }}/actions/runs \
+            --jq '[.workflow_runs[] | select(.created_at > (now - 604800 | todate))] | length')
+          
+          echo "daily_runs=$RUNS_24H" >> $GITHUB_OUTPUT
+          echo "weekly_runs=$RUNS_7D" >> $GITHUB_OUTPUT
+          
+          # Check for runaway workflows
+          ACTIVE_RUNS=$(gh run list --status in_progress --json databaseId --jq 'length')
+          echo "active_runs=$ACTIVE_RUNS" >> $GITHUB_OUTPUT
+          
+          # Danger check
+          if [[ $RUNS_24H -gt ${{ env.MAX_GITHUB_ACTIONS_PER_DAY }} ]]; then
+            echo "⚠️ DANGER: Daily GitHub Actions limit exceeded!"
+            echo "danger=true" >> $GITHUB_OUTPUT
+          else
+            echo "danger=false" >> $GITHUB_OUTPUT
+          fi
+      
+      - name: EAS Build Credit Analysis
+        id: eas-check
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        run: |
+          echo "🔍 Analyzing EAS build usage..."
+          
+          # Count EAS builds this month (from workflow history)
+          MONTH_START=$(date -u -d "$(date +%Y-%m-01)" +"%Y-%m-%dT%H:%M:%SZ")
+          
+          EAS_BUILDS_MONTH=$(gh api repos/${{ github.repository }}/actions/runs \
+            --jq "[.workflow_runs[] | 
+                   select(.name == \"Smart EAS Build Management\" and 
+                          .created_at > \"$MONTH_START\" and
+                          .conclusion == \"success\")] | length")
+          
+          # Count EAS builds this week
+          WEEK_START=$(date -u -d "7 days ago" +"%Y-%m-%dT%H:%M:%SZ")
+          
+          EAS_BUILDS_WEEK=$(gh api repos/${{ github.repository }}/actions/runs \
+            --jq "[.workflow_runs[] | 
+                   select(.name == \"Smart EAS Build Management\" and 
+                          .created_at > \"$WEEK_START\" and
+                          .conclusion == \"success\")] | length")
+          
+          echo "monthly_builds=$EAS_BUILDS_MONTH" >> $GITHUB_OUTPUT
+          echo "weekly_builds=$EAS_BUILDS_WEEK" >> $GITHUB_OUTPUT
+          
+          # Calculate credits used (approximation: 1 build = $6 on average)
+          CREDITS_USED=$((EAS_BUILDS_MONTH * 6))
+          echo "credits_used=$CREDITS_USED" >> $GITHUB_OUTPUT
+          
+          # Danger check
+          if [[ $EAS_BUILDS_MONTH -ge ${{ env.MAX_EAS_BUILDS_PER_MONTH }} ]]; then
+            echo "⚠️ DANGER: Monthly EAS build limit reached!"
+            echo "danger=true" >> $GITHUB_OUTPUT
+          elif [[ $CREDITS_USED -ge 25 ]]; then
+            echo "⚠️ WARNING: Approaching EAS credit limit!"
+            echo "danger=warning" >> $GITHUB_OUTPUT
+          else
+            echo "danger=false" >> $GITHUB_OUTPUT
+          fi
+      
+      - name: Emergency Shutdown Check
+        id: emergency
+        if: steps.github-check.outputs.danger == 'true' || steps.eas-check.outputs.danger == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "🚨 EMERGENCY: Initiating protective shutdown!"
+          
+          # Cancel all running workflows
+          gh run list --status in_progress --json databaseId \
+            --jq '.[].databaseId' | while read -r RUN_ID; do
+            echo "Cancelling run: $RUN_ID"
+            gh run cancel $RUN_ID || true
+          done
+          
+          # Disable dangerous workflows
+          DANGEROUS_WORKFLOWS=(
+            "main.yml"
+            "eas-smart-build.yml"
+            "agent-executor.yml"
+            "ci.yml"
+          )
+          
+          for workflow in "${DANGEROUS_WORKFLOWS[@]}"; do
+            if [ -f ".github/workflows/$workflow" ]; then
+              echo "Disabling workflow: $workflow"
+              gh workflow disable "$workflow" 2>/dev/null || true
+            fi
+          done
+          
+          echo "shutdown_executed=true" >> $GITHUB_OUTPUT
+      
+      - name: Create Safety Worktree
+        if: steps.emergency.outputs.shutdown_executed == 'true'
+        run: |
+          echo "🔐 Creating safety worktree for protected operations..."
+          
+          # Create a safe worktree for billing protection
+          WORKTREE_PATH="/tmp/superpassword-safe-$(date +%s)"
+          git worktree add -b billing-protection "$WORKTREE_PATH" develop
+          
+          cd "$WORKTREE_PATH"
+          
+          # Create emergency config
+          cat > .github/EMERGENCY_SHUTDOWN.md << 'EOF'
+          # ⚠️ EMERGENCY BILLING PROTECTION ACTIVATED
+          
+          ## Shutdown Reason
+          - GitHub Actions: ${{ steps.github-check.outputs.daily_runs }} runs in 24h (limit: ${{ env.MAX_GITHUB_ACTIONS_PER_DAY }})
+          - EAS Builds: ${{ steps.eas-check.outputs.monthly_builds }} this month (limit: ${{ env.MAX_EAS_BUILDS_PER_MONTH }})
+          - Credits Used: ~${{ steps.eas-check.outputs.credits_used }} (limit: $30)
+          
+          ## Auto-Recovery
+          The system will automatically re-enable workflows when:
+          1. Daily GitHub Actions drops below threshold
+          2. New month starts for EAS credits
+          3. Manual override via workflow dispatch
+          
+          ## Manual Override
+          Run: `gh workflow run billing-guardian.yml -f emergency_override=true`
+          EOF
+          
+          git add .github/EMERGENCY_SHUTDOWN.md
+          git commit -m "🚨 Emergency: Billing protection activated" || true
+          git push origin billing-protection || true
+          
+          # Clean up worktree
+          cd ${{ github.workspace }}
+          git worktree remove "$WORKTREE_PATH" --force
+      
+      - name: Smart Alert System
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Prepare alert data
+          ALERT_NEEDED=false
+          ALERT_LEVEL="info"
+          ALERT_MESSAGE=""
+          
+          # Check GitHub Actions
+          if [[ "${{ steps.github-check.outputs.daily_runs }}" -gt 20 ]]; then
+            ALERT_NEEDED=true
+            ALERT_LEVEL="warning"
+            ALERT_MESSAGE="${ALERT_MESSAGE}⚠️ GitHub Actions: ${{ steps.github-check.outputs.daily_runs }}/day (80% of limit)\n"
+          fi
+          
+          # Check EAS
+          if [[ "${{ steps.eas-check.outputs.credits_used }}" -gt 20 ]]; then
+            ALERT_NEEDED=true
+            ALERT_LEVEL="warning"
+            ALERT_MESSAGE="${ALERT_MESSAGE}⚠️ EAS Credits: ~\$${{ steps.eas-check.outputs.credits_used }} used (>66% of limit)\n"
+          fi
+          
+          # Emergency alert
+          if [[ "${{ steps.emergency.outputs.shutdown_executed }}" == "true" ]]; then
+            ALERT_NEEDED=true
+            ALERT_LEVEL="critical"
+            ALERT_MESSAGE="🚨 **EMERGENCY SHUTDOWN EXECUTED**\n${ALERT_MESSAGE}"
+          fi
+          
+          # Create or update alert issue
+          if [[ "$ALERT_NEEDED" == "true" ]]; then
+            EXISTING_ISSUE=$(gh issue list \
+              --label "billing-alert" \
+              --state open \
+              --json number \
+              --jq '.[0].number')
+            
+            if [[ -n "$EXISTING_ISSUE" ]]; then
+              # Update existing issue
+              gh issue comment $EXISTING_ISSUE --body "## Billing Status Update - $(date -u +"%Y-%m-%d %H:%M UTC")
+              
+              $ALERT_MESSAGE
+              
+              ### Current Usage
+              - GitHub Actions (24h): ${{ steps.github-check.outputs.daily_runs }} runs
+              - GitHub Actions (7d): ${{ steps.github-check.outputs.weekly_runs }} runs
+              - EAS Builds (Month): ${{ steps.eas-check.outputs.monthly_builds }} builds
+              - EAS Credits Used: ~\$${{ steps.eas-check.outputs.credits_used }}
+              
+              ### Status
+              Emergency Mode: ${{ steps.emergency.outputs.shutdown_executed || 'false' }}"
+            else
+              # Create new issue
+              gh issue create \
+                --title "📊 Billing Protection Alert - $ALERT_LEVEL" \
+                --label "billing-alert,$ALERT_LEVEL" \
+                --body "$ALERT_MESSAGE
+                
+                ## Automated Billing Guardian Report
+                
+                This issue was created by the autonomous billing protection system.
+                
+                ### Current Usage
+                - GitHub Actions (24h): ${{ steps.github-check.outputs.daily_runs }} runs
+                - EAS Builds (Month): ${{ steps.eas-check.outputs.monthly_builds }} builds
+                - Estimated Credits: ~\$${{ steps.eas-check.outputs.credits_used }}
+                
+                ### Protection Status
+                - Emergency Shutdown: ${{ steps.emergency.outputs.shutdown_executed || 'false' }}
+                - Active Workflows: ${{ steps.github-check.outputs.active_runs }}
+                
+                ### Next Steps
+                1. Review usage patterns
+                2. Check for workflow loops
+                3. Consider upgrading plan if needed
+                
+                The system will continue monitoring and take action as needed."
+            fi
+          fi
+      
+      - name: Auto-Recovery Check
+        if: github.event_name == 'schedule'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "🔄 Checking for auto-recovery conditions..."
+          
+          # Check if we can re-enable workflows
+          SAFE_TO_ENABLE=true
+          
+          # Check GitHub Actions
+          if [[ "${{ steps.github-check.outputs.daily_runs }}" -gt 25 ]]; then
+            SAFE_TO_ENABLE=false
+            echo "Still too many GitHub Actions runs"
+          fi
+          
+          # Check EAS (new month = reset)
+          CURRENT_DAY=$(date +%d)
+          if [[ "$CURRENT_DAY" == "01" ]]; then
+            echo "New month detected - EAS credits reset"
+          elif [[ "${{ steps.eas-check.outputs.monthly_builds }}" -ge 4 ]]; then
+            SAFE_TO_ENABLE=false
+            echo "Still too many EAS builds this month"
+          fi
+          
+          # Re-enable if safe
+          if [[ "$SAFE_TO_ENABLE" == "true" ]]; then
+            echo "✅ Safe to re-enable workflows"
+            
+            # Re-enable safe workflows only
+            SAFE_WORKFLOWS=(
+              "ci-safe.yml"
+              "issue-management-safe.yml"
+              "workflow-monitor.yml"
+            )
+            
+            for workflow in "${SAFE_WORKFLOWS[@]}"; do
+              if [ -f ".github/workflows/$workflow" ]; then
+                echo "Re-enabling workflow: $workflow"
+                gh workflow enable "$workflow" 2>/dev/null || true
+              fi
+            done
+          fi
+      
+      - name: Update Guardian State
+        if: always()
+        run: |
+          # Update state file with current metrics
+          cat > .guardian/state/billing.json << EOF
+          {
+            "github_actions": {
+              "daily_runs": ${{ steps.github-check.outputs.daily_runs }},
+              "weekly_runs": ${{ steps.github-check.outputs.weekly_runs }},
+              "last_reset": "$(date -u +"%Y-%m-%d")",
+              "alerts_sent": 0
+            },
+            "eas": {
+              "monthly_builds": ${{ steps.eas-check.outputs.monthly_builds }},
+              "weekly_builds": ${{ steps.eas-check.outputs.weekly_builds }},
+              "last_build": "$(date -u +"%Y-%m-%dT%H:%M:%SZ")",
+              "credits_used": ${{ steps.eas-check.outputs.credits_used }},
+              "alerts_sent": 0
+            },
+            "emergency_mode": ${{ steps.emergency.outputs.shutdown_executed || 'false' }},
+            "last_check": "$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+          }
+          EOF

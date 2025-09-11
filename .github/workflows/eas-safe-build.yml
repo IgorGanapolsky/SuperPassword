@@ -1,0 +1,302 @@
+name: Safe EAS Build (Credit Protected)
+
+on:
+  workflow_dispatch:
+    inputs:
+      platform:
+        description: 'Platform to build'
+        required: true
+        type: choice
+        options:
+          - ios
+          - android
+      profile:
+        description: 'Build profile'
+        required: true
+        type: choice
+        options:
+          - development
+          - preview
+          - production
+      force:
+        description: 'Force build (override safety checks)'
+        required: false
+        type: boolean
+        default: false
+
+# Prevent concurrent builds
+concurrency:
+  group: eas-build-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  MAX_MONTHLY_BUILDS: 5  # Starter plan limit
+  CREDIT_LIMIT: 30      # $30 monthly limit
+
+jobs:
+  pre-build-check:
+    name: Pre-Build Safety Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      can_build: ${{ steps.check.outputs.can_build }}
+      reason: ${{ steps.check.outputs.reason }}
+      builds_remaining: ${{ steps.check.outputs.builds_remaining }}
+      
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        
+      - name: Check Build Credits
+        id: check
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "🔍 Checking EAS build credits..."
+          
+          # Get current month
+          MONTH_START=$(date -u -d "$(date +%Y-%m-01)" +"%Y-%m-%dT%H:%M:%SZ")
+          
+          # Count successful EAS builds this month
+          BUILDS_THIS_MONTH=$(gh api repos/${{ github.repository }}/actions/runs \
+            --jq "[.workflow_runs[] | 
+                   select((.name == \"Safe EAS Build (Credit Protected)\" or 
+                           .name == \"Smart EAS Build Management\") and 
+                          .created_at > \"$MONTH_START\" and
+                          .conclusion == \"success\")] | length")
+          
+          echo "📊 Builds this month: $BUILDS_THIS_MONTH / ${{ env.MAX_MONTHLY_BUILDS }}"
+          
+          BUILDS_REMAINING=$(({{ env.MAX_MONTHLY_BUILDS }} - BUILDS_THIS_MONTH))
+          echo "builds_remaining=$BUILDS_REMAINING" >> $GITHUB_OUTPUT
+          
+          # Check if we can build
+          if [[ "${{ inputs.force }}" == "true" ]]; then
+            echo "⚠️ Force build requested - overriding safety checks"
+            echo "can_build=true" >> $GITHUB_OUTPUT
+            echo "reason=forced" >> $GITHUB_OUTPUT
+          elif [[ $BUILDS_THIS_MONTH -ge ${{ env.MAX_MONTHLY_BUILDS }} ]]; then
+            echo "❌ Monthly build limit reached!"
+            echo "can_build=false" >> $GITHUB_OUTPUT
+            echo "reason=limit_reached" >> $GITHUB_OUTPUT
+          elif [[ $BUILDS_THIS_MONTH -eq $((${{ env.MAX_MONTHLY_BUILDS }} - 1)) ]]; then
+            echo "⚠️ Warning: This is your LAST build for the month!"
+            echo "can_build=true" >> $GITHUB_OUTPUT
+            echo "reason=last_build" >> $GITHUB_OUTPUT
+          else
+            echo "✅ Build credits available"
+            echo "can_build=true" >> $GITHUB_OUTPUT
+            echo "reason=credits_available" >> $GITHUB_OUTPUT
+          fi
+          
+          # Estimate cost
+          ESTIMATED_COST=$((BUILDS_THIS_MONTH * 6))
+          echo "💰 Estimated monthly cost so far: ~\$$ESTIMATED_COST"
+      
+      - name: Check for Duplicate Builds
+        if: steps.check.outputs.can_build == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "🔍 Checking for recent duplicate builds..."
+          
+          # Check if same platform/profile was built recently (last 24h)
+          RECENT_BUILDS=$(gh run list \
+            --workflow "eas-safe-build.yml" \
+            --limit 10 \
+            --json createdAt,status,conclusion \
+            --jq "[.[] | select(.createdAt > (now - 86400 | todate))] | length")
+          
+          if [[ $RECENT_BUILDS -gt 0 ]]; then
+            echo "⚠️ Found $RECENT_BUILDS build(s) in the last 24 hours"
+            echo "Consider if you really need another build"
+          fi
+  
+  safe-build:
+    name: Safe EAS Build
+    needs: pre-build-check
+    if: needs.pre-build-check.outputs.can_build == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45  # EAS builds can take time
+    
+    steps:
+      - name: Build Warning
+        if: needs.pre-build-check.outputs.reason == 'last_build'
+        run: |
+          echo "🚨 WARNING: This is your LAST build for the month!"
+          echo "Remaining builds: ${{ needs.pre-build-check.outputs.builds_remaining }}"
+      
+      - name: Checkout with Worktree
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Setup Worktree for Safe Build
+        id: worktree
+        run: |
+          # Create isolated worktree for build
+          WORKTREE_PATH="/tmp/eas-build-$(date +%s)"
+          git worktree add "$WORKTREE_PATH" -b eas-build-${{ github.run_id }} develop
+          echo "worktree_path=$WORKTREE_PATH" >> $GITHUB_OUTPUT
+          
+          cd "$WORKTREE_PATH"
+          
+          # Create build marker
+          echo "{
+            \"build_id\": \"${{ github.run_id }}\",
+            \"platform\": \"${{ inputs.platform }}\",
+            \"profile\": \"${{ inputs.profile }}\",
+            \"timestamp\": \"$(date -u +"%Y-%m-%dT%H:%M:%SZ")\",
+            \"credits_remaining\": ${{ needs.pre-build-check.outputs.builds_remaining }}
+          }" > .build-marker.json
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      
+      - name: Cache Dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            node_modules
+            ~/.npm
+            ~/.expo
+          key: ${{ runner.os }}-eas-safe-${{ hashFiles('**/package-lock.json') }}
+      
+      - name: Install Dependencies
+        working-directory: ${{ steps.worktree.outputs.worktree_path }}
+        run: |
+          npm ci --legacy-peer-deps
+      
+      - name: Setup Expo/EAS
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          expo-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+      
+      - name: Local Build (Development)
+        if: inputs.profile == 'development'
+        working-directory: ${{ steps.worktree.outputs.worktree_path }}
+        run: |
+          echo "🏗️ Building locally to save credits..."
+          
+          if [[ "${{ inputs.platform }}" == "ios" ]]; then
+            npx expo run:ios --no-install
+          elif [[ "${{ inputs.platform }}" == "android" ]]; then
+            npx expo run:android --no-install
+          fi
+          
+          echo "✅ Local build completed - no credits used!"
+      
+      - name: EAS Build (Preview/Production)
+        if: inputs.profile != 'development'
+        working-directory: ${{ steps.worktree.outputs.worktree_path }}
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        run: |
+          echo "🚀 Starting EAS build..."
+          echo "Platform: ${{ inputs.platform }}"
+          echo "Profile: ${{ inputs.profile }}"
+          echo "Credits remaining after this: $((${{ needs.pre-build-check.outputs.builds_remaining }} - 1))"
+          
+          # Run build with safety flags
+          eas build \
+            --platform ${{ inputs.platform }} \
+            --profile ${{ inputs.profile }} \
+            --non-interactive \
+            --no-wait \
+            --clear-cache \
+            --message "Safe build #${{ github.run_id }} - Credits: ${{ needs.pre-build-check.outputs.builds_remaining }}"
+          
+          echo "✅ Build submitted to EAS"
+      
+      - name: Cleanup Worktree
+        if: always()
+        run: |
+          if [[ -n "${{ steps.worktree.outputs.worktree_path }}" ]]; then
+            cd ${{ github.workspace }}
+            git worktree remove "${{ steps.worktree.outputs.worktree_path }}" --force || true
+          fi
+      
+      - name: Update Build Tracking
+        if: success()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Create/update build tracking issue
+          TRACKING_ISSUE=$(gh issue list \
+            --label "eas-builds" \
+            --state open \
+            --json number \
+            --jq '.[0].number')
+          
+          BUILD_INFO="## Build #${{ github.run_id }}
+          - Platform: ${{ inputs.platform }}
+          - Profile: ${{ inputs.profile }}  
+          - Time: $(date -u +"%Y-%m-%d %H:%M UTC")
+          - Credits Remaining: $((${{ needs.pre-build-check.outputs.builds_remaining }} - 1))
+          - Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          
+          if [[ -n "$TRACKING_ISSUE" ]]; then
+            gh issue comment $TRACKING_ISSUE --body "$BUILD_INFO"
+          else
+            gh issue create \
+              --title "📱 EAS Build Tracking - $(date +%B\ %Y)" \
+              --label "eas-builds,tracking" \
+              --body "## Monthly EAS Build Tracking
+              
+              This issue tracks all EAS builds to prevent credit overages.
+              
+              **Monthly Limit:** ${{ env.MAX_MONTHLY_BUILDS }} builds
+              **Credit Limit:** \$${{ env.CREDIT_LIMIT }}
+              
+              $BUILD_INFO"
+          fi
+  
+  build-denied:
+    name: Build Denied - Limit Reached
+    needs: pre-build-check
+    if: needs.pre-build-check.outputs.can_build == 'false'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Notify Limit Reached
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "❌ Build request DENIED"
+          echo "Reason: ${{ needs.pre-build-check.outputs.reason }}"
+          echo "Monthly limit: ${{ env.MAX_MONTHLY_BUILDS }} builds"
+          echo "Credits remaining: 0"
+          
+          # Create alert issue
+          gh issue create \
+            --repo ${{ github.repository }} \
+            --title "🚫 EAS Build Blocked - Monthly Limit Reached" \
+            --label "billing-alert,eas-limit" \
+            --body "## Build Request Denied
+            
+            A build was requested but blocked due to credit limits.
+            
+            **Requested Build:**
+            - Platform: ${{ inputs.platform }}
+            - Profile: ${{ inputs.profile }}
+            - Requester: @${{ github.actor }}
+            
+            **Current Status:**
+            - Monthly builds used: ${{ env.MAX_MONTHLY_BUILDS }}
+            - Credits remaining: \$0
+            - Next reset: 1st of next month
+            
+            ## Options:
+            1. Wait until next month for credit reset
+            2. Use local development builds instead
+            3. Upgrade to a higher EAS plan
+            4. Force build with override (use with caution)
+            
+            To force (will incur charges): 
+            \`gh workflow run eas-safe-build.yml -f platform=${{ inputs.platform }} -f profile=${{ inputs.profile }} -f force=true\`"
+          
+          exit 1

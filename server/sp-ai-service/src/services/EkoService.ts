@@ -1,5 +1,6 @@
-import { Eko, LLMs } from '@eko-ai/eko';
+import { Eko } from '@eko-ai/eko';
 import { BrowserAgent, FileAgent } from '@eko-ai/eko-nodejs';
+import type { LLMs } from '@eko-ai/eko/dist/types/llm.types.js';
 import type { 
   VaultAuditRequest, 
   VaultAuditResult, 
@@ -23,10 +24,12 @@ export class EkoService {
       new FileAgent()
     ];
 
-    // Create Eko instance
+    // Create Eko instance with proper config structure
     this.eko = new Eko({ 
       llms: this.llms, 
-      agents 
+      agents,
+      maxSteps: 10,
+      debug: process.env.NODE_ENV === 'development'
     });
   }
 

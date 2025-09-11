@@ -1,0 +1,8 @@
+
+> sp-ai-service@1.0.0 dev
+> tsx watch src/index.ts
+
+Firebase Admin not configured, using mock authentication for development
+[18:15:55 UTC] INFO: Server listening at http://0.0.0.0:3001
+[18:15:55 UTC] INFO: 🚀 SuperPassword AI Service running on http://0.0.0.0:3001
+[18:15:55 UTC] INFO: 📚 API Documentation available at http://0.0.0.0:3001/docs
