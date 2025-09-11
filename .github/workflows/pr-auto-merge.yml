@@ -1,0 +1,126 @@
+name: PR Auto-Merge
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  check_suite:
+    types: [completed]
+  pull_request_review:
+    types: [submitted]
+  workflow_run:
+    workflows: ["Claude Automated Review"]
+    types: [completed]
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  evaluate-pr:
+    name: Evaluate PR for Auto-Merge
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+    
+    steps:
+      - name: Check PR Status
+        id: check
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PR_NUMBER=${{ github.event.pull_request.number || github.event.workflow_run.pull_requests[0].number }}
+          
+          if [[ -z "$PR_NUMBER" ]]; then
+            echo "No PR number found"
+            exit 0
+          fi
+          
+          echo "Checking PR #$PR_NUMBER"
+          
+          # Get PR details
+          PR_DATA=$(gh pr view $PR_NUMBER \
+            --repo ${{ github.repository }} \
+            --json state,mergeable,reviews,statusCheckRollup,labels,author)
+          
+          # Check if PR is open and mergeable
+          STATE=$(echo "$PR_DATA" | jq -r '.state')
+          MERGEABLE=$(echo "$PR_DATA" | jq -r '.mergeable')
+          AUTHOR=$(echo "$PR_DATA" | jq -r '.author.login')
+          
+          if [[ "$STATE" != "OPEN" ]] || [[ "$MERGEABLE" != "MERGEABLE" ]]; then
+            echo "PR not eligible: state=$STATE, mergeable=$MERGEABLE"
+            exit 0
+          fi
+          
+          # Check for auto-merge label
+          HAS_AUTO_MERGE=$(echo "$PR_DATA" | jq -r '.labels[] | select(.name == "auto-merge") | .name')
+          if [[ -z "$HAS_AUTO_MERGE" ]]; then
+            echo "No auto-merge label found"
+            exit 0
+          fi
+          
+          # Check all status checks
+          CHECKS_PASSING=$(echo "$PR_DATA" | jq -r '
+            .statusCheckRollup | 
+            all(.[] | select(.conclusion != null); .conclusion == "SUCCESS" or .conclusion == "NEUTRAL" or .conclusion == "SKIPPED")
+          ')
+          
+          # Check for Claude approval
+          CLAUDE_APPROVED=$(echo "$PR_DATA" | jq -r '
+            .reviews[] | 
+            select(.author.login == "github-actions[bot]" and .body | contains("Claude Review")) |
+            .state == "APPROVED"
+          ' | grep -q "true" && echo "true" || echo "false")
+          
+          echo "pr_number=$PR_NUMBER" >> $GITHUB_OUTPUT
+          echo "checks_passing=$CHECKS_PASSING" >> $GITHUB_OUTPUT
+          echo "claude_approved=$CLAUDE_APPROVED" >> $GITHUB_OUTPUT
+          echo "author=$AUTHOR" >> $GITHUB_OUTPUT
+      
+      - name: Auto-Merge PR
+        if: steps.check.outputs.checks_passing == 'true' && steps.check.outputs.claude_approved == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "✅ All checks passed and Claude approved - auto-merging PR #${{ steps.check.outputs.pr_number }}"
+          
+          # Add comment
+          gh pr comment ${{ steps.check.outputs.pr_number }} \
+            --repo ${{ github.repository }} \
+            --body "🤖 **Auto-Merge**: All checks passed and Claude approved. Merging automatically."
+          
+          # Merge PR
+          gh pr merge ${{ steps.check.outputs.pr_number }} \
+            --repo ${{ github.repository }} \
+            --merge \
+            --delete-branch \
+            --subject "Auto-merge PR #${{ steps.check.outputs.pr_number }}" \
+            --body "Automatically merged by bot after all checks passed and Claude approval"
+
+  handle-failures:
+    name: Handle Failed Checks
+    runs-on: ubuntu-latest
+    if: github.event.check_suite.conclusion == 'failure' || github.event.workflow_run.conclusion == 'failure'
+    
+    steps:
+      - name: Trigger Fix Agent
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "🔧 Detected failed checks - triggering fix agent"
+          
+          # Get PR number from check suite
+          PR_NUMBER=${{ github.event.pull_request.number || github.event.workflow_run.pull_requests[0].number }}
+          
+          if [[ -n "$PR_NUMBER" ]]; then
+            # Add needs-fix label
+            gh pr edit $PR_NUMBER \
+              --repo ${{ github.repository }} \
+              --add-label "needs-fix"
+            
+            # Trigger fix workflow
+            gh workflow run pr-fix-agent.yml \
+              --repo ${{ github.repository }} \
+              --ref ${{ github.ref }} \
+              -f pr_number=$PR_NUMBER
+          fi
