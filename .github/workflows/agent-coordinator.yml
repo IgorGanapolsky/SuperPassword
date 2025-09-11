@@ -1,0 +1,276 @@
+name: Agent Coordinator
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Run every hour to coordinate agents
+    - cron: '0 * * * *'
+  repository_dispatch:
+    types: [agent-request]
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+  actions: write
+
+env:
+  MAX_CONCURRENT_AGENTS: 3
+  AGENT_TIMEOUT_MINUTES: 30
+  COORDINATION_LOCK_FILE: .agent-coordination.lock
+
+jobs:
+  coordinate:
+    name: Coordinate Agents
+    runs-on: ubuntu-latest
+    outputs:
+      active_agents: ${{ steps.status.outputs.active_agents }}
+      queued_tasks: ${{ steps.status.outputs.queued_tasks }}
+      
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: develop
+      
+      - name: Check Active Agents
+        id: status
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "🔍 Checking active agent status..."
+          
+          # Get running workflows
+          ACTIVE_WORKFLOWS=$(gh run list \
+            --workflow=agent-executor.yml \
+            --status=in_progress \
+            --json databaseId,name,startedAt \
+            --limit 20)
+          
+          ACTIVE_COUNT=$(echo "$ACTIVE_WORKFLOWS" | jq 'length')
+          echo "active_agents=$ACTIVE_COUNT" >> $GITHUB_OUTPUT
+          
+          # Get queued tasks (ai:ready issues)
+          QUEUED_ISSUES=$(gh issue list \
+            --label "ai:ready" \
+            --state open \
+            --json number,title,labels \
+            --limit 50)
+          
+          QUEUED_COUNT=$(echo "$QUEUED_ISSUES" | jq 'length')
+          echo "queued_tasks=$QUEUED_COUNT" >> $GITHUB_OUTPUT
+          
+          echo "📊 Status: $ACTIVE_COUNT active agents, $QUEUED_COUNT queued tasks"
+      
+      - name: Manage Agent Pool
+        if: steps.status.outputs.queued_tasks > 0
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          ACTIVE=${{ steps.status.outputs.active_agents }}
+          QUEUED=${{ steps.status.outputs.queued_tasks }}
+          MAX_AGENTS=${{ env.MAX_CONCURRENT_AGENTS }}
+          
+          AVAILABLE_SLOTS=$((MAX_AGENTS - ACTIVE))
+          
+          if [[ $AVAILABLE_SLOTS -gt 0 ]]; then
+            echo "🚀 Starting up to $AVAILABLE_SLOTS new agents..."
+            
+            # Trigger orchestrator with appropriate capacity
+            gh workflow run agent-orchestrator.yml \
+              --field max_agents=$AVAILABLE_SLOTS \
+              --field dry_run=false
+          else
+            echo "⏸️  Agent pool at capacity ($ACTIVE/$MAX_AGENTS)"
+          fi
+      
+      - name: Check for Stalled Agents
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "🔍 Checking for stalled agents..."
+          
+          # Find workflows running longer than timeout
+          TIMEOUT_THRESHOLD=$(($(date +%s) - ${{ env.AGENT_TIMEOUT_MINUTES }} * 60))
+          
+          gh run list \
+            --workflow=agent-executor.yml \
+            --status=in_progress \
+            --json databaseId,startedAt,url | \
+          jq -r --arg threshold "$TIMEOUT_THRESHOLD" '
+            .[] | 
+            select((.startedAt | fromdateiso8601) < ($threshold | tonumber)) |
+            .databaseId
+          ' | while read -r RUN_ID; do
+            echo "⚠️  Cancelling stalled run: $RUN_ID"
+            gh run cancel $RUN_ID || true
+          done
+      
+      - name: Resolve Conflicts
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "🔧 Checking for agent conflicts..."
+          
+          # Find issues with multiple agents (should not happen)
+          gh issue list \
+            --label "ai:in-progress" \
+            --state open \
+            --json number,title,labels | \
+          jq -r '.[] | select(.labels | map(.name) | contains(["ai:conflict"])) | .number' | \
+          while read -r ISSUE_NUM; do
+            echo "⚠️  Resolving conflict on issue #$ISSUE_NUM"
+            
+            # Remove conflict label and reset to ready
+            gh issue edit $ISSUE_NUM \
+              --remove-label "ai:in-progress,ai:conflict" \
+              --add-label "ai:ready"
+            
+            gh issue comment $ISSUE_NUM \
+              --body "🔧 **Conflict Resolution**: Reset to ready state for re-processing."
+          done
+      
+      - name: Priority Queue Management
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "📋 Managing priority queue..."
+          
+          # Prioritize critical and high priority issues
+          gh issue list \
+            --label "priority:critical" \
+            --state open \
+            --json number,labels | \
+          jq -r '.[] | select(.labels | map(.name) | contains(["ai:ready"]) | not) | .number' | \
+          while read -r ISSUE_NUM; do
+            echo "🔴 Adding critical issue #$ISSUE_NUM to queue"
+            gh issue edit $ISSUE_NUM --add-label "ai:ready"
+          done
+          
+          # Check high priority issues
+          gh issue list \
+            --label "priority:high" \
+            --state open \
+            --json number,labels | \
+          jq -r '.[] | select(.labels | map(.name) | contains(["ai:ready","ai:in-progress"]) | not) | .number' | \
+          head -3 | while read -r ISSUE_NUM; do
+            echo "🟠 Adding high priority issue #$ISSUE_NUM to queue"
+            gh issue edit $ISSUE_NUM --add-label "ai:ready"
+          done
+      
+      - name: Agent Communication Hub
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "💬 Processing inter-agent communications..."
+          
+          # Create communication file for agents
+          mkdir -p .agent-comms
+          
+          cat > .agent-comms/status.json << EOF
+          {
+            "timestamp": "$(date -u +"%Y-%m-%dT%H:%M:%SZ")",
+            "active_agents": ${{ steps.status.outputs.active_agents }},
+            "queued_tasks": ${{ steps.status.outputs.queued_tasks }},
+            "max_capacity": ${{ env.MAX_CONCURRENT_AGENTS }},
+            "coordination_run": "${{ github.run_id }}"
+          }
+          EOF
+          
+          # Check for agent messages (via PR comments)
+          gh pr list \
+            --label "ai:generated" \
+            --state open \
+            --json number,title | \
+          jq -r '.[].number' | while read -r PR_NUM; do
+            # Look for agent coordination requests
+            LAST_COMMENT=$(gh pr view $PR_NUM --json comments --jq '.comments[-1].body' 2>/dev/null || echo "")
+            
+            if echo "$LAST_COMMENT" | grep -q "@agent-coordinator"; then
+              echo "📨 Processing coordination request from PR #$PR_NUM"
+              
+              # Parse and handle the request
+              if echo "$LAST_COMMENT" | grep -q "needs-review"; then
+                gh pr edit $PR_NUM --add-label "ai:review-needed"
+              elif echo "$LAST_COMMENT" | grep -q "blocked"; then
+                gh pr edit $PR_NUM --add-label "ai:blocked"
+              fi
+            fi
+          done
+      
+      - name: Generate Coordination Report
+        if: always()
+        run: |
+          echo "## 🎯 Agent Coordination Report" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Current Status" >> $GITHUB_STEP_SUMMARY
+          echo "- **Active Agents**: ${{ steps.status.outputs.active_agents }}/${{ env.MAX_CONCURRENT_AGENTS }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Queued Tasks**: ${{ steps.status.outputs.queued_tasks }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Coordination Run**: #${{ github.run_number }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Add performance metrics
+          echo "### Performance Metrics" >> $GITHUB_STEP_SUMMARY
+          echo "- **Utilization**: $(( ${{ steps.status.outputs.active_agents }} * 100 / ${{ env.MAX_CONCURRENT_AGENTS }} ))%" >> $GITHUB_STEP_SUMMARY
+          echo "- **Queue Depth**: ${{ steps.status.outputs.queued_tasks }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Add recommendations
+          echo "### Recommendations" >> $GITHUB_STEP_SUMMARY
+          if [[ ${{ steps.status.outputs.queued_tasks }} -gt 10 ]]; then
+            echo "⚠️ High queue depth detected. Consider:" >> $GITHUB_STEP_SUMMARY
+            echo "- Increasing MAX_CONCURRENT_AGENTS" >> $GITHUB_STEP_SUMMARY
+            echo "- Reviewing task complexity" >> $GITHUB_STEP_SUMMARY
+            echo "- Prioritizing critical issues" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "✅ System operating normally" >> $GITHUB_STEP_SUMMARY
+          fi
+
+  health-check:
+    name: System Health Check
+    needs: coordinate
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Check Worktree Health
+        run: |
+          echo "🏥 Checking worktree health..."
+          
+          # This would normally SSH to the development machine
+          # For now, we'll document the check process
+          cat << 'HEALTH_CHECK'
+          Worktree Health Checks:
+          1. Verify each worktree is on correct branch
+          2. Check for uncommitted changes
+          3. Ensure no merge conflicts
+          4. Validate worktree isolation
+          5. Clean up abandoned worktrees
+          HEALTH_CHECK
+      
+      - name: Monitor Resource Usage
+        run: |
+          echo "📊 Resource monitoring..."
+          
+          # Document resource considerations
+          cat << 'RESOURCES'
+          Resource Monitoring:
+          - GitHub Actions minutes used
+          - API rate limits
+          - Disk space for worktrees
+          - Network bandwidth
+          - Concurrent job limits
+          RESOURCES
+      
+      - name: Alert on Issues
+        if: needs.coordinate.outputs.queued_tasks > 20
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "🚨 High queue alert!"
+          
+          # Create or update monitoring issue
+          gh issue create \
+            --title "🚨 Agent System Alert: High Queue Depth" \
+            --body "The agent queue has ${{ needs.coordinate.outputs.queued_tasks }} pending tasks. Manual intervention may be required." \
+            --label "ai:system,priority:high" \
+            2>/dev/null || echo "Alert issue already exists"
