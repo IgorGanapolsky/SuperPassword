@@ -15,12 +15,13 @@ on:
     paths-ignore:
       - "**.md"
       - "docs/**"
-  schedule:
-    - cron: "*/30 * * * *" # Run metrics every 30 minutes
-  issues:
-    types: [opened, edited, labeled, unlabeled, reopened, assigned, unassigned]
-  issue_comment:
-    types: [created]
+  # TEMPORARILY DISABLED TO PREVENT WORKFLOW LOOPS
+  # schedule:
+  #   - cron: "*/30 * * * *" # Run metrics every 30 minutes
+  # issues:
+  #   types: [opened, edited, labeled, unlabeled, reopened, assigned, unassigned]
+  # issue_comment:
+  #   types: [created]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}

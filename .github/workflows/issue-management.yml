@@ -5,8 +5,9 @@ on:
     types: [opened, edited, labeled, unlabeled, assigned, unassigned, reopened]
   issue_comment:
     types: [created]
-  schedule:
-    - cron: "0 * * * *" # Run hourly
+  # TEMPORARILY DISABLED TO PREVENT EXCESSIVE RUNS  
+  # schedule:
+  #   - cron: "0 * * * *" # Run hourly
 
 permissions:
   issues: write

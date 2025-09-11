@@ -5,8 +5,9 @@ on:
     types: [opened, closed, assigned, unassigned, labeled, unlabeled]
   pull_request:
     types: [opened, closed, ready_for_review]
-  schedule:
-    - cron: "*/15 * * * *" # Run every 15 minutes
+  # TEMPORARILY DISABLED TO PREVENT EXCESSIVE RUNS
+  # schedule:
+  #   - cron: "*/15 * * * *" # Run every 15 minutes
 
 permissions:
   issues: write
