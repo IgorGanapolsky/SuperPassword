@@ -118,12 +118,17 @@ jobs:
                 --repo ${{ github.repository }} \
                 --body "$COMMENT_BODY" > /dev/null 2>&1
               
+              # Re-enable command echoing
+              set -x
+              
               # Add to claimed issues
               CLAIMED_ISSUES=$(echo "$CLAIMED_ISSUES" | jq ". += [{\"number\": $ISSUE_NUM}]")
             fi
           done
           
-          echo "issues_matrix=$CLAIMED_ISSUES" >> $GITHUB_OUTPUT
+          # Ensure JSON is properly formatted for GitHub Output
+          CLAIMED_JSON=$(echo "$CLAIMED_ISSUES" | jq -c '.')
+          echo "issues_matrix=$CLAIMED_JSON" >> $GITHUB_OUTPUT
   
   execute:
     name: Execute Agent (${{ matrix.issue.number }})
