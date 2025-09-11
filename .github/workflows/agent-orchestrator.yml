@@ -127,11 +127,11 @@ jobs:
   execute:
     name: Execute Agent (${{ matrix.issue.number }})
     needs: prepare
-    if: needs.prepare.outputs.issues_matrix != '[]'
+    if: needs.prepare.outputs.issues_matrix != '[]' && needs.prepare.outputs.issues_matrix != null
     strategy:
       matrix:
         issue: ${{ fromJson(needs.prepare.outputs.issues_matrix) }}
-      max-parallel: ${{ inputs.max_agents || 2 }}
+      max-parallel: 2
       fail-fast: false
     uses: ./.github/workflows/agent-executor.yml
     with:
@@ -141,7 +141,7 @@ jobs:
 
   summary:
     name: Orchestration Summary
-    needs: [discover, execute]
+    needs: [discover, prepare]
     if: always()
     runs-on: ubuntu-latest
     
