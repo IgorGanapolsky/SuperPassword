@@ -5,7 +5,7 @@ on:
     inputs:
       issue_number:
         description: 'Issue number to work on'
-        type: number
+        type: string
         required: true
       dry_run:
         description: 'Plan-only mode (no execution)'

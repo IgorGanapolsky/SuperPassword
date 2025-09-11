@@ -135,7 +135,7 @@ jobs:
       fail-fast: false
     uses: ./.github/workflows/agent-executor.yml
     with:
-      issue_number: ${{ matrix.issue.number }}
+      issue_number: '${{ matrix.issue.number }}'
       dry_run: ${{ inputs.dry_run || true }}
     secrets: inherit
 
