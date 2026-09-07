@@ -55,6 +55,28 @@ def constrain_path(path: Path, allowed_roots: list[Path]) -> Path:
     raise ValueError(f"path escapes allowed roots: {path}")
 
 
+def _safe_fs_path(path: Path, allowed_roots: list[Path]) -> str:
+    """Rebuild a path inside an allowed root (S8707 sanitizer).
+
+    User-controlled Path objects stay tainted through constrain_path.
+    Reconstruct with realpath + join + normpath + prefix check so the
+    filesystem sink never receives the original tainted value.
+    """
+    raw = os.path.realpath(os.fspath(path))
+    for root in allowed_roots:
+        base = os.path.realpath(os.fspath(root))
+        prefix = base + os.sep
+        if raw != base and not raw.startswith(prefix):
+            continue
+        rel = os.path.relpath(raw, base)
+        if rel.startswith("..") or os.path.isabs(rel):
+            continue
+        fullpath = os.path.normpath(os.path.join(base, rel))
+        if fullpath == base or fullpath.startswith(prefix):
+            return fullpath
+    raise ValueError(f"path escapes allowed roots: {path}")
+
+
 def _now_iso() -> str:
     return datetime.now(tz=_UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
 
@@ -153,10 +175,12 @@ def _hook_for(runtime: str, hook_event: Optional[str], context: str) -> dict[str
 
 
 def _write_artifact(path: Path, payload: dict[str, Any], allowed: list[Path]) -> Path:
-    safe = constrain_path(path, allowed)
-    safe.parent.mkdir(parents=True, exist_ok=True)
-    safe.write_text(json.dumps(payload, indent=2) + "\n")
-    return safe
+    fullpath = _safe_fs_path(path, allowed)
+    os.makedirs(os.path.dirname(fullpath), exist_ok=True)
+    text = json.dumps(payload, indent=2) + "\n"
+    with open(fullpath, "w", encoding="utf-8") as handle:
+        handle.write(text)
+    return Path(fullpath)
 
 
 def _maintain(mgr: MemoryManager, do_ingest: bool, do_maintain: bool) -> tuple[int, int, int]:
@@ -263,9 +287,11 @@ def _cli_memory_dir(raw: Optional[str]) -> Path:
 
 
 def _cli_artifact(raw: Optional[str], mode: str) -> Path:
-    if raw:
-        return constrain_path(Path(raw), [_REPO_ROOT])
-    return CI_ARTIFACT if mode == "ci" else DEFAULT_ARTIFACT
+    """CLI never forwards a user Path to the write sink — fixed artifacts only."""
+    target = CI_ARTIFACT if mode == "ci" else DEFAULT_ARTIFACT
+    if raw and Path(raw).name != target.name:
+        raise ValueError("artifact name not allowed")
+    return target
 
 
 def _cli_flags(mode: str, no_ingest: bool, no_maintain: bool) -> tuple[bool, bool]:

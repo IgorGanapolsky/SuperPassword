@@ -177,6 +177,27 @@ class AutowireCoreTests(unittest.TestCase):
                     sync_claude_hooks=False,
                 )
 
+    def test_cli_artifact_is_fixed_path_not_user_path(self) -> None:
+        self.assertEqual(autowire._cli_artifact(None, "ci"), autowire.CI_ARTIFACT)
+        self.assertEqual(
+            autowire._cli_artifact("/tmp/rose_lite_autowire.json", "ci"),
+            autowire.CI_ARTIFACT,
+        )
+        with self.assertRaises(ValueError):
+            autowire._cli_artifact("/etc/passwd", "ci")
+
+    def test_safe_fs_path_rejects_escape_after_join(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            with self.assertRaises(ValueError):
+                autowire._safe_fs_path(Path("/etc/passwd"), [root])
+            dest = root / "out" / "rose.json"
+            dest.parent.mkdir()
+            dest.write_text("{}\n")
+            rebuilt = Path(autowire._safe_fs_path(dest, [root]))
+            self.assertEqual(rebuilt.resolve(), dest.resolve())
+            self.assertTrue(str(rebuilt).startswith(str(root.resolve())))
+
     def test_resolve_query_falls_back_to_git_branch(self) -> None:
         with mock.patch.object(
             autowire,
