@@ -3,9 +3,12 @@
 from __future__ import annotations
 
 import json
+import shutil
+import subprocess
 import sys
 import tempfile
 import unittest
+from io import StringIO
 from pathlib import Path
 from unittest import mock
 
@@ -219,10 +222,14 @@ class HookContractTests(unittest.TestCase):
         self.assertIn("UserPromptSubmit", hooks)
         session_cmd = json.dumps(hooks["SessionStart"])
         prompt_cmd = json.dumps(hooks["UserPromptSubmit"])
-        self.assertIn("autowire.py", session_cmd)
-        self.assertIn("session-start", session_cmd)
-        self.assertIn("autowire.py", prompt_cmd)
-        self.assertIn("prompt-context", prompt_cmd)
+        self.assertTrue(
+            "autowire.py" in session_cmd or "rose-lite-session.sh" in session_cmd,
+            "Claude SessionStart must invoke autowire or its fail-open wrapper",
+        )
+        self.assertTrue(
+            "autowire.py" in prompt_cmd or "rose-lite-prompt.sh" in prompt_cmd,
+            "Claude UserPromptSubmit must invoke autowire or its fail-open wrapper",
+        )
 
         apply_script = ROOT / "scripts" / "agent_rose_lite" / "apply_claude_hooks.py"
         self.assertTrue(apply_script.exists())
@@ -235,7 +242,43 @@ class HookContractTests(unittest.TestCase):
         self.assertIn("sessionStart", data["hooks"])
         self.assertIn("beforeSubmitPrompt", data["hooks"])
         blob = json.dumps(data)
-        self.assertIn("autowire.py", blob)
+        self.assertTrue(
+            "autowire.py" in blob or "rose-lite-session.sh" in blob,
+            "Cursor hooks must invoke ROSE-lite autowire or its fail-open wrapper",
+        )
+
+    def test_cursor_wrapper_missing_autowire_is_fail_open(self) -> None:
+        src = ROOT / ".cursor" / "hooks" / "rose-lite-session.sh"
+        self.assertTrue(src.exists(), "fail-open Cursor wrapper required")
+        root = ROOT / ".tmp" / "rose-lite-hook-fail-open"
+        if root.exists():
+            shutil.rmtree(root)
+        hook_dir = root / "hooks"
+        hook_dir.mkdir(parents=True, exist_ok=True)
+        dest = hook_dir / "rose-lite-session.sh"
+        dest.write_text(src.read_text())
+        dest.chmod(0o755)
+        try:
+            completed = subprocess.run(
+                ["bash", str(dest)],
+                capture_output=True,
+                text=True,
+                timeout=10,
+            )
+        finally:
+            shutil.rmtree(root, ignore_errors=True)
+        self.assertEqual(completed.returncode, 0)
+        self.assertIn("not verified", completed.stdout.lower())
+
+    def test_cli_never_blocks_on_unexpected_error(self) -> None:
+        with mock.patch.object(
+            autowire, "run_autowire", side_effect=RuntimeError("boom")
+        ):
+            with mock.patch.object(sys, "stdout", new=StringIO()):
+                code = autowire.main(
+                    ["--mode", "session-start", "--runtime", "cursor"]
+                )
+        self.assertEqual(code, 0)
 
     def test_workflow_exists_for_daily_maintain(self) -> None:
         wf = ROOT / ".github" / "workflows" / "rose-lite-autowire.yml"

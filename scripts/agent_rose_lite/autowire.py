@@ -241,7 +241,10 @@ def run_autowire(
         except Exception:
             pass
 
-    pool = mgr.recall(scene=None, query=resolved, limit=max(limit * 3, 16))
+    try:
+        pool = mgr.recall(scene=None, query=resolved, limit=max(limit * 3, 16))
+    except TypeError:
+        pool = mgr.recall(scene=None, limit=max(limit * 3, 16))
     cells = rank_cells(pool, decision, now_iso=_now_iso(), limit=limit)
     context = render_brief(decision, cells)
     payload: dict[str, Any] = {
@@ -349,18 +352,30 @@ def main(argv: Optional[list[str]] = None) -> int:
     args = parser.parse_args(argv)
 
     do_ingest, do_maintain = _cli_flags(args.mode, args.no_ingest, args.no_maintain)
-    stdin_text = sys.stdin.read() if not sys.stdin.isatty() else ""
-    result = run_autowire(
-        mode=args.mode,
-        query=args.query,
-        memory_dir=_cli_memory_dir(args.memory_dir),
-        artifact_path=_cli_artifact(args.artifact, args.mode),
-        do_ingest=do_ingest,
-        do_maintain=do_maintain,
-        runtime=args.runtime,
-        hook_event=_cli_hook_event(args.hook_event, args.mode, args.runtime),
-        stdin_text=stdin_text,
-    )
+    try:
+        stdin_text = sys.stdin.read() if not sys.stdin.isatty() else ""
+    except (OSError, ValueError):
+        stdin_text = ""
+    try:
+        result = run_autowire(
+            mode=args.mode,
+            query=args.query,
+            memory_dir=_cli_memory_dir(args.memory_dir),
+            artifact_path=_cli_artifact(args.artifact, args.mode),
+            do_ingest=do_ingest,
+            do_maintain=do_maintain,
+            runtime=args.runtime,
+            hook_event=_cli_hook_event(args.hook_event, args.mode, args.runtime),
+            stdin_text=stdin_text,
+        )
+    except Exception:
+        unverified = "ROSE-lite not verified"
+        print(json.dumps(_hook_for(
+            args.runtime,
+            _cli_hook_event(args.hook_event, args.mode, args.runtime),
+            unverified,
+        ) or {"ok": False, "verified": False, "reason": unverified}))
+        return 0
     _emit_result(
         result,
         print_hook_json=args.print_hook_json,
@@ -371,4 +386,12 @@ def main(argv: Optional[list[str]] = None) -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    try:
+        raise SystemExit(main())
+    except SystemExit as exc:
+        if exc.code not in (0, None):
+            raise SystemExit(0)
+        raise
+    except Exception:
+        print(json.dumps({"ok": False, "verified": False, "reason": "ROSE-lite not verified"}))
+        raise SystemExit(0)
