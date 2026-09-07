@@ -155,39 +155,33 @@ def _recency(cell: dict, now: datetime) -> float:
     return math.exp(-age_days / 14.0)
 
 
-def rank_cells(
-    cells: list[dict],
+def _score_cell(
+    cell: dict,
     decision: IntentDecision,
-    *,
-    now_iso: str,
-    limit: int = 5,
-    embed_dim: int = 64,
-) -> list[dict]:
-    now = _parse_ts(now_iso) or datetime.now(tz=_UTC)
-    emb = MatryoshkaEmbedder(dims=(max(embed_dim, 64), 64, 32, 16))
-    qv = emb.embed(decision.query or "", dim=embed_dim)
+    qv: list[float],
+    emb: MatryoshkaEmbedder,
+    now: datetime,
+    embed_dim: int,
+) -> dict:
     boosts = _TYPE_BOOST.get(decision.intent, _TYPE_BOOST["general"])
-    scored: list[dict] = []
-    for cell in cells:
-        content = str(cell.get("content") or "")
-        cosine = cosine_similarity(qv, emb.embed(content, dim=embed_dim))
-        salience = float(cell.get("salience") or 0)
-        evidence = min(1.0, 0.15 * math.log1p(float(cell.get("evidence_count") or 1)))
-        type_boost = boosts.get(str(cell.get("cell_type") or ""), 0.0)
-        scene_boost = 0.12 if decision.scene and cell.get("scene") == decision.scene else 0.0
-        score = (
-            0.40 * cosine
-            + 0.22 * salience
-            + 0.16 * _recency(cell, now)
-            + evidence
-            + type_boost
-            + scene_boost
-        )
-        row = dict(cell)
-        row["score"] = round(score, 4)
-        scored.append(row)
-    scored.sort(key=lambda c: c["score"], reverse=True)
-    # Light diversity: keep at most 3 cells from the same scene.
+    content = str(cell.get("content") or "")
+    cosine = cosine_similarity(qv, emb.embed(content, dim=embed_dim))
+    evidence = min(1.0, 0.15 * math.log1p(float(cell.get("evidence_count") or 1)))
+    scene_boost = 0.12 if decision.scene and cell.get("scene") == decision.scene else 0.0
+    score = (
+        0.40 * cosine
+        + 0.22 * float(cell.get("salience") or 0)
+        + 0.16 * _recency(cell, now)
+        + evidence
+        + boosts.get(str(cell.get("cell_type") or ""), 0.0)
+        + scene_boost
+    )
+    row = dict(cell)
+    row["score"] = round(score, 4)
+    return row
+
+
+def _diversify(scored: list[dict], limit: int) -> list[dict]:
     picked: list[dict] = []
     scene_counts: dict[str, int] = {}
     for cell in scored:
@@ -199,6 +193,22 @@ def rank_cells(
         if len(picked) >= limit:
             break
     return picked
+
+
+def rank_cells(
+    cells: list[dict],
+    decision: IntentDecision,
+    *,
+    now_iso: str,
+    limit: int = 5,
+    embed_dim: int = 64,
+) -> list[dict]:
+    now = _parse_ts(now_iso) or datetime.now(tz=_UTC)
+    emb = MatryoshkaEmbedder(dims=(max(embed_dim, 64), 64, 32, 16))
+    qv = emb.embed(decision.query or "", dim=embed_dim)
+    scored = [_score_cell(c, decision, qv, emb, now, embed_dim) for c in cells]
+    scored.sort(key=lambda c: c["score"], reverse=True)
+    return _diversify(scored, limit)
 
 
 def render_brief(decision: IntentDecision, ranked: list[dict]) -> str:

@@ -144,6 +144,37 @@ def _cursor_hook_stdout(additional: str) -> dict[str, Any]:
     return {"additional_context": additional}
 
 
+def _hook_for(runtime: str, hook_event: Optional[str], context: str) -> dict[str, Any]:
+    if runtime == "claude" and hook_event:
+        return _claude_hook_stdout(hook_event, context)
+    if runtime == "cursor":
+        return _cursor_hook_stdout(context)
+    return {}
+
+
+def _write_artifact(path: Path, payload: dict[str, Any], allowed: list[Path]) -> Path:
+    safe = constrain_path(path, allowed)
+    safe.parent.mkdir(parents=True, exist_ok=True)
+    safe.write_text(json.dumps(payload, indent=2) + "\n")
+    return safe
+
+
+def _maintain(mgr: MemoryManager, do_ingest: bool, do_maintain: bool) -> tuple[int, int, int]:
+    ingested = pruned = merged = 0
+    if do_ingest:
+        try:
+            ingested = mgr.ingest_all_unprocessed()
+        except OSError:
+            ingested = 0
+    if do_maintain:
+        try:
+            pruned = mgr.decay()
+            merged = mgr.consolidate()
+        except OSError:
+            pruned = merged = 0
+    return ingested, pruned, merged
+
+
 def run_autowire(
     *,
     mode: str,
@@ -166,39 +197,18 @@ def run_autowire(
     resolved = resolve_query(query, stdin_text=stdin_text, env=env)
     prior = _load_prior(artifact_path)
     if mode == "prompt-context" and should_reuse_prior(prior, resolved):
-        context = str(prior.get("context") or "")
-        hook_stdout: dict[str, Any] = {}
-        if runtime == "claude" and hook_event:
-            hook_stdout = _claude_hook_stdout(hook_event, context)
-        elif runtime == "cursor":
-            hook_stdout = _cursor_hook_stdout(context)
+        context = str((prior or {}).get("context") or "")
         return {
             "query": resolved,
             "artifact_path": str(artifact_path),
-            "payload": {**prior, "reused": True, "query": resolved},
-            "hook_stdout": hook_stdout,
+            "payload": {**(prior or {}), "reused": True, "query": resolved},
+            "hook_stdout": _hook_for(runtime, hook_event, context),
         }
 
     mgr = MemoryManager(memory_dir=memory_dir)
     decision = classify_intent(resolved)
+    ingested, pruned, merged = _maintain(mgr, do_ingest, do_maintain)
 
-    ingested = 0
-    pruned = 0
-    merged = 0
-    if do_ingest:
-        try:
-            ingested = mgr.ingest_all_unprocessed()
-        except OSError:
-            ingested = 0
-    if do_maintain:
-        try:
-            pruned = mgr.decay()
-            merged = mgr.consolidate()
-        except OSError:
-            pruned = 0
-            merged = 0
-
-    # Keep Claude Code hooks in sync with the tracked manifest (fail-open).
     if sync_claude_hooks and mode in ("session-start", "ci"):
         try:
             from agent_rose_lite.apply_claude_hooks import apply as apply_hooks
@@ -210,8 +220,6 @@ def run_autowire(
     pool = mgr.recall(scene=None, query=resolved, limit=max(limit * 3, 16))
     cells = rank_cells(pool, decision, now_iso=_now_iso(), limit=limit)
     context = render_brief(decision, cells)
-    stats = mgr.stats()
-
     payload: dict[str, Any] = {
         "generated_at": _now_iso(),
         "mode": mode,
@@ -236,24 +244,15 @@ def run_autowire(
             }
             for c in cells
         ],
-        "stats": stats,
+        "stats": mgr.stats(),
         "context": context,
     }
-
-    artifact_path.parent.mkdir(parents=True, exist_ok=True)
-    artifact_path.write_text(json.dumps(payload, indent=2) + "\n")
-
-    hook_stdout: dict[str, Any] = {}
-    if runtime == "claude" and hook_event:
-        hook_stdout = _claude_hook_stdout(hook_event, context)
-    elif runtime == "cursor":
-        hook_stdout = _cursor_hook_stdout(context)
-
+    written = _write_artifact(artifact_path, payload, allowed)
     return {
         "query": resolved,
-        "artifact_path": str(artifact_path),
+        "artifact_path": str(written),
         "payload": payload,
-        "hook_stdout": hook_stdout,
+        "hook_stdout": _hook_for(runtime, hook_event, context),
     }
 
 
