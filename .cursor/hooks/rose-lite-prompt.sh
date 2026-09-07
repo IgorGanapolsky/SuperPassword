@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Cursor sessionStart wrapper. Canonical: scripts/agent_rose_lite/autowire.py
+# Cursor beforeSubmitPrompt wrapper. Canonical: scripts/agent_rose_lite/autowire.py
 # Fail-open: a missing or failing autowire must never block the agent session.
 set -u
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
@@ -9,6 +9,6 @@ if [[ ! -f "$SCRIPT" ]]; then
   printf '%s\n' '{"additional_context":"ROSE-lite not verified (autowire missing)"}'
   exit 0
 fi
-python3 "$SCRIPT" --mode session-start --runtime cursor --hook-event sessionStart \
+python3 "$SCRIPT" --mode prompt-context --runtime cursor --hook-event beforeSubmitPrompt \
   || printf '%s\n' '{"additional_context":"ROSE-lite not verified (autowire failed)"}'
 exit 0
