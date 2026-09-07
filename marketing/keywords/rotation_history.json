@@ -27,14 +27,42 @@
         "Random Tactical Timer - App Boxing Drills",
         "Random Tactical Timer - App Focus Drills"
       ]
+    },
+    {
+      "timestamp": "2026-09-07T10:18:50.421686+00:00",
+      "current_keyword_count": 11,
+      "performing": 0,
+      "underperforming": 11,
+      "replacements_selected": [
+        "app bjj rounds",
+        "app sparring prep",
+        "app boxing drills"
+      ],
+      "removed_keywords": [
+        "bjj",
+        "hiit",
+        "sparring"
+      ],
+      "data_sources": [
+        "simulated"
+      ],
+      "posthog_feedback_available": false,
+      "dry_run": false,
+      "new_ios_keywords": "app bjj rounds,app sparring prep,app boxing drills",
+      "title_variants": [
+        "Random Tactical Timer",
+        "Random Tactical Timer - App Bjj Rounds",
+        "Random Tactical Timer - App Sparring Prep",
+        "Random Tactical Timer - App Boxing Drills"
+      ]
     }
   ],
   "current_keywords": {
     "ios": [
+      "app bjj rounds",
       "app sparring prep",
-      "app boxing drills",
-      "app focus drills"
+      "app boxing drills"
     ],
-    "updated_at": "2026-05-07T19:39:26.135313+00:00"
+    "updated_at": "2026-09-07T10:18:50.421686+00:00"
   }
 }

@@ -1,1 +1,1 @@
-bjj,hiit,sparring,wrestling,muaythai,tabata,crossfit,reaction,jiujitsu,wod,kickboxing
+app bjj rounds,app sparring prep,app boxing drills
