@@ -93,3 +93,15 @@ Large context + multimodal; dump relevant files and ask for global analysis.
 
 Hard cap **$20 USD/month** external spend. HydraFusion local routing is free.
 Do not purchase Copilot HydraFusion preview seats without CEO approval.
+
+
+## Day-0 OSS Bringup (Perplexity ROSE pattern)
+
+Before spending any budget on a new open-weight model (`gpt-oss-*`, local MLX, Ollama):
+
+1. Run `scripts/agent_rose_lite/day0.py` probes (`harmony_tokenizer`, `local_mlx_or_ollama`, `fp8_or_int4`).
+2. Prefer **local zero-cost** path when available.
+3. Never auto-start paid GPU serving; `estimated_monthly_usd` must stay ≤ `$20`.
+4. Promote only when `tp1_smoke=ok` and `within_budget=true`.
+
+Retrieval for agent memory uses ROSE-lite hybrid recall (`memory_manager.py --recall --query ...`) — Matryoshka hash embeddings + salience, not a paid vector DB.
