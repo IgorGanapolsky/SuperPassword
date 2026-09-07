@@ -352,7 +352,10 @@ def main(argv: Optional[list[str]] = None) -> int:
     args = parser.parse_args(argv)
 
     do_ingest, do_maintain = _cli_flags(args.mode, args.no_ingest, args.no_maintain)
-    stdin_text = sys.stdin.read() if not sys.stdin.isatty() else ""
+    try:
+        stdin_text = sys.stdin.read() if not sys.stdin.isatty() else ""
+    except (OSError, ValueError):
+        stdin_text = ""
     try:
         result = run_autowire(
             mode=args.mode,
