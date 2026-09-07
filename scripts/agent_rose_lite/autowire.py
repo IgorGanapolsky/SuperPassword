@@ -28,12 +28,25 @@ if str(_REPO_ROOT / "scripts") not in sys.path:
 from memory_manager import MemoryManager, format_recall  # noqa: E402
 
 _UTC = timezone.utc
+_CLAUDE_DIR = ".claude"
 DEFAULT_ARTIFACT = (
-    _REPO_ROOT / ".claude" / "memory" / "rose_lite_session.json"
+    _REPO_ROOT / _CLAUDE_DIR / "memory" / "rose_lite_session.json"
 )
 CI_ARTIFACT = (
     _REPO_ROOT / "marketing" / "data" / "rose_lite_autowire.json"
 )
+
+
+def constrain_path(path: Path, allowed_roots: list[Path]) -> Path:
+    """Reject paths that escape the repo or the caller-owned memory tree."""
+    resolved = path.expanduser().resolve()
+    for root in allowed_roots:
+        try:
+            resolved.relative_to(root.expanduser().resolve())
+            return resolved
+        except ValueError:
+            continue
+    raise ValueError(f"path escapes allowed roots: {path}")
 
 
 def _now_iso() -> str:
@@ -138,6 +151,9 @@ def run_autowire(
     sync_claude_hooks: bool = True,
 ) -> dict[str, Any]:
     env = env if env is not None else os.environ
+    allowed = [_REPO_ROOT, memory_dir, memory_dir.parent]
+    memory_dir = constrain_path(memory_dir, allowed)
+    artifact_path = constrain_path(artifact_path, allowed)
     resolved = resolve_query(query, stdin_text=stdin_text, env=env)
     mgr = MemoryManager(memory_dir=memory_dir)
 
@@ -220,6 +236,52 @@ def run_autowire(
     }
 
 
+def _cli_memory_dir(raw: Optional[str]) -> Path:
+    if raw:
+        return constrain_path(Path(raw), [_REPO_ROOT])
+    return _REPO_ROOT / _CLAUDE_DIR / "memory"
+
+
+def _cli_artifact(raw: Optional[str], mode: str) -> Path:
+    if raw:
+        return constrain_path(Path(raw), [_REPO_ROOT])
+    return CI_ARTIFACT if mode == "ci" else DEFAULT_ARTIFACT
+
+
+def _cli_flags(mode: str, no_ingest: bool, no_maintain: bool) -> tuple[bool, bool]:
+    if mode == "prompt-context":
+        return False, False
+    do_maintain = mode in ("session-start", "ci", "maintain") and not no_maintain
+    return (not no_ingest), do_maintain
+
+
+def _cli_hook_event(explicit: Optional[str], mode: str, runtime: str) -> Optional[str]:
+    if explicit:
+        return explicit
+    table = {
+        ("session-start", "claude"): "SessionStart",
+        ("prompt-context", "claude"): "UserPromptSubmit",
+        ("session-start", "cursor"): "sessionStart",
+        ("prompt-context", "cursor"): "beforeSubmitPrompt",
+    }
+    return table.get((mode, runtime))
+
+
+def _emit_result(result: dict[str, Any], *, print_hook_json: bool, runtime: str, mode: str) -> None:
+    hook = result["hook_stdout"]
+    if print_hook_json and hook:
+        print(json.dumps(hook, ensure_ascii=True))
+        return
+    if runtime == "ci" or mode == "ci":
+        print(json.dumps(
+            {"ok": True, "artifact": result["artifact_path"],
+             "recalled": result["payload"]["recalled"]},
+            ensure_ascii=True,
+        ))
+        return
+    print(json.dumps(hook if hook else {"ok": True, "artifact": result["artifact_path"]}))
+
+
 def main(argv: Optional[list[str]] = None) -> int:
     parser = argparse.ArgumentParser(
         description="Autowire ROSE-lite memory for agents/CI (no human CLI)."
@@ -240,68 +302,25 @@ def main(argv: Optional[list[str]] = None) -> int:
                         help="Emit Claude/Cursor hook JSON on stdout")
     args = parser.parse_args(argv)
 
-    memory_dir = (
-        Path(args.memory_dir)
-        if args.memory_dir
-        else _REPO_ROOT / ".claude" / "memory"
-    )
-
-    if args.artifact:
-        artifact = Path(args.artifact)
-    elif args.mode == "ci":
-        artifact = CI_ARTIFACT
-    else:
-        artifact = DEFAULT_ARTIFACT
-
-    # Prompt hooks stay latency-light: recall only. Session/CI maintain cells.
-    if args.mode == "prompt-context":
-        do_ingest = False
-        do_maintain = False
-    else:
-        do_ingest = not args.no_ingest
-        do_maintain = (
-            args.mode in ("session-start", "ci", "maintain") and not args.no_maintain
-        )
-
-    hook_event = args.hook_event
-    if hook_event is None:
-        if args.mode == "session-start" and args.runtime == "claude":
-            hook_event = "SessionStart"
-        elif args.mode == "prompt-context" and args.runtime == "claude":
-            hook_event = "UserPromptSubmit"
-        elif args.runtime == "cursor" and args.mode == "session-start":
-            hook_event = "sessionStart"
-        elif args.runtime == "cursor" and args.mode == "prompt-context":
-            hook_event = "beforeSubmitPrompt"
-
-    stdin_text = ""
-    if not sys.stdin.isatty():
-        stdin_text = sys.stdin.read()
-
+    do_ingest, do_maintain = _cli_flags(args.mode, args.no_ingest, args.no_maintain)
+    stdin_text = sys.stdin.read() if not sys.stdin.isatty() else ""
     result = run_autowire(
         mode=args.mode,
         query=args.query,
-        memory_dir=memory_dir,
-        artifact_path=artifact,
+        memory_dir=_cli_memory_dir(args.memory_dir),
+        artifact_path=_cli_artifact(args.artifact, args.mode),
         do_ingest=do_ingest,
         do_maintain=do_maintain,
         runtime=args.runtime,
-        hook_event=hook_event,
+        hook_event=_cli_hook_event(args.hook_event, args.mode, args.runtime),
         stdin_text=stdin_text,
     )
-
-    if args.print_hook_json and result["hook_stdout"]:
-        print(json.dumps(result["hook_stdout"], ensure_ascii=True))
-    elif args.runtime == "ci" or args.mode == "ci":
-        print(json.dumps({"ok": True, "artifact": result["artifact_path"],
-                          "recalled": result["payload"]["recalled"]},
-                         ensure_ascii=True))
-    else:
-        # Fail-open for hooks: still print hook JSON when present.
-        if result["hook_stdout"]:
-            print(json.dumps(result["hook_stdout"], ensure_ascii=True))
-        else:
-            print(json.dumps({"ok": True, "artifact": result["artifact_path"]}))
+    _emit_result(
+        result,
+        print_hook_json=args.print_hook_json,
+        runtime=args.runtime,
+        mode=args.mode,
+    )
     return 0
 
 

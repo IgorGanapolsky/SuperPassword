@@ -154,6 +154,25 @@ class AutowireCoreTests(unittest.TestCase):
             self.assertIn("stats", body)
             self.assertEqual(result["hook_stdout"], {})
 
+    def test_artifact_path_escape_is_rejected(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            memory_dir = root / "memory"
+            memory_dir.mkdir()
+            self._seed_memory(memory_dir)
+            with self.assertRaises(ValueError):
+                autowire.run_autowire(
+                    mode="ci",
+                    query="x",
+                    memory_dir=memory_dir,
+                    artifact_path=Path("/etc/rose-lite-escape.json"),
+                    do_ingest=False,
+                    do_maintain=False,
+                    runtime="ci",
+                    hook_event=None,
+                    sync_claude_hooks=False,
+                )
+
     def test_resolve_query_falls_back_to_git_branch(self) -> None:
         with mock.patch.object(
             autowire,

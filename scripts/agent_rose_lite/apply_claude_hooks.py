@@ -28,9 +28,12 @@ def merge_hooks(existing: dict, rose: dict) -> dict:
 
 def apply(*, check_only: bool = False) -> int:
     rose = json.loads(MANIFEST.read_text())
+    hooks = rose.get("hooks") or {}
+    missing = [e for e in ("SessionStart", "UserPromptSubmit") if e not in hooks]
+    if missing:
+        print(json.dumps({"ok": False, "missing": missing}))
+        return 1
     if check_only:
-        hooks = rose.get("hooks") or {}
-        assert "SessionStart" in hooks and "UserPromptSubmit" in hooks
         print(json.dumps({"ok": True, "events": sorted(hooks.keys())}))
         return 0
 
