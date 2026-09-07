@@ -30,13 +30,10 @@ Document in archive file:
 
 ### 2. Consolidate Feedback
 
-Run memory maintenance to consolidate learnings:
+Invoke ROSE-lite autowire (agents only — never hand this to the CEO):
 
-```bash
-python3 .claude/scripts/memory/memory_manager.py --ingest
-python3 .claude/scripts/memory/memory_manager.py --maintain
-```
-
+- Prefer the SessionStart hook / `scripts/agent_rose_lite/autowire.py --mode session-start` which already runs ingest + maintain + hybrid recall.
+- Confirm `.claude/memory/rose_lite_session.json` or hook `additionalContext` is present before continuing.
 ### 3. Reset Working Context
 
 Clear transient state while preserving:

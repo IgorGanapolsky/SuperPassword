@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "hooks": {
+    "sessionStart": [
+      {
+        "command": "python3 scripts/agent_rose_lite/autowire.py --mode session-start --runtime cursor --hook-event sessionStart",
+        "timeout": 45
+      }
+    ],
+    "beforeSubmitPrompt": [
+      {
+        "command": "python3 scripts/agent_rose_lite/autowire.py --mode prompt-context --runtime cursor --hook-event beforeSubmitPrompt",
+        "timeout": 20,
+        "matcher": "UserPromptSubmit"
+      }
+    ]
+  }
+}

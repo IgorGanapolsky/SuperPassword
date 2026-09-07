@@ -88,7 +88,8 @@ __pycache__/
 
 # Claude Code memory/cache (session-specific, not project config)
 .claude/memory/
-.claude/hooks/
+.claude/hooks/*
+!.claude/hooks/rose-lite-*.sh
 .claude/ralph/
 .claude/worktrees/
 .claude/scripts/feedback/
@@ -125,7 +126,10 @@ apple_status.json
 # Agent/Codex configurations
 .agents/
 .codex/
-.cursor/
+.cursor/*
+!.cursor/hooks.json
+!.cursor/hooks/
+!.cursor/hooks/rose-lite-*.sh
 .gemini/
 .maestro/
 .openclaw/

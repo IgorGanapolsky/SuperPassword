@@ -1,0 +1,26 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 scripts/agent_rose_lite/autowire.py --mode session-start --runtime claude --hook-event SessionStart",
+            "timeout": 45
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 scripts/agent_rose_lite/autowire.py --mode prompt-context --runtime claude --hook-event UserPromptSubmit",
+            "timeout": 20
+          }
+        ]
+      }
+    ]
+  }
+}
