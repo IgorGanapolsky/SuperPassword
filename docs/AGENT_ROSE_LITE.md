@@ -27,6 +27,10 @@ ROSE-lite is wired into the agent runtime. Agents must never ask the CEO to run 
 
 Session artifacts land in `.claude/memory/rose_lite_session.json` (gitignored). CI GSD snapshot is tracked under `marketing/data/`.
 
+## Intelligence (autonomous)
+
+`scripts/agent_rose_lite/intent.py` classifies the live prompt (debug / ship / monetize / test / credentials / automate), re-ranks cells by cosine + recency + evidence + risk boost, and injects a **brief** (intent, risks, one next action). Weak matches are labeled **not verified**. Near-duplicate prompts reuse the last session artifact instead of dumping the same cells again.
+
 ## Sources
 
 - https://www.perplexity.ai/hub/blog/fast-embeddings-on-gpus

@@ -72,6 +72,8 @@ class AutowireCoreTests(unittest.TestCase):
             self.assertEqual(payload["mode"], "session-start")
             self.assertGreaterEqual(payload["recalled"], 1)
             self.assertIn("Robolectric", payload["cells"][0]["content"])
+            self.assertEqual(payload["intent"], "debug")
+            self.assertIn("intent=debug", result["hook_stdout"]["hookSpecificOutput"]["additionalContext"])
             self.assertIn("hookSpecificOutput", result["hook_stdout"])
             self.assertEqual(
                 result["hook_stdout"]["hookSpecificOutput"]["hookEventName"],
@@ -104,7 +106,9 @@ class AutowireCoreTests(unittest.TestCase):
                 stdin_text=stdin_payload,
                 sync_claude_hooks=False,
             )
-            self.assertEqual(result["query"], "Fix Play targetSdk 36 Robolectric failures")
+            self.assertIn("robolectric", result["query"])
+            self.assertIn("targetsdk", result["query"])
+            self.assertEqual(result["payload"]["intent"], "debug")
             self.assertEqual(
                 result["hook_stdout"]["hookSpecificOutput"]["hookEventName"],
                 "UserPromptSubmit",
@@ -172,6 +176,27 @@ class AutowireCoreTests(unittest.TestCase):
                     hook_event=None,
                     sync_claude_hooks=False,
                 )
+
+    def test_cli_artifact_is_fixed_path_not_user_path(self) -> None:
+        self.assertEqual(autowire._cli_artifact(None, "ci"), autowire.CI_ARTIFACT)
+        self.assertEqual(
+            autowire._cli_artifact("/tmp/rose_lite_autowire.json", "ci"),
+            autowire.CI_ARTIFACT,
+        )
+        with self.assertRaises(ValueError):
+            autowire._cli_artifact("/etc/passwd", "ci")
+
+    def test_safe_fs_path_rejects_escape_after_join(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            with self.assertRaises(ValueError):
+                autowire._safe_fs_path(Path("/etc/passwd"), [root])
+            dest = root / "out" / "rose.json"
+            dest.parent.mkdir()
+            dest.write_text("{}\n")
+            rebuilt = Path(autowire._safe_fs_path(dest, [root]))
+            self.assertEqual(rebuilt.resolve(), dest.resolve())
+            self.assertTrue(str(rebuilt).startswith(str(root.resolve())))
 
     def test_resolve_query_falls_back_to_git_branch(self) -> None:
         with mock.patch.object(

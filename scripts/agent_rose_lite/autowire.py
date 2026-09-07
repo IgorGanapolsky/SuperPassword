@@ -11,7 +11,6 @@ from __future__ import annotations
 import argparse
 import json
 import os
-import re
 import subprocess
 import sys
 from datetime import datetime, timezone
@@ -25,7 +24,14 @@ if str(_MEMORY_SCRIPTS) not in sys.path:
 if str(_REPO_ROOT / "scripts") not in sys.path:
     sys.path.insert(0, str(_REPO_ROOT / "scripts"))
 
-from memory_manager import MemoryManager, format_recall  # noqa: E402
+from agent_rose_lite.intent import (  # noqa: E402
+    classify_intent,
+    rank_cells,
+    render_brief,
+    should_reuse_prior,
+    synthesize_query,
+)
+from memory_manager import MemoryManager  # noqa: E402
 
 _UTC = timezone.utc
 _CLAUDE_DIR = ".claude"
@@ -46,6 +52,28 @@ def constrain_path(path: Path, allowed_roots: list[Path]) -> Path:
             return resolved
         except ValueError:
             continue
+    raise ValueError(f"path escapes allowed roots: {path}")
+
+
+def _safe_fs_path(path: Path, allowed_roots: list[Path]) -> str:
+    """Rebuild a path inside an allowed root (S8707 sanitizer).
+
+    User-controlled Path objects stay tainted through constrain_path.
+    Reconstruct with realpath + join + normpath + prefix check so the
+    filesystem sink never receives the original tainted value.
+    """
+    raw = os.path.realpath(os.fspath(path))
+    for root in allowed_roots:
+        base = os.path.realpath(os.fspath(root))
+        prefix = base + os.sep
+        if raw != base and not raw.startswith(prefix):
+            continue
+        rel = os.path.relpath(raw, base)
+        if rel.startswith("..") or os.path.isabs(rel):
+            continue
+        fullpath = os.path.normpath(os.path.join(base, rel))
+        if fullpath == base or fullpath.startswith(prefix):
+            return fullpath
     raise ValueError(f"path escapes allowed roots: {path}")
 
 
@@ -94,11 +122,13 @@ def resolve_query(
     env: Optional[dict] = None,
 ) -> str:
     env = env if env is not None else os.environ
+    raw = ""
     if explicit and explicit.strip():
-        return explicit.strip()[:500]
-    from_stdin = _extract_prompt_from_stdin(stdin_text)
-    if from_stdin:
-        return from_stdin
+        raw = explicit.strip()[:500]
+    else:
+        raw = _extract_prompt_from_stdin(stdin_text)
+    if raw:
+        return synthesize_query(raw, branch_hint=_git_branch_hint())
     for key in (
         "ROSE_LITE_QUERY",
         "CLAUDE_SESSION_QUERY",
@@ -113,13 +143,14 @@ def resolve_query(
     return "Random Timer agent session automation store-publishing debugging"
 
 
-def _format_context_block(cells: list[dict], query: str, mode: str) -> str:
-    header = (
-        f"ROSE-lite autowire ({mode}) query={query!r}. "
-        "Agents must use these memories; never ask the CEO to run recall/ingest."
-    )
-    body = format_recall(cells)
-    return f"{header}\n{body}"
+def _load_prior(artifact_path: Path) -> Optional[dict]:
+    if not artifact_path.exists():
+        return None
+    try:
+        data = json.loads(artifact_path.read_text())
+    except (OSError, json.JSONDecodeError):
+        return None
+    return data if isinstance(data, dict) else None
 
 
 def _claude_hook_stdout(event: str, additional: str) -> dict[str, Any]:
@@ -133,6 +164,39 @@ def _claude_hook_stdout(event: str, additional: str) -> dict[str, Any]:
 
 def _cursor_hook_stdout(additional: str) -> dict[str, Any]:
     return {"additional_context": additional}
+
+
+def _hook_for(runtime: str, hook_event: Optional[str], context: str) -> dict[str, Any]:
+    if runtime == "claude" and hook_event:
+        return _claude_hook_stdout(hook_event, context)
+    if runtime == "cursor":
+        return _cursor_hook_stdout(context)
+    return {}
+
+
+def _write_artifact(path: Path, payload: dict[str, Any], allowed: list[Path]) -> Path:
+    fullpath = _safe_fs_path(path, allowed)
+    os.makedirs(os.path.dirname(fullpath), exist_ok=True)
+    text = json.dumps(payload, indent=2) + "\n"
+    with open(fullpath, "w", encoding="utf-8") as handle:
+        handle.write(text)
+    return Path(fullpath)
+
+
+def _maintain(mgr: MemoryManager, do_ingest: bool, do_maintain: bool) -> tuple[int, int, int]:
+    ingested = pruned = merged = 0
+    if do_ingest:
+        try:
+            ingested = mgr.ingest_all_unprocessed()
+        except OSError:
+            ingested = 0
+    if do_maintain:
+        try:
+            pruned = mgr.decay()
+            merged = mgr.consolidate()
+        except OSError:
+            pruned = merged = 0
+    return ingested, pruned, merged
 
 
 def run_autowire(
@@ -155,25 +219,20 @@ def run_autowire(
     memory_dir = constrain_path(memory_dir, allowed)
     artifact_path = constrain_path(artifact_path, allowed)
     resolved = resolve_query(query, stdin_text=stdin_text, env=env)
+    prior = _load_prior(artifact_path)
+    if mode == "prompt-context" and should_reuse_prior(prior, resolved):
+        context = str((prior or {}).get("context") or "")
+        return {
+            "query": resolved,
+            "artifact_path": str(artifact_path),
+            "payload": {**(prior or {}), "reused": True, "query": resolved},
+            "hook_stdout": _hook_for(runtime, hook_event, context),
+        }
+
     mgr = MemoryManager(memory_dir=memory_dir)
+    decision = classify_intent(resolved)
+    ingested, pruned, merged = _maintain(mgr, do_ingest, do_maintain)
 
-    ingested = 0
-    pruned = 0
-    merged = 0
-    if do_ingest:
-        try:
-            ingested = mgr.ingest_all_unprocessed()
-        except OSError:
-            ingested = 0
-    if do_maintain:
-        try:
-            pruned = mgr.decay()
-            merged = mgr.consolidate()
-        except OSError:
-            pruned = 0
-            merged = 0
-
-    # Keep Claude Code hooks in sync with the tracked manifest (fail-open).
     if sync_claude_hooks and mode in ("session-start", "ci"):
         try:
             from agent_rose_lite.apply_claude_hooks import apply as apply_hooks
@@ -182,57 +241,42 @@ def run_autowire(
         except Exception:
             pass
 
-    scene = None
-    scene_match = re.search(
-        r"\b(store-publishing|automation|debugging|testing|credentials|"
-        r"code-editing|git-operations|animation-parity)\b",
-        resolved,
-    )
-    if scene_match:
-        scene = scene_match.group(1)
-
-    cells = mgr.recall(scene=scene, query=resolved, limit=limit)
-    context = _format_context_block(cells, resolved, mode)
-    stats = mgr.stats()
-
+    pool = mgr.recall(scene=None, query=resolved, limit=max(limit * 3, 16))
+    cells = rank_cells(pool, decision, now_iso=_now_iso(), limit=limit)
+    context = render_brief(decision, cells)
     payload: dict[str, Any] = {
         "generated_at": _now_iso(),
         "mode": mode,
         "runtime": runtime,
         "query": resolved,
-        "scene": scene,
+        "intent": decision.intent,
+        "scene": decision.scene,
+        "confidence": decision.confidence,
         "ingested": ingested,
         "pruned": pruned,
         "merged": merged,
         "recalled": len(cells),
+        "reused": False,
         "cells": [
             {
                 "id": c.get("id"),
                 "scene": c.get("scene"),
                 "cell_type": c.get("cell_type"),
                 "salience": c.get("salience"),
+                "score": c.get("score"),
                 "content": c.get("content"),
             }
             for c in cells
         ],
-        "stats": stats,
+        "stats": mgr.stats(),
         "context": context,
     }
-
-    artifact_path.parent.mkdir(parents=True, exist_ok=True)
-    artifact_path.write_text(json.dumps(payload, indent=2) + "\n")
-
-    hook_stdout: dict[str, Any] = {}
-    if runtime == "claude" and hook_event:
-        hook_stdout = _claude_hook_stdout(hook_event, context)
-    elif runtime == "cursor":
-        hook_stdout = _cursor_hook_stdout(context)
-
+    written = _write_artifact(artifact_path, payload, allowed)
     return {
         "query": resolved,
-        "artifact_path": str(artifact_path),
+        "artifact_path": str(written),
         "payload": payload,
-        "hook_stdout": hook_stdout,
+        "hook_stdout": _hook_for(runtime, hook_event, context),
     }
 
 
@@ -243,9 +287,11 @@ def _cli_memory_dir(raw: Optional[str]) -> Path:
 
 
 def _cli_artifact(raw: Optional[str], mode: str) -> Path:
-    if raw:
-        return constrain_path(Path(raw), [_REPO_ROOT])
-    return CI_ARTIFACT if mode == "ci" else DEFAULT_ARTIFACT
+    """CLI never forwards a user Path to the write sink — fixed artifacts only."""
+    target = CI_ARTIFACT if mode == "ci" else DEFAULT_ARTIFACT
+    if raw and Path(raw).name != target.name:
+        raise ValueError("artifact name not allowed")
+    return target
 
 
 def _cli_flags(mode: str, no_ingest: bool, no_maintain: bool) -> tuple[bool, bool]:
