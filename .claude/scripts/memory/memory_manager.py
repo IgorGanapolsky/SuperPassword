@@ -189,12 +189,40 @@ class MemoryManager:
         scene: Optional[str] = None,
         min_salience: float = 0.2,
         limit: int = 10,
+        query: Optional[str] = None,
+        embed_dim: int = 64,
     ) -> List[dict]:
+        """Recall cells by salience, optionally re-ranked with ROSE-lite embeddings.
+
+        When `query` is set, hybrid score = 0.45*salience + 0.55*cosine(query, content).
+        This mirrors Perplexity's unified LLM/embed stack: one retrieval path, no
+        separate paid vector DB.
+        """
         cells = self.load_cells()
         if scene:
             cells = [c for c in cells if c["scene"] == scene]
         cells = [c for c in cells if c["salience"] >= min_salience]
-        cells.sort(key=lambda c: c["salience"], reverse=True)
+        if not query:
+            cells.sort(key=lambda c: c["salience"], reverse=True)
+            return cells[:limit]
+
+        # Lazy import keeps memory_manager stdlib-only unless hybrid recall is used.
+        import sys
+        from pathlib import Path as _Path
+
+        scripts_root = _Path(__file__).resolve().parents[3] / "scripts"
+        if str(scripts_root) not in sys.path:
+            sys.path.insert(0, str(scripts_root))
+        from agent_rose_lite.embeddings import MatryoshkaEmbedder, cosine_similarity
+
+        emb = MatryoshkaEmbedder(dims=(max(embed_dim, 64), 64, 32, 16))
+        qv = emb.embed(query, dim=embed_dim)
+
+        def hybrid(cell: dict) -> float:
+            cv = emb.embed(cell.get("content", ""), dim=embed_dim)
+            return 0.45 * float(cell.get("salience", 0)) + 0.55 * cosine_similarity(qv, cv)
+
+        cells.sort(key=hybrid, reverse=True)
         return cells[:limit]
 
     def decay(self, half_life_days: float = 14.0) -> int:
@@ -373,6 +401,7 @@ def main():
     parser.add_argument("--ingest", action="store_true", help="Ingest feedback (stdin or log)")
     parser.add_argument("--recall", action="store_true", help="Recall memories")
     parser.add_argument("--scene", type=str, help="Filter by scene")
+    parser.add_argument("--query", type=str, help="Hybrid semantic recall query (ROSE-lite)")
     parser.add_argument("--maintain", action="store_true", help="Decay + consolidate")
     parser.add_argument("--seed", action="store_true", help="Seed from lessons-learned.md")
     parser.add_argument("--stats", action="store_true", help="Show stats")
@@ -410,7 +439,7 @@ def main():
             print(f"Ingested {count} new entries.")
 
     elif args.recall:
-        cells = mgr.recall(scene=args.scene)
+        cells = mgr.recall(scene=args.scene, query=args.query)
         if args.json:
             print(json.dumps(cells, indent=2))
         else:

@@ -197,7 +197,8 @@ class TestMemoryManager(unittest.TestCase):
         self.mgr.ingest({"feedback": "negative", "context": "old error crash debug", "id": "1"})
         cells = self.mgr.load_cells()
         original = cells[0]["salience"]
-        cells[0]["last_seen"] = "2026-01-01T00:00:00Z"
+        from datetime import datetime, timezone, timedelta
+        cells[0]["last_seen"] = (datetime.now(tz=timezone.utc) - timedelta(days=10)).strftime("%Y-%m-%dT%H:%M:%SZ")
         self.mgr.save_cells(cells)
         self.mgr.decay(half_life_days=14.0)
         cells = self.mgr.load_cells()
