@@ -11,7 +11,6 @@ from __future__ import annotations
 import argparse
 import json
 import os
-import re
 import subprocess
 import sys
 from datetime import datetime, timezone
@@ -25,7 +24,14 @@ if str(_MEMORY_SCRIPTS) not in sys.path:
 if str(_REPO_ROOT / "scripts") not in sys.path:
     sys.path.insert(0, str(_REPO_ROOT / "scripts"))
 
-from memory_manager import MemoryManager, format_recall  # noqa: E402
+from agent_rose_lite.intent import (  # noqa: E402
+    classify_intent,
+    rank_cells,
+    render_brief,
+    should_reuse_prior,
+    synthesize_query,
+)
+from memory_manager import MemoryManager  # noqa: E402
 
 _UTC = timezone.utc
 _CLAUDE_DIR = ".claude"
@@ -94,11 +100,13 @@ def resolve_query(
     env: Optional[dict] = None,
 ) -> str:
     env = env if env is not None else os.environ
+    raw = ""
     if explicit and explicit.strip():
-        return explicit.strip()[:500]
-    from_stdin = _extract_prompt_from_stdin(stdin_text)
-    if from_stdin:
-        return from_stdin
+        raw = explicit.strip()[:500]
+    else:
+        raw = _extract_prompt_from_stdin(stdin_text)
+    if raw:
+        return synthesize_query(raw, branch_hint=_git_branch_hint())
     for key in (
         "ROSE_LITE_QUERY",
         "CLAUDE_SESSION_QUERY",
@@ -113,13 +121,14 @@ def resolve_query(
     return "Random Timer agent session automation store-publishing debugging"
 
 
-def _format_context_block(cells: list[dict], query: str, mode: str) -> str:
-    header = (
-        f"ROSE-lite autowire ({mode}) query={query!r}. "
-        "Agents must use these memories; never ask the CEO to run recall/ingest."
-    )
-    body = format_recall(cells)
-    return f"{header}\n{body}"
+def _load_prior(artifact_path: Path) -> Optional[dict]:
+    if not artifact_path.exists():
+        return None
+    try:
+        data = json.loads(artifact_path.read_text())
+    except (OSError, json.JSONDecodeError):
+        return None
+    return data if isinstance(data, dict) else None
 
 
 def _claude_hook_stdout(event: str, additional: str) -> dict[str, Any]:
@@ -155,7 +164,23 @@ def run_autowire(
     memory_dir = constrain_path(memory_dir, allowed)
     artifact_path = constrain_path(artifact_path, allowed)
     resolved = resolve_query(query, stdin_text=stdin_text, env=env)
+    prior = _load_prior(artifact_path)
+    if mode == "prompt-context" and should_reuse_prior(prior, resolved):
+        context = str(prior.get("context") or "")
+        hook_stdout: dict[str, Any] = {}
+        if runtime == "claude" and hook_event:
+            hook_stdout = _claude_hook_stdout(hook_event, context)
+        elif runtime == "cursor":
+            hook_stdout = _cursor_hook_stdout(context)
+        return {
+            "query": resolved,
+            "artifact_path": str(artifact_path),
+            "payload": {**prior, "reused": True, "query": resolved},
+            "hook_stdout": hook_stdout,
+        }
+
     mgr = MemoryManager(memory_dir=memory_dir)
+    decision = classify_intent(resolved)
 
     ingested = 0
     pruned = 0
@@ -182,17 +207,9 @@ def run_autowire(
         except Exception:
             pass
 
-    scene = None
-    scene_match = re.search(
-        r"\b(store-publishing|automation|debugging|testing|credentials|"
-        r"code-editing|git-operations|animation-parity)\b",
-        resolved,
-    )
-    if scene_match:
-        scene = scene_match.group(1)
-
-    cells = mgr.recall(scene=scene, query=resolved, limit=limit)
-    context = _format_context_block(cells, resolved, mode)
+    pool = mgr.recall(scene=None, query=resolved, limit=max(limit * 3, 16))
+    cells = rank_cells(pool, decision, now_iso=_now_iso(), limit=limit)
+    context = render_brief(decision, cells)
     stats = mgr.stats()
 
     payload: dict[str, Any] = {
@@ -200,17 +217,21 @@ def run_autowire(
         "mode": mode,
         "runtime": runtime,
         "query": resolved,
-        "scene": scene,
+        "intent": decision.intent,
+        "scene": decision.scene,
+        "confidence": decision.confidence,
         "ingested": ingested,
         "pruned": pruned,
         "merged": merged,
         "recalled": len(cells),
+        "reused": False,
         "cells": [
             {
                 "id": c.get("id"),
                 "scene": c.get("scene"),
                 "cell_type": c.get("cell_type"),
                 "salience": c.get("salience"),
+                "score": c.get("score"),
                 "content": c.get("content"),
             }
             for c in cells

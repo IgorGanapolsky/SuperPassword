@@ -10,7 +10,7 @@ alwaysApply: true
    - Claude Code: `scripts/agent_rose_lite/claude_hooks.json` → SessionStart / UserPromptSubmit
    - Cursor: `.cursor/hooks.json` → sessionStart / beforeSubmitPrompt
    - CI: `.github/workflows/rose-lite-autowire.yml` writes `marketing/data/rose_lite_autowire.json`
-3. **Agents** call `scripts/agent_rose_lite/autowire.py` (or read `.claude/memory/rose_lite_session.json`) when hooks did not fire — never escalate to the CEO.
+3. **Agents** read the injected ROSE-lite **brief** (intent + ranked risks + next action), or `.claude/memory/rose_lite_session.json`. If the brief says **not verified**, do not invent memory. Never escalate recall to the CEO.
 4. After verified outcomes, ingest via autowire/session hooks; if memory files are empty, state **not verified**.
 5. Do not claim external LangSmith/MCP memory unless that gateway is verified in-session.
 

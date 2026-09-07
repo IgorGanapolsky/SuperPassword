@@ -72,6 +72,8 @@ class AutowireCoreTests(unittest.TestCase):
             self.assertEqual(payload["mode"], "session-start")
             self.assertGreaterEqual(payload["recalled"], 1)
             self.assertIn("Robolectric", payload["cells"][0]["content"])
+            self.assertEqual(payload["intent"], "debug")
+            self.assertIn("intent=debug", result["hook_stdout"]["hookSpecificOutput"]["additionalContext"])
             self.assertIn("hookSpecificOutput", result["hook_stdout"])
             self.assertEqual(
                 result["hook_stdout"]["hookSpecificOutput"]["hookEventName"],
@@ -104,7 +106,9 @@ class AutowireCoreTests(unittest.TestCase):
                 stdin_text=stdin_payload,
                 sync_claude_hooks=False,
             )
-            self.assertEqual(result["query"], "Fix Play targetSdk 36 Robolectric failures")
+            self.assertIn("robolectric", result["query"])
+            self.assertIn("targetsdk", result["query"])
+            self.assertEqual(result["payload"]["intent"], "debug")
             self.assertEqual(
                 result["hook_stdout"]["hookSpecificOutput"]["hookEventName"],
                 "UserPromptSubmit",
