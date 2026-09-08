@@ -1,0 +1,39 @@
+{
+  "as_of": "2026-09-08T20:16:48Z",
+  "window": "trailing_7d",
+  "source": "posthog execute-sql",
+  "project_id": 299775,
+  "review_count_metric_id": null,
+  "copilot_app": false,
+  "create_canvas": false,
+  "spend_usd_month": 0,
+  "monthly_cap_usd": 20,
+  "north_star": {
+    "metric_id": "wqtu",
+    "value": 3,
+    "definition": "distinct users with >=3 timer_completed in trailing 7d"
+  },
+  "events": {
+    "timer_started": {"n": 349, "users": 48},
+    "timer_completed": {"n": 76, "users": 18},
+    "paywall_viewed": {"n": 19, "users": 9},
+    "paywall_view": {"n": 12, "users": 6},
+    "paywall_dismissed": {"n": 9, "users": 5},
+    "iap_attempt": {"n": 0, "users": 0, "note": "absent from 7d result set"},
+    "paywall_purchase_success": {
+      "n": 0,
+      "users": 0,
+      "label": "telemetry_not_ledger"
+    }
+  },
+  "ranked_work": [
+    {
+      "id": "iap-attempt-path",
+      "metric": "iap_attempt",
+      "why": "19 viewed and 12 view, 9 dismissals, zero attempts"
+    }
+  ],
+  "denied": ["copilot_app", "create_canvas", "chat_only", "chat_transcript"],
+  "evidence": "plugin-posthog-posthog execute-sql 2026-09-08T20:16Z",
+  "threads": "https://www.threads.com/@github/post/Dc9agX7j_w4"
+}
