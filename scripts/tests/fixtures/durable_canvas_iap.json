@@ -1,0 +1,10 @@
+{
+  "stages": [
+    {"id": "paywall-view", "status": "observed"},
+    {"id": "iap-attempt-path", "status": "open"}
+  ],
+  "drafts": {
+    "iap-attempt-path": "19 viewed, 12 view, 9 dismiss, 0 attempts"
+  },
+  "approvals": ["human_gate"]
+}
