@@ -170,6 +170,26 @@ def evaluate_identity(*, credential_kind: str) -> ControlDecision:
     )
 
 
+def require_complete_controls(
+    *,
+    has_context: bool,
+    has_spend: bool,
+    has_review: bool,
+    has_identity: bool,
+) -> ControlDecision:
+    if has_context and has_spend and has_review and has_identity:
+        return ControlDecision(
+            action="controls_complete",
+            ok=True,
+            reason="context, spend, review, and identity were all evaluated",
+        )
+    return ControlDecision(
+        action="block_incomplete_controls",
+        ok=False,
+        reason="fail closed: missing context, spend, review, or identity input",
+    )
+
+
 def main() -> int:
     import argparse
     import json
@@ -227,6 +247,15 @@ def main() -> int:
         identity = evaluate_identity(credential_kind=args.credential)
         payload["identity"] = identity.__dict__
         ok = ok and identity.ok
+
+    completeness = require_complete_controls(
+        has_context=bool(args.in_scope or args.out_scope or args.acs),
+        has_spend=bool(args.service),
+        has_review=bool(args.paths),
+        has_identity=bool(args.credential),
+    )
+    payload["completeness"] = completeness.__dict__
+    ok = ok and completeness.ok
 
     print(json.dumps(payload, indent=2))
     return 0 if ok else 2

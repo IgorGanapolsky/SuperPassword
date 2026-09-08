@@ -11,6 +11,7 @@ from scripts.infoq_agent_control_plane import (
     evaluate_review_lane,
     evaluate_token_spend,
     gist_context,
+    require_complete_controls,
 )
 
 
@@ -119,6 +120,27 @@ class ReviewLaneTests(unittest.TestCase):
         )
         self.assertFalse(d.ok)
         self.assertEqual(d.action, "require_device_e2e")
+
+
+class FailClosedCompletenessTests(unittest.TestCase):
+    def test_missing_controls_are_not_approval(self) -> None:
+        d = require_complete_controls(
+            has_context=False,
+            has_spend=False,
+            has_review=False,
+            has_identity=False,
+        )
+        self.assertFalse(d.ok)
+        self.assertEqual(d.action, "block_incomplete_controls")
+
+    def test_all_controls_present_pass(self) -> None:
+        d = require_complete_controls(
+            has_context=True,
+            has_spend=True,
+            has_review=True,
+            has_identity=True,
+        )
+        self.assertTrue(d.ok)
 
 
 class WorkloadIdentityTests(unittest.TestCase):
