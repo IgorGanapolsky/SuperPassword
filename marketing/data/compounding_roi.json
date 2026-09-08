@@ -1,0 +1,39 @@
+{
+  "as_of": "2026-09-08T17:34:03Z",
+  "window": "trailing_7d",
+  "source": "posthog execute-sql",
+  "project_id": 299775,
+  "review_count_metric_id": null,
+  "playerzero_product": false,
+  "spend_usd_month": 0,
+  "north_star": {
+    "metric_id": "wqtu",
+    "value": 3,
+    "definition": "distinct users with >=3 timer_completed in trailing 7d"
+  },
+  "events": {
+    "timer_started": {"n": 349, "users": 48},
+    "timer_completed": {"n": 76, "users": 18},
+    "paywall_view": {"n": 12, "users": 6},
+    "paywall_dismissed": {"n": 9, "users": 5},
+    "paywall_purchase_attempt": {"n": 0, "users": 0, "note": "absent from 7d result set"},
+    "paywall_purchase_success": {
+      "n": 0,
+      "users": 0,
+      "label": "telemetry_not_ledger"
+    }
+  },
+  "ranked_work": [
+    {
+      "id": "paywall-attempt-path",
+      "metric": "paywall_attempt_success",
+      "why": "12 views and 9 dismissals, zero attempts"
+    },
+    {
+      "id": "activation-to-wqtu",
+      "metric": "wqtu",
+      "why": "48 starters, 18 completers, 3 qualified"
+    }
+  ],
+  "evidence": "plugin-posthog-posthog execute-sql 2026-09-08T17:31Z"
+}
