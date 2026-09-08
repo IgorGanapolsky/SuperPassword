@@ -21,7 +21,7 @@ Most agent spend is I/O, not thinking. Advisory `CLAUDE.md` routing is ignored. 
 
 - Do not delegate **editing**. Cheap summaries lack reliable line numbers. Targeted `offset`/`limit` reads stay allowed.
 - Do not delegate **reasoning**. Cheap workers miss thread-safety and architecture. Those stay on `hermes-main`.
-- Advisory `CLAUDE.md` routing is ignored. The CLI is fail-closed.
+- Advisory `CLAUDE.md` routing is ignored. Cursor `preToolUse` / `beforeShellExecution` rewrite or deny. The eval CLI is still fail-closed; the hook path fails open on bad stdin.
 
 ## Fail-closed CLI
 
@@ -33,6 +33,28 @@ python3 scripts/token_shunt.py \
 ```
 
 Allow only when every JSON `ok` is true (process exit 0). Incomplete inputs exit 2.
+
+## Enforced hooks (high ROI)
+
+Cursor:
+
+- `preToolUse` matcher `Read` → rewrite untargeted files over 350 lines to `limit=80`
+- `beforeShellExecution` → deny bare `cat`/`head`/`tail`/`less`/`more` of a large file
+- Piped `cat | grep` and `Read` with `offset`/`limit` pass
+- Bad stdin fails open (`permission: allow`)
+
+```bash
+python3 scripts/token_shunt.py --hook <<'EOF'
+{"tool_name":"Read","tool_input":{"path":"docs/AGENT_TOKEN_SHUNT.md"}}
+EOF
+```
+
+Local slice (no Gemini Flash):
+
+```python
+from scripts.token_shunt import slice_text
+print(slice_text(text=open("docs/AGENT_TOKEN_SHUNT.md").read(), query="WQTU"))
+```
 
 ## Live evidence (project 299775, trailing 7d, 2026-09-08)
 
