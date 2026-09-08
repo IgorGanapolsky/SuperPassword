@@ -13,6 +13,19 @@
         "timeout": 20,
         "matcher": "UserPromptSubmit"
       }
+    ],
+    "preToolUse": [
+      {
+        "command": "bash .cursor/hooks/shunt-intercept.sh",
+        "timeout": 10,
+        "matcher": "Read"
+      }
+    ],
+    "beforeShellExecution": [
+      {
+        "command": "bash .cursor/hooks/shunt-intercept.sh",
+        "timeout": 10
+      }
     ]
   }
 }

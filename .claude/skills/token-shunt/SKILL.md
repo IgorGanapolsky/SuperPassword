@@ -19,7 +19,8 @@ Do **not** delegate editing or reasoning to a cheap worker.
 
 | Surface | Use Portal? | Use instead |
 | --- | --- | --- |
-| Whole-file Read of 800 lines | No | `evaluate_read_intercept` — target or slice |
+| Whole-file Read of 800 lines | No | Cursor `preToolUse` rewrites to `limit=80` |
+| Bare `cat` of a large file | No | `beforeShellExecution` denies; pipe to grep |
 | Dump the file back into chat | No | `evaluate_context_return` |
 | Tests/config/boilerplate | No | `local_slice`, not Flash |
 | Thread-safety / architecture | No | `hermes-main` only |
