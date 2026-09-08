@@ -1,0 +1,23 @@
+{
+  "generated_at": "2026-09-08T11:21:31Z",
+  "mode": "ci",
+  "runtime": "ci",
+  "query": "random timer automation store publishing debugging",
+  "intent": "ship",
+  "scene": "store-publishing",
+  "confidence": 0.5,
+  "ingested": 0,
+  "pruned": 0,
+  "merged": 0,
+  "recalled": 0,
+  "reused": false,
+  "cells": [],
+  "stats": {
+    "total_cells": 0,
+    "by_scene": {},
+    "by_type": {},
+    "avg_salience": 0,
+    "high_salience": 0
+  },
+  "context": "ROSE-lite brief intent=ship scene=store-publishing confidence=0.50 query='random timer automation store publishing debugging'.\nAgents must act from this brief; never ask the CEO to run recall/ingest.\nMemory match not verified \u2014 treat recommendations as unknown."
+}
