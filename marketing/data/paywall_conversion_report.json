@@ -1,14 +1,14 @@
 {
-  "generated_at": "2026-09-08T06:34:31+00:00",
+  "generated_at": "2026-09-08T12:31:32+00:00",
   "window_days": 30,
   "status": "ok",
   "reason": "",
   "funnel": {
-    "views": 74,
+    "views": 73,
     "offer_selects": 7,
     "purchase_attempts": 1,
     "purchase_successes": 0,
-    "view_to_select_rate": 0.0946,
+    "view_to_select_rate": 0.0959,
     "select_to_attempt_rate": 0.1429,
     "attempt_to_success_rate": 0.0
   },
@@ -109,7 +109,7 @@
     },
     {
       "entry_point": "qualified_training_gate",
-      "views": 20,
+      "views": 19,
       "attempts": 0,
       "successes": 0,
       "view_to_attempt_rate": 0.0,
@@ -156,40 +156,32 @@
       "successes": 0,
       "view_to_attempt_rate": 0.0,
       "attempt_to_success_rate": 0.0
-    },
-    {
-      "entry_point": "qualified_training_gate",
-      "views": 20,
-      "attempts": 0,
-      "successes": 0,
-      "view_to_attempt_rate": 0.0,
-      "attempt_to_success_rate": 0.0
     }
   ],
   "settings_hotspots": [
     {
       "setting_name": "max_seconds",
-      "changes": 3186,
-      "users": 87
+      "changes": 3259,
+      "users": 88
     },
     {
       "setting_name": "volume",
-      "changes": 1689,
+      "changes": 1691,
       "users": 49
     },
     {
       "setting_name": "min_seconds",
-      "changes": 1506,
+      "changes": 1581,
       "users": 83
     },
     {
       "setting_name": "alarm_duration",
-      "changes": 983,
-      "users": 82
+      "changes": 980,
+      "users": 81
     },
     {
       "setting_name": "sound_type",
-      "changes": 639,
+      "changes": 635,
       "users": 65
     },
     {
@@ -199,8 +191,8 @@
     },
     {
       "setting_name": "repeat_enabled",
-      "changes": 417,
-      "users": 75
+      "changes": 416,
+      "users": 74
     },
     {
       "setting_name": "repeat_rounds",
@@ -209,12 +201,12 @@
     },
     {
       "setting_name": "voice_gender",
-      "changes": 162,
+      "changes": 161,
       "users": 55
     },
     {
       "setting_name": "vibration_enabled",
-      "changes": 144,
+      "changes": 143,
       "users": 57
     },
     {
