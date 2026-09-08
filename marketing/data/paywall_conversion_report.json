@@ -1,14 +1,14 @@
 {
-  "generated_at": "2026-09-08T18:25:56+00:00",
+  "generated_at": "2026-09-08T19:09:20+00:00",
   "window_days": 30,
   "status": "ok",
   "reason": "",
   "funnel": {
-    "views": 73,
+    "views": 70,
     "offer_selects": 7,
     "purchase_attempts": 1,
     "purchase_successes": 0,
-    "view_to_select_rate": 0.0959,
+    "view_to_select_rate": 0.1,
     "select_to_attempt_rate": 0.1429,
     "attempt_to_success_rate": 0.0
   },
@@ -101,7 +101,7 @@
   "entry_points": [
     {
       "entry_point": "unknown",
-      "views": 34,
+      "views": 32,
       "attempts": 0,
       "successes": 0,
       "view_to_attempt_rate": 0.0,
@@ -109,7 +109,7 @@
     },
     {
       "entry_point": "qualified_training_gate",
-      "views": 19,
+      "views": 18,
       "attempts": 0,
       "successes": 0,
       "view_to_attempt_rate": 0.0,
@@ -151,7 +151,7 @@
   "leaky_entry_points": [
     {
       "entry_point": "unknown",
-      "views": 34,
+      "views": 32,
       "attempts": 0,
       "successes": 0,
       "view_to_attempt_rate": 0.0,
@@ -161,8 +161,8 @@
   "settings_hotspots": [
     {
       "setting_name": "max_seconds",
-      "changes": 3246,
-      "users": 87
+      "changes": 3227,
+      "users": 86
     },
     {
       "setting_name": "volume",
@@ -171,18 +171,18 @@
     },
     {
       "setting_name": "min_seconds",
-      "changes": 1590,
-      "users": 84
+      "changes": 1574,
+      "users": 83
     },
     {
       "setting_name": "alarm_duration",
-      "changes": 987,
-      "users": 80
+      "changes": 986,
+      "users": 79
     },
     {
       "setting_name": "sound_type",
-      "changes": 635,
-      "users": 64
+      "changes": 633,
+      "users": 63
     },
     {
       "setting_name": "voice_callouts_enabled",
@@ -191,8 +191,8 @@
     },
     {
       "setting_name": "repeat_enabled",
-      "changes": 419,
-      "users": 74
+      "changes": 415,
+      "users": 73
     },
     {
       "setting_name": "repeat_rounds",
@@ -206,8 +206,8 @@
     },
     {
       "setting_name": "vibration_enabled",
-      "changes": 142,
-      "users": 57
+      "changes": 141,
+      "users": 56
     },
     {
       "setting_name": "use_extended_range",
