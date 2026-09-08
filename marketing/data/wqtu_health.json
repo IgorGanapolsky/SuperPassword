@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-08T17:55:08+00:00",
+  "generated_at": "2026-09-08T18:10:52+00:00",
   "status": "ok",
   "nsm": {
     "wqtu": 3,
@@ -8,7 +8,7 @@
     "alert_fired": false
   },
   "engagement": {
-    "dau": 21,
+    "dau": 20,
     "wau": 55
   },
   "abandon_rate": {
@@ -46,11 +46,6 @@
   ],
   "query_errors": [],
   "history": [
-    {
-      "timestamp": "2026-08-17T18:14:47+00:00",
-      "wqtu": 6,
-      "dau": 8
-    },
     {
       "timestamp": "2026-08-18T00:22:44+00:00",
       "wqtu": 6,
@@ -495,6 +490,11 @@
       "timestamp": "2026-09-08T17:55:08+00:00",
       "wqtu": 3,
       "dau": 21
+    },
+    {
+      "timestamp": "2026-09-08T18:10:52+00:00",
+      "wqtu": 3,
+      "dau": 20
     }
   ]
 }

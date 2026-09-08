@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-08T17:55:44+00:00",
+  "generated_at": "2026-09-08T18:11:05+00:00",
   "status": "ok",
   "onboarding_funnel": {
     "first_open": 118,
@@ -14,7 +14,7 @@
   "data_quality": {
     "is_stale": false,
     "preserved_previous_metrics": false,
-    "last_attempt_generated_at": "2026-09-08T17:55:44+00:00",
+    "last_attempt_generated_at": "2026-09-08T18:11:05+00:00",
     "last_good_generated_at": "",
     "reason": ""
   }
