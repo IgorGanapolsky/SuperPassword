@@ -1,0 +1,39 @@
+{
+  "as_of": "2026-09-08T19:10:13Z",
+  "window": "trailing_7d",
+  "source": "posthog execute-sql",
+  "project_id": 299775,
+  "review_count_metric_id": null,
+  "portal_product": false,
+  "gemini_flash_worker": false,
+  "spend_usd_month": 0,
+  "monthly_cap_usd": 20,
+  "threshold_lines": 350,
+  "north_star": {
+    "metric_id": "wqtu",
+    "value": 3,
+    "definition": "distinct users with >=3 timer_completed in trailing 7d"
+  },
+  "events": {
+    "timer_started": {"n": 349, "users": 48},
+    "timer_completed": {"n": 76, "users": 18},
+    "paywall_view": {"n": 12, "users": 6},
+    "paywall_dismissed": {"n": 9, "users": 5},
+    "iap_attempt": {"n": 0, "users": 0, "note": "absent from 7d result set"},
+    "paywall_purchase_success": {
+      "n": 0,
+      "users": 0,
+      "label": "telemetry_not_ledger"
+    }
+  },
+  "ranked_work": [
+    {
+      "id": "iap-attempt-path",
+      "metric": "iap_attempt",
+      "why": "12 views and 9 dismissals, zero attempts"
+    }
+  ],
+  "denied": ["portal", "aika", "gemini-2.5-flash", "full_untargeted_read"],
+  "evidence": "plugin-posthog-posthog execute-sql 2026-09-08T19:10Z",
+  "tweet": "https://x.com/dani_avila7/status/2097154860235792780"
+}
