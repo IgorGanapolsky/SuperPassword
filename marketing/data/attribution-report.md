@@ -1,11 +1,11 @@
 # Attribution Feedback Report
 
-**Generated:** 2026-09-07T18:24:41+00:00
+**Generated:** 2026-09-08T00:55:52+00:00
 
 ## Onboarding Funnel
-- First Open: **107**
-- First Timer Configured: **84** (78.5% of opens)
-- First Timer Completed: **46** (43.0% of opens)
+- First Open: **118**
+- First Timer Configured: **94** (79.7% of opens)
+- First Timer Completed: **47** (39.8% of opens)
 
 ## UTM Attribution (Top Sources)
 | Source | Medium | Campaign | Installs | Unique Users |
