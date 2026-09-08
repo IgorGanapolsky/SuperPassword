@@ -1,0 +1,44 @@
+{
+  "as_of": "2026-09-08T19:57:57Z",
+  "window": "trailing_7d",
+  "source": "posthog execute-sql",
+  "project_id": 299775,
+  "review_count_metric_id": null,
+  "metabigor_install": false,
+  "shodan": false,
+  "spend_usd_month": 0,
+  "monthly_cap_usd": 20,
+  "north_star": {
+    "metric_id": "wqtu",
+    "value": 3,
+    "definition": "distinct users with >=3 timer_completed in trailing 7d"
+  },
+  "events": {
+    "timer_started": {"n": 349, "users": 48},
+    "timer_completed": {"n": 76, "users": 18},
+    "paywall_viewed": {"n": 19, "users": 9},
+    "paywall_view": {"n": 12, "users": 6},
+    "paywall_dismissed": {"n": 9, "users": 5},
+    "iap_attempt": {"n": 0, "users": 0, "note": "absent from 7d result set"},
+    "paywall_purchase_success": {
+      "n": 0,
+      "users": 0,
+      "label": "telemetry_not_ledger"
+    }
+  },
+  "ranked_work": [
+    {
+      "id": "iap-attempt-path",
+      "metric": "iap_attempt",
+      "why": "19 viewed and 12 view, 9 dismissals, zero attempts"
+    }
+  ],
+  "denied": ["metabigor", "shodan_internetdb", "virustotal", "intelx", "crt_sh"],
+  "owned": [
+    "play:com.iganapolsky.randomtimer",
+    "itunes:6758355312",
+    "github:IgorGanapolsky/Random-Timer"
+  ],
+  "evidence": "plugin-posthog-posthog execute-sql 2026-09-08T19:57Z",
+  "threads": "https://www.threads.com/@githubprojects/post/DcxNr9RG2tQ"
+}

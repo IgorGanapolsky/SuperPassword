@@ -1,0 +1,21 @@
+{
+  "sources": [
+    {
+      "kind": "play",
+      "identity": "com.iganapolsky.randomtimer",
+      "status": 200,
+      "body": "https://play.google.com/store/apps/details?id=com.iganapolsky.randomtimer"
+    },
+    {
+      "kind": "itunes",
+      "identity": "6758355312",
+      "status": 200,
+      "result_count": 1
+    },
+    {
+      "kind": "github",
+      "identity": "IgorGanapolsky/Random-Timer",
+      "status": 200
+    }
+  ]
+}
