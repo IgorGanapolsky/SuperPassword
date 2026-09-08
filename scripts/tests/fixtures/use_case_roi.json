@@ -1,0 +1,16 @@
+{
+  "cases": [
+    {
+      "id": "dataiku-predictive-maintenance",
+      "roi": 1,
+      "complexity": 3,
+      "readiness": 1
+    },
+    {
+      "id": "iap-attempt-path",
+      "roi": 3,
+      "complexity": 1,
+      "readiness": 3
+    }
+  ]
+}
