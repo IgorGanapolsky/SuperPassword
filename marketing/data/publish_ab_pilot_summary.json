@@ -10,18 +10,18 @@
     },
     "control": {
       "cost_per_success_usd": null,
-      "mean_duration_ms": null,
-      "runs": 0,
-      "success_rate": null,
+      "mean_duration_ms": 341.0,
+      "runs": 1,
+      "success_rate": 0.0,
       "successes": 0,
-      "total_cost_usd": 0
+      "total_cost_usd": 0.0
     }
   },
   "budget_cap_usd": 10.0,
   "budget_remaining_usd": 10.0,
-  "budget_spent_usd": 0,
+  "budget_spent_usd": 0.0,
   "complete": false,
   "decision": "insufficient_data",
-  "total_runs": 0,
+  "total_runs": 1,
   "window_days": 14
 }

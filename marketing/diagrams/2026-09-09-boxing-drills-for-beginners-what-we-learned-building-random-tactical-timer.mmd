@@ -1,0 +1,13 @@
+flowchart LR
+  idea["Idea"]
+  prompt["AI Prompt"]
+  code["Code + Tests"]
+  ci["CI Gate"]
+  release["Publish"]
+  learn["Metrics + RLHF"]
+  idea --> prompt
+  prompt --> code
+  code --> ci
+  ci --> release
+  release --> learn
+  learn --> idea

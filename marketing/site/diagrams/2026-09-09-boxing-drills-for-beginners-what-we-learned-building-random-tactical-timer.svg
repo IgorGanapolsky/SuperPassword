@@ -1,0 +1,94 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="760" viewBox="0 0 1440 760">
+<defs>
+<linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+<stop offset="0%" stop-color="#070D1A"/>
+<stop offset="60%" stop-color="#101A31"/>
+<stop offset="100%" stop-color="#0A2235"/>
+</linearGradient>
+<radialGradient id="halo" cx="50%" cy="10%" r="75%">
+<stop offset="0%" stop-color="#2A4C80" stop-opacity="0.45"/>
+<stop offset="100%" stop-color="#2A4C80" stop-opacity="0"/>
+</radialGradient>
+<filter id="cardShadow" x="-20%" y="-20%" width="140%" height="160%">
+<feDropShadow dx="0" dy="10" stdDeviation="9" flood-color="#030812" flood-opacity="0.55"/>
+</filter>
+<marker id="arrow" markerWidth="14" markerHeight="10" refX="11" refY="5" orient="auto">
+<polygon points="0 0, 14 5, 0 10" fill="#74D0FF"/>
+</marker>
+<pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse">
+<path d="M 32 0 L 0 0 0 32" fill="none" stroke="#1E2E49" stroke-opacity="0.28" stroke-width="1"/>
+</pattern>
+<linearGradient id="edge" x1="0" y1="0" x2="1" y2="0">
+<stop offset="0%" stop-color="#4DA8D6"/>
+<stop offset="100%" stop-color="#83E2FF"/>
+</linearGradient>
+</defs>
+<rect x="0" y="0" width="1440" height="760" fill="url(#bg)" rx="24"/>
+<rect x="0" y="0" width="1440" height="760" fill="url(#grid)" rx="24"/>
+<ellipse cx="720" cy="70" rx="520" ry="170" fill="url(#halo)"/>
+<text x="74" y="88" font-family="Avenir Next,Segoe UI,Arial,sans-serif" font-size="52" font-weight="800" fill="#F2F8FF">PaperBanana Tech Flow</text>
+<text x="74" y="128" font-family="Avenir Next,Segoe UI,Arial,sans-serif" font-size="24" fill="#AED8F7">Idea -> AI assist -> build -> ship -> telemetry -> learning loop</text>
+<path d="M 416.0 244.0 C 472.2 244.0, 507.8 244.0, 564.0 244.0" fill="none" stroke="url(#edge)" stroke-width="6" stroke-linecap="round" marker-end="url(#arrow)" opacity="0.92"/>
+<path d="M 876.0 244.0 C 932.2 244.0, 967.8 244.0, 1024.0 244.0" fill="none" stroke="url(#edge)" stroke-width="6" stroke-linecap="round" marker-end="url(#arrow)" opacity="0.92"/>
+<path d="M 1336.0 244.0 C 867.8 244.0, 572.2 484.0, 104.0 484.0" fill="none" stroke="url(#edge)" stroke-width="6" stroke-linecap="round" marker-end="url(#arrow)" opacity="0.92"/>
+<path d="M 416.0 484.0 C 472.2 484.0, 507.8 484.0, 564.0 484.0" fill="none" stroke="url(#edge)" stroke-width="6" stroke-linecap="round" marker-end="url(#arrow)" opacity="0.92"/>
+<path d="M 876.0 484.0 C 932.2 484.0, 967.8 484.0, 1024.0 484.0" fill="none" stroke="url(#edge)" stroke-width="6" stroke-linecap="round" marker-end="url(#arrow)" opacity="0.92"/>
+<path d="M 1180.0 430.0 C 1180.0 70.0, 260.0 70.0, 260.0 190.0" fill="none" stroke="url(#edge)" stroke-width="6" stroke-linecap="round" marker-end="url(#arrow)" opacity="0.92"/>
+<defs><linearGradient id="node0" x1="0" y1="0" x2="1" y2="1">
+<stop offset="0%" stop-color="#0E223A"/>
+<stop offset="100%" stop-color="#163B63"/>
+</linearGradient></defs>
+<rect x="80" y="180" width="360" height="128" rx="18" fill="url(#node0)" stroke="#64C9FF" stroke-width="2.5" filter="url(#cardShadow)"/>
+<circle cx="114" cy="214" r="18" fill="#64C9FF" fill-opacity="0.2" stroke="#64C9FF" stroke-width="1.5"/>
+<text x="114" y="220" text-anchor="middle" font-family="Avenir Next,Segoe UI,Arial,sans-serif" font-size="15" font-weight="700" fill="#EAF6FF">1</text>
+<text x="150" y="224" font-family="Avenir Next,Segoe UI,Arial,sans-serif" font-size="16" font-weight="700" fill="#DCEFFF">IDEA</text>
+<text x="150" y="266" font-family="Avenir Next,Segoe UI,Arial,sans-serif" font-size="28" font-weight="700" fill="#F5FAFF">Idea</text>
+<defs><linearGradient id="node1" x1="0" y1="0" x2="1" y2="1">
+<stop offset="0%" stop-color="#1A2345"/>
+<stop offset="100%" stop-color="#25366A"/>
+</linearGradient></defs>
+<rect x="540" y="180" width="360" height="128" rx="18" fill="url(#node1)" stroke="#8FB2FF" stroke-width="2.5" filter="url(#cardShadow)"/>
+<circle cx="574" cy="214" r="18" fill="#8FB2FF" fill-opacity="0.2" stroke="#8FB2FF" stroke-width="1.5"/>
+<text x="574" y="220" text-anchor="middle" font-family="Avenir Next,Segoe UI,Arial,sans-serif" font-size="15" font-weight="700" fill="#EAF6FF">2</text>
+<text x="610" y="224" font-family="Avenir Next,Segoe UI,Arial,sans-serif" font-size="16" font-weight="700" fill="#DCEFFF">PROMPT</text>
+<text x="610" y="266" font-family="Avenir Next,Segoe UI,Arial,sans-serif" font-size="28" font-weight="700" fill="#F5FAFF">AI Prompt</text>
+<defs><linearGradient id="node2" x1="0" y1="0" x2="1" y2="1">
+<stop offset="0%" stop-color="#1F2140"/>
+<stop offset="100%" stop-color="#3A2E6C"/>
+</linearGradient></defs>
+<rect x="1000" y="180" width="360" height="128" rx="18" fill="url(#node2)" stroke="#B99CFF" stroke-width="2.5" filter="url(#cardShadow)"/>
+<circle cx="1034" cy="214" r="18" fill="#B99CFF" fill-opacity="0.2" stroke="#B99CFF" stroke-width="1.5"/>
+<text x="1034" y="220" text-anchor="middle" font-family="Avenir Next,Segoe UI,Arial,sans-serif" font-size="15" font-weight="700" fill="#EAF6FF">3</text>
+<text x="1070" y="224" font-family="Avenir Next,Segoe UI,Arial,sans-serif" font-size="16" font-weight="700" fill="#DCEFFF">CODE</text>
+<text x="1070" y="256" font-family="Avenir Next,Segoe UI,Arial,sans-serif" font-size="28" font-weight="700" fill="#F5FAFF">Code</text>
+<text x="1070" y="288" font-family="Avenir Next,Segoe UI,Arial,sans-serif" font-size="28" font-weight="700" fill="#F5FAFF">Tests</text>
+<defs><linearGradient id="node3" x1="0" y1="0" x2="1" y2="1">
+<stop offset="0%" stop-color="#22203B"/>
+<stop offset="100%" stop-color="#43316B"/>
+</linearGradient></defs>
+<rect x="80" y="420" width="360" height="128" rx="18" fill="url(#node3)" stroke="#A7A0FF" stroke-width="2.5" filter="url(#cardShadow)"/>
+<circle cx="114" cy="454" r="18" fill="#A7A0FF" fill-opacity="0.2" stroke="#A7A0FF" stroke-width="1.5"/>
+<text x="114" y="460" text-anchor="middle" font-family="Avenir Next,Segoe UI,Arial,sans-serif" font-size="15" font-weight="700" fill="#EAF6FF">4</text>
+<text x="150" y="464" font-family="Avenir Next,Segoe UI,Arial,sans-serif" font-size="16" font-weight="700" fill="#DCEFFF">CI</text>
+<text x="150" y="506" font-family="Avenir Next,Segoe UI,Arial,sans-serif" font-size="28" font-weight="700" fill="#F5FAFF">CI Gate</text>
+<defs><linearGradient id="node4" x1="0" y1="0" x2="1" y2="1">
+<stop offset="0%" stop-color="#1A2A35"/>
+<stop offset="100%" stop-color="#22495A"/>
+</linearGradient></defs>
+<rect x="540" y="420" width="360" height="128" rx="18" fill="url(#node4)" stroke="#6EDAD8" stroke-width="2.5" filter="url(#cardShadow)"/>
+<circle cx="574" cy="454" r="18" fill="#6EDAD8" fill-opacity="0.2" stroke="#6EDAD8" stroke-width="1.5"/>
+<text x="574" y="460" text-anchor="middle" font-family="Avenir Next,Segoe UI,Arial,sans-serif" font-size="15" font-weight="700" fill="#EAF6FF">5</text>
+<text x="610" y="464" font-family="Avenir Next,Segoe UI,Arial,sans-serif" font-size="16" font-weight="700" fill="#DCEFFF">RELEASE</text>
+<text x="610" y="506" font-family="Avenir Next,Segoe UI,Arial,sans-serif" font-size="28" font-weight="700" fill="#F5FAFF">Publish</text>
+<defs><linearGradient id="node5" x1="0" y1="0" x2="1" y2="1">
+<stop offset="0%" stop-color="#1E2330"/>
+<stop offset="100%" stop-color="#364456"/>
+</linearGradient></defs>
+<rect x="1000" y="420" width="360" height="128" rx="18" fill="url(#node5)" stroke="#9CB3CF" stroke-width="2.5" filter="url(#cardShadow)"/>
+<circle cx="1034" cy="454" r="18" fill="#9CB3CF" fill-opacity="0.2" stroke="#9CB3CF" stroke-width="1.5"/>
+<text x="1034" y="460" text-anchor="middle" font-family="Avenir Next,Segoe UI,Arial,sans-serif" font-size="15" font-weight="700" fill="#EAF6FF">6</text>
+<text x="1070" y="464" font-family="Avenir Next,Segoe UI,Arial,sans-serif" font-size="16" font-weight="700" fill="#DCEFFF">LEARN</text>
+<text x="1070" y="496" font-family="Avenir Next,Segoe UI,Arial,sans-serif" font-size="28" font-weight="700" fill="#F5FAFF">Metrics</text>
+<text x="1070" y="528" font-family="Avenir Next,Segoe UI,Arial,sans-serif" font-size="28" font-weight="700" fill="#F5FAFF">RLHF</text>
+<text x="74" y="710" font-family="Avenir Next,Segoe UI,Arial,sans-serif" font-size="21" fill="#C4E4F9">Random Tactical Timer growth system: measurable, testable, automated.</text>
+</svg>
