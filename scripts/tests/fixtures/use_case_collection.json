@@ -1,0 +1,14 @@
+{
+  "cases": [
+    {
+      "id": "dataiku-predictive-maintenance",
+      "family": "expertise",
+      "owned": false
+    },
+    {
+      "id": "iap-attempt-path",
+      "family": "iap_attempt",
+      "owned": true
+    }
+  ]
+}
