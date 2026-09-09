@@ -1,0 +1,18 @@
+{
+  "packs": [
+    {
+      "id": "meko-collective-memory",
+      "layer": "memory",
+      "storage": "mcp_mekodata_ai",
+      "promoted": false,
+      "verified": false
+    },
+    {
+      "id": "iap-attempt-path",
+      "layer": "knowledge",
+      "storage": "local_json",
+      "promoted": true,
+      "verified": true
+    }
+  ]
+}
