@@ -109,6 +109,10 @@ jobs:
           git push -u origin "$BRANCH"
           gh pr create --base develop --head "$BRANCH" --title "chore(growth): daily content and publishing update" --body "Automated daily growth content, publishing logs, and pages build" --label "automation" || true
 
+      - name: Prepare Pages artifact
+        if: github.ref == 'refs/heads/develop'
+        run: rm -f marketing/site/CNAME CNAME
+
       - name: Setup Pages
         if: github.ref == 'refs/heads/develop'
         uses: actions/configure-pages@v6
