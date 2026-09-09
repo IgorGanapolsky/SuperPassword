@@ -14,6 +14,9 @@ import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performScrollToNode
 import androidx.test.ext.junit.rules.ActivityScenarioRule
 import androidx.test.platform.app.InstrumentationRegistry
+import androidx.test.uiautomator.By
+import androidx.test.uiautomator.UiDevice
+import androidx.test.uiautomator.Until
 import com.iganapolsky.randomtimer.MainActivity
 import com.iganapolsky.randomtimer.service.TimerForegroundService
 
@@ -107,5 +110,21 @@ object DeviceTestSupport {
         rule: AndroidComposeTestRule<ActivityScenarioRule<MainActivity>, MainActivity>,
     ) {
         rule.onNodeWithTag("start_timer", useUnmergedTree = true).performClick()
+    }
+
+    /**
+     * Clicks a notification action after re-querying the node. Notification rows refresh after
+     * actions like "+5 Min", which invalidates cached [UiObject2] handles (StaleObjectException).
+     */
+    fun clickNotificationAction(
+        device: UiDevice,
+        label: String,
+        timeoutMs: Long = NOTIFICATION_UI_TIMEOUT_MS,
+    ) {
+        val visible = device.wait(Until.findObject(By.text(label)), timeoutMs)
+        requireNotNull(visible) { "'$label' should be visible in notification shade" }
+        val fresh = device.wait(Until.findObject(By.text(label)), timeoutMs)
+        requireNotNull(fresh) { "'$label' disappeared before click" }
+        fresh.click()
     }
 }
