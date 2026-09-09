@@ -1,0 +1,16 @@
+{
+  "paths": [
+    {
+      "id": "databricks-agent-bricks",
+      "evaluation": "generic_benchmark",
+      "governance": "ai_gateway",
+      "stage": "pilot"
+    },
+    {
+      "id": "iap-attempt-path",
+      "evaluation": "domain_kpi",
+      "governance": "local_fail_closed",
+      "stage": "production"
+    }
+  ]
+}
