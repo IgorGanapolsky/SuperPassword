@@ -1,0 +1,39 @@
+{
+  "as_of": "2026-09-09T16:16:05Z",
+  "window": "trailing_7d",
+  "source": "posthog execute-sql",
+  "project_id": 299775,
+  "review_count_metric_id": null,
+  "arctic_swarm": false,
+  "more_agents": false,
+  "spend_usd_month": 0,
+  "monthly_cap_usd": 20,
+  "north_star": {
+    "metric_id": "wqtu",
+    "value": 5,
+    "definition": "distinct users with >=3 timer_completed in trailing 7d"
+  },
+  "events": {
+    "timer_started": {"n": 370, "users": 53},
+    "timer_completed": {"n": 84, "users": 21},
+    "paywall_viewed": {"n": 20, "users": 10},
+    "paywall_view": {"n": 12, "users": 6},
+    "paywall_dismissed": {"n": 9, "users": 5},
+    "iap_attempt": {"n": 0, "users": 0, "note": "absent from 7d result set"},
+    "paywall_purchase_success": {
+      "n": 0,
+      "users": 0,
+      "label": "telemetry_not_ledger"
+    }
+  },
+  "ranked_work": [
+    {
+      "id": "iap-attempt-path",
+      "metric": "iap_attempt",
+      "why": "20 viewed and 12 view, 9 dismissals, zero attempts"
+    }
+  ],
+  "denied": ["arctic_swarm", "more_agents", "premature_consensus"],
+  "evidence": "plugin-posthog-posthog execute-sql 2026-09-09T16:16Z",
+  "guide": "https://x.com/rohanpaul_ai/status/2097089066579988968"
+}

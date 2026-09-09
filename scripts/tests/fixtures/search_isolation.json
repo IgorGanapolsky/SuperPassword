@@ -1,0 +1,16 @@
+{
+  "paths": [
+    {
+      "id": "more-agents-chat-early",
+      "peer_reads_during_search": true,
+      "findings": [],
+      "reviewed": false
+    },
+    {
+      "id": "iap-attempt-path",
+      "peer_reads_during_search": false,
+      "findings": ["paywall_viewed=20", "iap_attempt=0"],
+      "reviewed": true
+    }
+  ]
+}
