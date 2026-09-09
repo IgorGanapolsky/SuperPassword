@@ -1,0 +1,18 @@
+{
+  "skills": [
+    {
+      "id": "pick-me-database-everything",
+      "description": "Use for any database work, migrations, schema changes, queries, indexes, ORMs, backups, and anything remotely related to data storage or SQL.",
+      "disclosure": "itinerary",
+      "always_on_bloat": true,
+      "completion_defined": false
+    },
+    {
+      "id": "iap-attempt-path",
+      "description": "Use when diagnosing zero IAP attempts on the paywall.",
+      "disclosure": "router",
+      "always_on_bloat": false,
+      "completion_defined": true
+    }
+  ]
+}
