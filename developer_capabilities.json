@@ -1,0 +1,127 @@
+{
+  "brand": "Random Tactical Timer",
+  "package": "com.iganapolsky.randomtimer",
+  "measured_at": "2026-09-06T19:05:00Z",
+  "source_playbook": "https://minepi.com/blog/dev-capabilities-documentation/",
+  "adaptation_note": "Pi's playbook is unified docs + capability clarity + native device features. This catalog documents Random Timer capabilities for humans and AI agents — not Pi Browser APIs.",
+  "single_destination": {
+    "repo_hub": "docs/DEVELOPERS.md",
+    "pages_hub": "https://igorganapolsky.github.io/Random-Timer/marketing/site/developers.md",
+    "machine_catalog": "docs/developer_capabilities.json"
+  },
+  "developer_journey": [
+    {
+      "id": "get_started",
+      "title": "Get started",
+      "summary": "Clone repo, read CLAUDE.md/AGENTS.md, confirm gh auth, run make verify primitives."
+    },
+    {
+      "id": "local_build",
+      "title": "Local build",
+      "summary": "Build Android debug APK and iOS scheme; use Makefile targets and platform docs."
+    },
+    {
+      "id": "integrate_capabilities",
+      "title": "Integrate capabilities",
+      "summary": "Timer modes, local storage, Pro entitlements, analytics, share — see capabilities[] below."
+    },
+    {
+      "id": "store_launch",
+      "title": "Store launch",
+      "summary": "Fastlane metadata, release notes, native-release workflow, store read-back evidence."
+    }
+  ],
+  "capabilities": [
+    {
+      "id": "random_interval_timer",
+      "name": "Random interval timer",
+      "status": "ga",
+      "platforms": ["ios", "android"],
+      "summary": "Fires a cue at an unpredictable moment inside a user-selected min/max window; loop and hidden countdown supported.",
+      "evidence_paths": [
+        "native-android/app/src/main/java/com/iganapolsky/randomtimer",
+        "native-ios/RandomTimer"
+      ]
+    },
+    {
+      "id": "local_storage",
+      "name": "Local storage (device preferences)",
+      "status": "ga",
+      "platforms": ["ios", "android"],
+      "summary": "Preferences and session state stay on-device (DataStore/SharedPreferences; UserDefaults). Not a cross-device sync backend — reduces infra cost like Pi local storage guidance.",
+      "evidence_paths": [
+        "native-android/app/src/main/java/com/iganapolsky/randomtimer/di/AppModule.kt",
+        "native-ios/RandomTimer"
+      ]
+    },
+    {
+      "id": "native_share",
+      "name": "Native share",
+      "status": "partial",
+      "platforms": ["ios"],
+      "summary": "iOS ShareSheet wrapper exists for UIActivityViewController. Not yet wired into product UI; Android Intent.ACTION_SEND share helper not present. High-ROI follow-up: share store link / session summary via OS share sheet.",
+      "evidence_paths": [
+        "native-ios/RandomTimer/Sources/UI/Components/ShareSheet.swift"
+      ]
+    },
+    {
+      "id": "pro_entitlements",
+      "name": "Pro entitlements (StoreKit / Play)",
+      "status": "ga",
+      "platforms": ["ios", "android"],
+      "summary": "Paid Pro unlocks via App Store / Play. Treat paywall_purchase_success as telemetry, not ledger revenue.",
+      "evidence_paths": [
+        "native-android/app/src/main/java/com/iganapolsky/randomtimer/billing/ProManager.kt",
+        "docs/OPERATIONAL_RELIABILITY.md"
+      ]
+    },
+    {
+      "id": "analytics_posthog",
+      "name": "Product analytics (PostHog)",
+      "status": "ga",
+      "platforms": ["ios", "android"],
+      "summary": "North Star WQTU from timer_completed; paywall funnel events. Query live PostHog before product prioritization.",
+      "evidence_paths": [
+        "docs/north-star-baseline.md",
+        "AGENTS.md"
+      ]
+    },
+    {
+      "id": "ai_coach_audio",
+      "name": "AI coach / alarm audio",
+      "status": "ga",
+      "platforms": ["ios", "android"],
+      "summary": "Alarm sounds and optional voice callouts for reaction drills.",
+      "evidence_paths": [
+        "native-android/app/src/main",
+        "native-ios/RandomTimer"
+      ]
+    },
+    {
+      "id": "background_reliability",
+      "name": "Background timer reliability",
+      "status": "ga",
+      "platforms": ["ios", "android"],
+      "summary": "iOS Live Activities / notifications; Android foreground service + notification controls.",
+      "evidence_paths": [
+        "docs/LIVE_ACTIVITY_IMPLEMENTATION.md",
+        "docs/ANDROID_NOTIFICATION_ENHANCEMENTS.md"
+      ]
+    },
+    {
+      "id": "store_publishing_automation",
+      "name": "Store publishing automation",
+      "status": "ga",
+      "platforms": ["ios", "android"],
+      "summary": "Fastlane metadata, CI native-release, evidence-first readiness checks.",
+      "evidence_paths": [
+        "docs/RELEASE.md",
+        "docs/APP_STORE_VERSION_AUTOMATION.md"
+      ]
+    }
+  ],
+  "ai_guidance": {
+    "auth_and_payments": "Use StoreKit / Play Billing clients in-tree. Never invent catalog SKUs. Prefer live Play/ASC API read-back before claiming purchase readiness.",
+    "documentation_rule": "Prefer docs/DEVELOPERS.md over scavenging overlapping guides. If docs disagree with code, trust code + fix the hub."
+  }
+}

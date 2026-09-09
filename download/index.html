@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Open Random Tactical Timer</title>
+  <meta name="description" content="Smart install link for Random Tactical Timer. Opens the app when installed, otherwise falls back to the correct store." />
+  <meta name="robots" content="noindex,follow" />
+  <link rel="canonical" href="https://igorganapolsky.github.io/Random-Timer/download" />
+  <link rel="stylesheet" href="../styles.css" />
+
+</head>
+<body>
+  <main class="download-shell">
+    <section class="download-card">
+      <span class="eyebrow">Smart app link</span>
+      <h1>Opening Random Tactical Timer…</h1>
+      <p id="status">Trying the installed app first. If that does not work, this page will send you to the right store.</p>
+      <p class="helper">Tracked query params are preserved for <code>deep_link_opened</code> attribution when the app is already installed.</p>
+      <div class="store-links">
+        <a id="open-app" class="button" href="randomtimer://open">Open app now</a>
+        <a id="ios-store" class="button-secondary" href="https://apps.apple.com/us/app/random-tactical-timer/id6758355312">Continue to App Store</a>
+        <a id="android-store" class="button-secondary" href="https://play.google.com/store/apps/details?id=com.iganapolsky.randomtimer">Continue to Google Play</a>
+      </div>
+    </section>
+  </main>
+  <script>
+    const query = new URLSearchParams(window.location.search);
+    const platform = query.get("platform");
+    const queryString = query.toString();
+    const deepLink = "randomtimer://open" + (queryString ? "?" + queryString : "");
+    const iosStoreBase = "https://apps.apple.com/us/app/random-tactical-timer/id6758355312";
+    const androidStoreBase = "https://play.google.com/store/apps/details?id=com.iganapolsky.randomtimer";
+    const statusNode = document.getElementById("status");
+    const openNode = document.getElementById("open-app");
+    const iosNode = document.getElementById("ios-store");
+    const androidNode = document.getElementById("android-store");
+
+    function withParams(url) {
+      const next = new URL(url);
+      query.forEach((value, key) => next.searchParams.set(key, value));
+      return next.toString();
+    }
+
+    const iosStore = withParams(iosStoreBase);
+    const androidStore = withParams(androidStoreBase);
+    openNode.href = deepLink;
+    iosNode.href = iosStore;
+    androidNode.href = androidStore;
+
+    function detectPlatform() {
+      if (platform === "ios" || platform === "android") return platform;
+      const ua = navigator.userAgent || "";
+      if (/android/i.test(ua)) return "android";
+      if (/iPhone|iPad|iPod/i.test(ua)) return "ios";
+      return "desktop";
+    }
+
+    const resolvedPlatform = detectPlatform();
+    const fallback = resolvedPlatform === "android" ? androidStore : iosStore;
+    if (resolvedPlatform === "desktop") {
+      statusNode.textContent = "Choose your platform below. The smart link is optimized for mobile devices.";
+    } else {
+      window.location.replace(deepLink);
+      window.setTimeout(() => {
+        statusNode.textContent = resolvedPlatform === "android"
+          ? "App not detected. Sending you to Google Play."
+          : "App not detected. Sending you to the App Store.";
+        window.location.replace(fallback);
+      }, 900);
+    }
+  </script>
+</body>
+</html>

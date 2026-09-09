@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://igorganapolsky.github.io/Random-Timer/marketing/site/sitemap.xml
