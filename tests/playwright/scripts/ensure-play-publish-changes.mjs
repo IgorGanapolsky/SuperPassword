@@ -49,6 +49,24 @@ async function saveArtifacts(page, dir, name) {
   fs.writeFileSync(textPath, bodyText, "utf8");
 }
 
+async function ensurePublishingPage(page, publishingUrl) {
+  let body = await page.locator("body").innerText().catch(() => "");
+
+  if (body.includes("Choose developer account")) {
+    const developer = page.getByText("IgorGanapolsky", { exact: true }).first();
+    if (await developer.isVisible().catch(() => false)) {
+      await developer.click();
+      await page.waitForTimeout(5000);
+      body = await page.locator("body").innerText().catch(() => "");
+    }
+  }
+
+  if (!page.url().includes("/publishing")) {
+    await page.goto(publishingUrl, { waitUntil: "domcontentloaded", timeout: 120000 });
+    await page.waitForTimeout(5000);
+  }
+}
+
 async function clickFirst(page, labels) {
   for (const label of labels) {
     if (label instanceof RegExp) {
@@ -108,6 +126,8 @@ async function main() {
   try {
     await page.goto(publishingUrl, { waitUntil: "domcontentloaded", timeout: 120000 });
     await page.waitForTimeout(5000);
+    await expectAuthenticated(page);
+    await ensurePublishingPage(page, publishingUrl);
     await expectAuthenticated(page);
     bodyBefore = await page.locator("body").innerText().catch(() => "");
     await saveArtifacts(page, artifactDir, "01-publishing-overview");
