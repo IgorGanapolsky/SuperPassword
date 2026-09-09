@@ -44,6 +44,15 @@
       "android_total": 1,
       "android_rating": 5.0,
       "android_recent_7d": 0
+    },
+    {
+      "timestamp": "2026-09-09T09:10:03.442235+00:00",
+      "ios_total": 1,
+      "ios_rating": 5.0,
+      "ios_recent_7d": 0,
+      "android_total": 1,
+      "android_rating": 5.0,
+      "android_recent_7d": 0
     }
   ],
   "alerts": [
@@ -66,12 +75,12 @@
   },
   "latest_velocity": {
     "ios_velocity": 0.0,
-    "android_velocity": 1.0,
-    "window_days": 1
+    "android_velocity": 0.0,
+    "window_days": 112
   },
   "review_prompt_config": {
-    "completions_before_prompt": 3,
-    "min_days_between_prompts": 30,
+    "completions_before_prompt": 2,
+    "min_days_between_prompts": 21,
     "prompt_after_positive_experience": true,
     "suppress_during_low_rating_period": false
   }
