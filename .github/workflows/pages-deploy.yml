@@ -1,17 +1,16 @@
-name: Deploy GitHub Pages (site only)
+name: Deploy GitHub Pages
 
-# Lightweight Pages deploy for marketing/site without growth/social fan-out.
-# Use after docs/capability hub merges so developers.md is live quickly.
+# Lightweight Pages deploy for store-required URLs (privacy policy, support, etc.).
+# Does not run the full growth content pipeline.
 
 on:
-  workflow_dispatch:
   push:
     branches: [develop]
     paths:
-      - "marketing/site/**"
-      - "docs/DEVELOPERS.md"
-      - "docs/developer_capabilities.json"
-      - ".github/workflows/pages-deploy.yml"
+      - 'marketing/site/**'
+      - 'privacy-policy/**'
+      - '.github/workflows/pages-deploy.yml'
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -20,7 +19,7 @@ permissions:
 
 concurrency:
   group: pages-deploy
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   deploy:
@@ -30,24 +29,26 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@v6
 
-      - name: Sync developer hub into site root
+      - name: Prepare site artifact
         run: |
-          cp docs/developer_capabilities.json marketing/site/developer_capabilities.json
-          # Keep committed marketing/site/developers.md as Pages source of truth.
-          test -f marketing/site/developers.md
-          test -f marketing/site/developer_capabilities.json
-          python3 scripts/developers_docs_audit.py --repo-root .
+          # Never deploy a custom-domain CNAME — it breaks github.io URLs Play Console checks.
+          rm -f marketing/site/CNAME CNAME
+          if [ -f privacy-policy/index.html ]; then
+            mkdir -p marketing/site/privacy-policy
+            cp privacy-policy/index.html marketing/site/privacy-policy/index.html
+          fi
+          test -f marketing/site/privacy-policy/index.html
 
       - name: Setup Pages
-        uses: actions/configure-pages@v6
+        uses: actions/configure-pages@v5
 
       - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v5
+        uses: actions/upload-pages-artifact@v3
         with:
           path: marketing/site
 
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v5
+        uses: actions/deploy-pages@v4
