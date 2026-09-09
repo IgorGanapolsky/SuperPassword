@@ -1,0 +1,41 @@
+{
+  "as_of": "2026-09-09T16:51:37Z",
+  "window": "trailing_7d",
+  "source": "posthog execute-sql",
+  "project_id": 299775,
+  "review_count_metric_id": null,
+  "gpt6_astra": false,
+  "chatgpt_pro": false,
+  "openai_api_primary": false,
+  "api_list_price_note": "gpt-6-astra ~$10/M input $50/M output — over $20/mo cap",
+  "spend_usd_month": 0,
+  "monthly_cap_usd": 20,
+  "north_star": {
+    "metric_id": "wqtu",
+    "value": 5,
+    "definition": "distinct users with >=3 timer_completed in trailing 7d"
+  },
+  "events": {
+    "timer_started": {"n": 370, "users": 53},
+    "timer_completed": {"n": 84, "users": 21},
+    "paywall_viewed": {"n": 20, "users": 10},
+    "paywall_view": {"n": 12, "users": 6},
+    "paywall_dismissed": {"n": 9, "users": 5},
+    "iap_attempt": {"n": 0, "users": 0, "note": "absent from 7d result set"},
+    "paywall_purchase_success": {
+      "n": 0,
+      "users": 0,
+      "label": "telemetry_not_ledger"
+    }
+  },
+  "ranked_work": [
+    {
+      "id": "iap-attempt-path",
+      "metric": "iap_attempt",
+      "why": "20 viewed and 12 view, 9 dismissals, zero attempts"
+    }
+  ],
+  "denied": ["chatgpt_pro", "gpt6_astra", "astra_desktop", "max_effort_default"],
+  "evidence": "plugin-posthog-posthog execute-sql 2026-09-09T16:51Z",
+  "guide": "https://openai.com/index/gpt-6-astra/"
+}

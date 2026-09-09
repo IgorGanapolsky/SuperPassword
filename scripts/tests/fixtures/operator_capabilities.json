@@ -1,0 +1,16 @@
+{
+  "capabilities": [
+    {
+      "id": "chatgpt-pro-computer-use",
+      "surface": "chatgpt_pro",
+      "harness": "astra_desktop",
+      "effort": "max"
+    },
+    {
+      "id": "iap-attempt-path",
+      "surface": "local_cli",
+      "harness": "browseros",
+      "effort": "medium"
+    }
+  ]
+}
