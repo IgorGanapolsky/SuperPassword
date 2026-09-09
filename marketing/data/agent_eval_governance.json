@@ -1,0 +1,47 @@
+{
+  "as_of": "2026-09-09T18:04:45Z",
+  "window": "trailing_7d",
+  "source": "posthog execute-sql",
+  "project_id": 299775,
+  "review_count_metric_id": null,
+  "databricks_cloud": false,
+  "ai_gateway": false,
+  "agent_bricks": false,
+  "unity_catalog": false,
+  "spend_usd_month": 0,
+  "monthly_cap_usd": 20,
+  "north_star": {
+    "metric_id": "wqtu",
+    "value": 5,
+    "definition": "distinct users with >=3 timer_completed in trailing 7d"
+  },
+  "events": {
+    "timer_started": {"n": 371, "users": 54},
+    "timer_completed": {"n": 85, "users": 22},
+    "paywall_viewed": {"n": 20, "users": 10},
+    "paywall_view": {"n": 12, "users": 6},
+    "paywall_dismissed": {"n": 9, "users": 5},
+    "iap_attempt": {"n": 0, "users": 0, "note": "absent from 7d result set"},
+    "paywall_purchase_success": {
+      "n": 0,
+      "users": 0,
+      "label": "telemetry_not_ledger"
+    }
+  },
+  "ranked_work": [
+    {
+      "id": "iap-attempt-path",
+      "metric": "iap_attempt",
+      "why": "domain KPI eval + local governance beats multi-agent vanity"
+    }
+  ],
+  "denied": [
+    "databricks_cloud",
+    "ai_gateway",
+    "agent_bricks",
+    "generic_benchmark",
+    "multi_agent_count_proxy"
+  ],
+  "evidence": "plugin-posthog-posthog execute-sql 2026-09-09T18:04Z",
+  "guide": "https://www.databricks.com/resources/ebook/state-of-ai-agents"
+}
