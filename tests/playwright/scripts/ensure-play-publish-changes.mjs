@@ -53,12 +53,22 @@ async function ensurePublishingPage(page, publishingUrl) {
   let body = await page.locator("body").innerText().catch(() => "");
 
   if (body.includes("Choose developer account")) {
-    const developer = page.getByText("IgorGanapolsky", { exact: true }).first();
-    if (await developer.isVisible().catch(() => false)) {
-      await developer.click();
-      await page.waitForTimeout(5000);
-      body = await page.locator("body").innerText().catch(() => "");
+    const selectors = [
+      page.getByRole("button", { name: /IgorGanapolsky/i }),
+      page.getByRole("link", { name: /IgorGanapolsky/i }),
+      page.locator('[role="listitem"]').filter({ hasText: /IgorGanapolsky/i }),
+      page.getByText("IgorGanapolsky", { exact: true }),
+    ];
+    for (const candidate of selectors) {
+      const target = candidate.first();
+      if (await target.isVisible().catch(() => false)) {
+        await target.click({ force: true });
+        await page.waitForTimeout(3000);
+        await page.waitForURL(/\/developers\//, { timeout: 30000 }).catch(() => {});
+        break;
+      }
     }
+    body = await page.locator("body").innerText().catch(() => "");
   }
 
   if (!page.url().includes("/publishing")) {
