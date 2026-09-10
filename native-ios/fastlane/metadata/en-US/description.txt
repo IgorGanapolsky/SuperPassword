@@ -26,6 +26,12 @@ TRAINING USES
 
 Stop timing your drills. Start training your response.
 
+FAQ
+• What is Random Tactical Timer? Random Tactical Timer is a random interval and round timer that fires inside your chosen range so you train reaction—not countdown watching.
+• Who is Random Tactical Timer for? Boxers, MMA, BJJ, wrestling, Muay Thai, kickboxing, HIIT, and tactical coaches.
+• How is Random Tactical Timer different from Tabata or fixed round timers? Fixed timers train rhythm. Random Tactical Timer removes anticipation.
+• Learn more: https://igorganapolsky.github.io/Random-Timer/ai-visibility/
+
 SUBSCRIPTION INFO
 Pro Tactical is offered as auto-renewable subscriptions (monthly and annual options where available). A one-time upgrade may be offered depending on App Store configuration in your region. Example list pricing when configured in App Store Connect: $3.99/month and $29.99/year; actual price is shown on Apple’s purchase confirmation sheet before you buy. Payment is charged to your Apple ID account at confirmation of purchase. Subscription automatically renews unless canceled at least 24 hours before the end of the current period. Manage subscriptions in Settings > Apple ID > Subscriptions.
 

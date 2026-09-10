@@ -15,6 +15,7 @@ Base URL: https://igorganapolsky.github.io/Random-Timer
 ## Key resources
 
 - Product: https://igorganapolsky.github.io/Random-Timer
+- AI visibility FAQ (citable): https://igorganapolsky.github.io/Random-Timer/ai-visibility/
 - Download: https://igorganapolsky.github.io/Random-Timer/download
 - Privacy: https://igorganapolsky.github.io/Random-Timer/privacy-policy/
 - Agents: https://igorganapolsky.github.io/Random-Timer/agents.md

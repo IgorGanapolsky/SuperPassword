@@ -1,0 +1,40 @@
+{
+  "decision_id": "agent_ai_visibility_2026-09-10",
+  "source_report": "https://ai-visibility-index.semrush.com/reports/ai-visibility-index-2026-study-h1",
+  "sources": [
+    "https://ai-visibility-index.semrush.com/reports/ai-visibility-index-2026-study-h1",
+    "https://www.semrush.com/news/463141-semrush-releases-expanded-2026-ai-visibility-index-analyzing-126-million-ai-search-prompts/",
+    "https://www.semrush.com/blog/ai-visibility/"
+  ],
+  "stolen_methods": [
+    "mentions_vs_citations_split",
+    "citation_core_surfaces",
+    "consistent_third_party_brand_narrative",
+    "structured_summary_plus_faq",
+    "per_platform_prompt_tracking",
+    "category_prompts_not_universal_36"
+  ],
+  "denied": [
+    "semrush_enterprise_aio",
+    "peec_ai",
+    "profound",
+    "universal_36_chase",
+    "single_visibility_score"
+  ],
+  "brand_assets_shipped": [
+    "marketing/site/ai-visibility/index.html",
+    "native store FAQ blocks",
+    "reddit subject-first brand drafts",
+    "marketing/data/ai_visibility_prompt_pack.json"
+  ],
+  "platform": "manual_prompt_pack",
+  "wqtu_trailing_7d": 5,
+  "posthog_project": 299775,
+  "measured_at": "2026-09-10T22:29:36Z",
+  "roi_rank": [
+    {"id": "owned-faq-citation", "metric": "owned_citation", "score_rule": "non_proxy"},
+    {"id": "semrush-aio", "metric": "semrush_aio_score", "score_rule": "proxy_zero"}
+  ],
+  "cli": "scripts/agent_ai_visibility.py",
+  "note": "AI visibility is discovery hygiene; IAP attempt path remains the cash bottleneck. paywall_purchase_success is telemetry not ledger."
+}

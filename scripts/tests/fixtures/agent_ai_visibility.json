@@ -1,0 +1,20 @@
+{
+  "packs": [
+    {
+      "id": "category-prompt-pack",
+      "platform": "manual_prompt_pack",
+      "metric": "category_prompt_hit",
+      "expected_mentions": 3,
+      "expected_citations": 2,
+      "expected_iap_attempts": 1,
+      "effort": 1
+    },
+    {
+      "id": "semrush-enterprise",
+      "platform": "semrush_enterprise_aio",
+      "metric": "semrush_aio_score",
+      "expected_mentions": 0,
+      "effort": 1
+    }
+  ]
+}
