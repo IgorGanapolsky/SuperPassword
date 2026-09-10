@@ -1,0 +1,27 @@
+{
+  "pack_id": "rtt_category_prompts_2026-09-10",
+  "source": "https://ai-visibility-index.semrush.com/reports/ai-visibility-index-2026-study-h1",
+  "method": "manual_zero_cost",
+  "note": "Track mentions and citations separately per platform. Semrush AIO ($99+/mo) denied under $20 cap.",
+  "brand": "Random Tactical Timer",
+  "platforms": ["chatgpt", "gemini", "google_ai_mode", "google_ai_overviews", "perplexity"],
+  "metrics_per_run": ["mentioned", "cited_owned_url", "competitor_co_mentioned", "sentiment"],
+  "prompts": [
+    "What is a good random interval timer for boxing drills?",
+    "Best MMA reaction timer app for sparring unpredictability",
+    "App for random round timer instead of fixed boxing rounds",
+    "BJJ scramble timer with random cues",
+    "HIIT timer that is not Tabata and trains reaction",
+    "Random Tactical Timer vs SmartFight Timer",
+    "Random Tactical Timer vs PB Intervals",
+    "Unpredictable pad-work timer for coaches",
+    "How do fighters train without watching the countdown?",
+    "Best apps for tactical reaction training on iPhone"
+  ],
+  "owned_citation_urls": [
+    "https://igorganapolsky.github.io/Random-Timer/ai-visibility/",
+    "https://igorganapolsky.github.io/Random-Timer/llms.txt",
+    "https://igorganapolsky.github.io/Random-Timer/download"
+  ],
+  "third_party_surfaces": ["reddit", "stackoverflow", "youtube", "app_store", "play_store"]
+}
