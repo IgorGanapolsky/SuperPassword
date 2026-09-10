@@ -1,0 +1,18 @@
+{
+  "factories": [
+    {
+      "id": "local-ops-ontology",
+      "platform": "local_ai_factory",
+      "metric": "domain_allocation_accuracy",
+      "expected_iap_attempts": 3,
+      "effort": 1
+    },
+    {
+      "id": "foundry-cloud",
+      "platform": "palantir_foundry_cloud",
+      "metric": "model_parameter_count",
+      "expected_iap_attempts": 0,
+      "effort": 1
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "decision_id": "agent_ai_factory_2026-09-10",
+  "source_article": "https://thenewstack.io/ai-factories-are-among-the-most-complex-systems-ever-built-nvidia-and-palantir-turn-nvidias-supply-chain-into-a-proving-ground-for-sovereign-ai/",
+  "sources": [
+    "https://thenewstack.io/ai-factories-are-among-the-most-complex-systems-ever-built-nvidia-and-palantir-turn-nvidias-supply-chain-into-a-proving-ground-for-sovereign-ai/",
+    "Nvidia Nemotron 3.5 Lightning 30B domain post-train vs Ultra 550B (reported 86.7% vs 55.5% on allocation task)"
+  ],
+  "stolen_methods": [
+    "sovereign_local_data_weights_inference",
+    "live_ops_ontology_map",
+    "specialization_over_model_size",
+    "post_train_on_ops_decision_logs",
+    "scarce_slot_allocation_under_budget",
+    "own_ops_proving_ground_before_export",
+    "scoped_specialization_honesty"
+  ],
+  "denied": [
+    "palantir_foundry_cloud",
+    "nemotron_cloud_finetune",
+    "nvidia_dgx_cloud_paid",
+    "hugging_face_enterprise_spend",
+    "parameter_count_as_north_star",
+    "universal_specialization_claims"
+  ],
+  "platform": "local_ai_factory",
+  "wqtu_trailing_7d": 5,
+  "posthog_project": 299775,
+  "measured_at": "2026-09-10T22:04:23Z",
+  "roi_rank": [
+    {"id": "local-ops-ontology", "metric": "domain_allocation_accuracy", "score_rule": "non_proxy"},
+    {"id": "frontier-550b", "metric": "model_parameter_count", "score_rule": "proxy_zero"}
+  ],
+  "cli": "scripts/agent_ai_factory.py",
+  "note": "paywall_purchase_success is telemetry not ledger revenue; specialization does not imply forecasting solved"
+}
