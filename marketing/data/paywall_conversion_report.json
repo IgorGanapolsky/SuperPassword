@@ -1,15 +1,15 @@
 {
-  "generated_at": "2026-09-10T00:52:57+00:00",
+  "generated_at": "2026-09-10T06:34:54+00:00",
   "window_days": 30,
   "status": "ok",
   "reason": "",
   "funnel": {
-    "views": 73,
-    "offer_selects": 7,
+    "views": 71,
+    "offer_selects": 6,
     "purchase_attempts": 1,
     "purchase_successes": 0,
-    "view_to_select_rate": 0.0959,
-    "select_to_attempt_rate": 0.1429,
+    "view_to_select_rate": 0.0845,
+    "select_to_attempt_rate": 0.1667,
     "attempt_to_success_rate": 0.0
   },
   "top_failure_reasons": [
@@ -51,7 +51,7 @@
     {
       "platform": "android",
       "product_id": "elite_tactical",
-      "offer_selects": 7,
+      "offer_selects": 6,
       "attempts": 0,
       "successes": 0,
       "select_to_attempt_rate": 0.0,
@@ -109,7 +109,7 @@
     },
     {
       "entry_point": "qualified_training_gate",
-      "views": 19,
+      "views": 17,
       "attempts": 0,
       "successes": 0,
       "view_to_attempt_rate": 0.0,
@@ -161,18 +161,18 @@
   "settings_hotspots": [
     {
       "setting_name": "max_seconds",
-      "changes": 3497,
+      "changes": 3489,
       "users": 93
     },
     {
       "setting_name": "volume",
-      "changes": 1760,
-      "users": 56
+      "changes": 1758,
+      "users": 55
     },
     {
       "setting_name": "min_seconds",
-      "changes": 1700,
-      "users": 92
+      "changes": 1665,
+      "users": 91
     },
     {
       "setting_name": "alarm_duration",
@@ -181,8 +181,8 @@
     },
     {
       "setting_name": "sound_type",
-      "changes": 758,
-      "users": 71
+      "changes": 761,
+      "users": 72
     },
     {
       "setting_name": "voice_callouts_enabled",
@@ -201,13 +201,13 @@
     },
     {
       "setting_name": "voice_gender",
-      "changes": 186,
-      "users": 64
+      "changes": 190,
+      "users": 65
     },
     {
       "setting_name": "vibration_enabled",
-      "changes": 163,
-      "users": 62
+      "changes": 164,
+      "users": 63
     },
     {
       "setting_name": "use_extended_range",
