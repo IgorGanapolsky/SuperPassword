@@ -1,14 +1,14 @@
 # Paywall Conversion Report
 
-Generated: 2026-09-09T18:36:17+00:00
+Generated: 2026-09-10T00:52:57+00:00
 Window (days): 30
 
 ## Funnel
-- Views: **71**
+- Views: **73**
 - Offer Selects: **7**
 - Purchase Attempts: **1**
 - Purchase Successes: **0**
-- View -> Offer Select: **9.9%**
+- View -> Offer Select: **9.6%**
 - Select -> Purchase Attempt: **14.3%**
 - Attempt -> Purchase Success: **0.0%**
 
@@ -33,16 +33,16 @@ Window (days): 30
 ## Product Catalog Failures
 | Platform | Product ID | Failures | Users |
 |----------|------------|----------|-------|
-| android | pro_base | 25 | 25 |
-| android | elite_tactical | 22 | 22 |
-| android | elite_tactical_monthly | 22 | 22 |
+| android | pro_base | 28 | 28 |
+| android | elite_tactical | 25 | 25 |
+| android | elite_tactical_monthly | 25 | 25 |
 
 ## Entry Point Funnel
 | Entry Point | Views | Attempts | Successes | View->Attempt | Attempt->Success |
 |-------------|-------|----------|-----------|---------------|------------------|
 | unknown | 32 | 0 | 0 | 0.0% | 0.0% |
 | qualified_training_gate | 19 | 0 | 0 | 0.0% | 0.0% |
-| range_gate | 12 | 0 | 0 | 0.0% | 0.0% |
+| range_gate | 14 | 0 | 0 | 0.0% | 0.0% |
 | voice_gate | 4 | 0 | 0 | 0.0% | 0.0% |
 | repeat_gate | 4 | 0 | 0 | 0.0% | 0.0% |
 | sound_gate | 0 | 1 | 0 | 0.0% | 0.0% |
@@ -53,17 +53,17 @@ Window (days): 30
 ## Settings Hotspots
 | Setting | Changes | Users |
 |---------|---------|-------|
-| max_seconds | 3464 | 88 |
-| volume | 1709 | 51 |
-| min_seconds | 1662 | 86 |
-| alarm_duration | 1031 | 81 |
-| sound_type | 655 | 65 |
-| voice_callouts_enabled | 448 | 32 |
-| repeat_enabled | 428 | 76 |
-| repeat_rounds | 171 | 32 |
-| voice_gender | 168 | 58 |
-| vibration_enabled | 143 | 57 |
-| use_extended_range | 107 | 33 |
+| max_seconds | 3497 | 93 |
+| volume | 1760 | 56 |
+| min_seconds | 1700 | 92 |
+| alarm_duration | 1195 | 87 |
+| sound_type | 758 | 71 |
+| voice_callouts_enabled | 525 | 37 |
+| repeat_enabled | 474 | 82 |
+| repeat_rounds | 197 | 37 |
+| voice_gender | 186 | 64 |
+| vibration_enabled | 163 | 62 |
+| use_extended_range | 124 | 38 |
 | unknown | 36 | 2 |
 
 ## Data Quality Warnings
