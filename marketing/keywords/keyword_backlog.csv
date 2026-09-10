@@ -1,30 +1,50 @@
 keyword,intent,business_potential,difficulty,ai_trap,tool_keyword,bid_score
+app bjj rounds,commercial,3,3,False,False,128
 app sparring prep,commercial,3,5,False,False,128
 app boxing drills,commercial,3,11,False,False,128
 app focus drills,commercial,3,16,False,False,128
 app reaction training,commercial,3,17,False,False,128
 app home workout timer,commercial,3,18,False,False,128
+app mma timer,commercial,3,20,False,False,128
 app tactical timer,commercial,3,27,False,False,120
+app crossfit timer,commercial,3,28,False,False,120
+app muay thai timer,commercial,3,28,False,False,120
+app hiit timer,commercial,3,29,False,False,120
 app random timer,commercial,3,29,False,False,120
+app kickboxing rounds,commercial,3,32,False,False,120
 app mental readiness,commercial,3,44,False,False,112
 app combat conditioning,commercial,3,45,False,False,112
 app interval timer,commercial,3,46,False,False,112
 review interval timer,commercial,2,0,False,False,98
 review reaction training,commercial,2,0,False,False,98
 review sparring prep,commercial,2,0,False,False,98
+under 20 kickboxing rounds,commercial,2,0,False,False,98
+under 20 bjj rounds,commercial,2,2,False,False,98
 under 20 interval timer,commercial,2,2,False,False,98
+vs mma timer,commercial,2,3,False,False,98
 vs sparring prep,commercial,2,6,False,False,98
+vs crossfit timer,commercial,2,7,False,False,98
 under 20 mental readiness,commercial,2,8,False,False,98
+vs hiit timer,commercial,2,9,False,False,98
+review muay thai timer,commercial,2,10,False,False,98
 under 20 reaction training,commercial,2,10,False,False,98
 best tactical timer,commercial,2,11,False,False,98
+review bjj rounds,commercial,2,11,False,False,98
+review hiit timer,commercial,2,11,False,False,98
 best random timer,commercial,2,13,False,False,98
+vs muay thai timer,commercial,2,14,False,False,98
 best reaction training,commercial,2,16,False,False,98
 vs mental readiness,commercial,2,18,False,False,98
+best bjj rounds,commercial,2,19,False,False,98
 under 20 random timer,commercial,2,19,False,False,98
+best kickboxing rounds,commercial,2,20,False,False,98
 vs interval timer,commercial,2,21,False,False,90
 best mental readiness,commercial,2,23,False,False,90
 under 20 combat conditioning,commercial,2,23,False,False,90
+best mma timer,commercial,2,24,False,False,90
+vs bjj rounds,commercial,2,24,False,False,90
 vs focus drills,commercial,2,24,False,False,90
+vs kickboxing rounds,commercial,2,24,False,False,90
 vs random timer,commercial,2,25,False,False,90
 review tactical timer,commercial,2,27,False,False,90
 under 20 focus drills,commercial,2,27,False,False,90
@@ -43,49 +63,83 @@ under 20 tactical timer,commercial,2,37,False,False,82
 best interval timer,commercial,2,39,False,False,82
 best boxing drills,commercial,2,40,False,False,82
 review focus drills,commercial,2,40,False,False,82
+under 20 muay thai timer,commercial,2,40,False,False,82
+best crossfit timer,commercial,2,41,False,False,82
 best sparring prep,commercial,2,41,False,False,82
+review crossfit timer,commercial,2,41,False,False,82
 vs reaction training,commercial,2,41,False,False,82
+review mma timer,commercial,2,43,False,False,82
+under 20 crossfit timer,commercial,2,43,False,False,82
 review boxing drills,commercial,2,44,False,False,82
 under 20 home workout timer,commercial,2,44,False,False,82
+under 20 hiit timer,commercial,2,47,False,False,82
+best hiit timer,commercial,2,48,False,False,82
+review kickboxing rounds,commercial,2,48,False,False,82
 best home workout timer,commercial,2,49,False,False,82
+under 20 mma timer,commercial,2,49,False,False,82
 best combat conditioning,commercial,2,50,False,False,82
+best muay thai timer,commercial,2,50,False,False,82
 no ads reaction training,mixed,1,0,False,False,60
 focus drills,mixed,1,1,False,False,60
 home workout timer for beginners,mixed,1,1,False,False,60
+bjj rounds for beginners,mixed,1,2,False,False,60
 combat conditioning for beginners,mixed,1,4,False,False,60
 reaction training,mixed,1,4,False,False,60
+crossfit timer,mixed,1,5,False,False,60
+free muay thai timer,mixed,1,5,False,False,60
 free sparring prep,mixed,1,5,False,False,60
 tactical timer for beginners,mixed,1,5,False,False,60
 no ads focus drills,mixed,1,7,False,False,60
 no ads interval timer,mixed,1,8,False,False,60
 no ads sparring prep,mixed,1,8,False,False,60
+muay thai timer,mixed,1,10,False,False,60
 no ads tactical timer,mixed,1,10,False,False,60
 tactical timer,mixed,1,10,False,False,60
 no ads home workout timer,mixed,1,11,False,False,60
+free mma timer,mixed,1,12,False,False,60
 free reaction training,mixed,1,13,False,False,60
 free boxing drills,mixed,1,16,False,False,60
+no ads crossfit timer,mixed,1,16,False,False,60
+no ads hiit timer,mixed,1,17,False,False,60
 sparring prep for beginners,mixed,1,17,False,False,60
+kickboxing rounds for beginners,mixed,1,18,False,False,60
+mma timer,mixed,1,18,False,False,60
 free interval timer,mixed,1,19,False,False,60
 random timer,mixed,1,19,False,False,60
 no ads random timer,mixed,1,21,False,False,52
 no ads boxing drills,mixed,1,23,False,False,52
+free bjj rounds,mixed,1,24,False,False,52
 free random timer,mixed,1,24,False,False,52
 home workout timer,mixed,1,24,False,False,52
+free hiit timer,mixed,1,28,False,False,52
+free kickboxing rounds,mixed,1,29,False,False,52
 mental readiness for beginners,mixed,1,29,False,False,52
+no ads kickboxing rounds,mixed,1,29,False,False,52
 focus drills for beginners,mixed,1,30,False,False,52
+no ads mma timer,mixed,1,30,False,False,52
 free home workout timer,mixed,1,31,False,False,52
 free combat conditioning,mixed,1,32,False,False,52
 free focus drills,mixed,1,32,False,False,52
+mma timer for beginners,mixed,1,33,False,False,52
 free mental readiness,mixed,1,34,False,False,52
+muay thai timer for beginners,mixed,1,34,False,False,52
 no ads combat conditioning,mixed,1,35,False,False,52
 mental readiness,mixed,1,36,False,False,44
 random timer for beginners,mixed,1,36,False,False,44
+bjj rounds,mixed,1,38,False,False,44
+free crossfit timer,mixed,1,39,False,False,44
 no ads mental readiness,mixed,1,39,False,False,44
 reaction training for beginners,mixed,1,39,False,False,44
 interval timer,mixed,1,40,False,False,44
+kickboxing rounds,mixed,1,40,False,False,44
+no ads muay thai timer,mixed,1,41,False,False,44
 interval timer for beginners,mixed,1,42,False,False,44
+no ads bjj rounds,mixed,1,42,False,False,44
+hiit timer for beginners,mixed,1,43,False,False,44
 sparring prep,mixed,1,44,False,False,44
 combat conditioning,mixed,1,46,False,False,44
+hiit timer,mixed,1,47,False,False,44
 boxing drills for beginners,mixed,1,48,False,False,44
 free tactical timer,mixed,1,49,False,False,44
 boxing drills,mixed,1,50,False,False,44
+crossfit timer for beginners,mixed,1,50,False,False,44

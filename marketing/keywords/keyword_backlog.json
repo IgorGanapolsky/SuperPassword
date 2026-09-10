@@ -1,5 +1,14 @@
 [
   {
+    "keyword": "app bjj rounds",
+    "intent": "commercial",
+    "business_potential": 3,
+    "difficulty": 3,
+    "ai_trap": false,
+    "tool_keyword": false,
+    "bid_score": 128
+  },
+  {
     "keyword": "app sparring prep",
     "intent": "commercial",
     "business_potential": 3,
@@ -45,6 +54,15 @@
     "bid_score": 128
   },
   {
+    "keyword": "app mma timer",
+    "intent": "commercial",
+    "business_potential": 3,
+    "difficulty": 20,
+    "ai_trap": false,
+    "tool_keyword": false,
+    "bid_score": 128
+  },
+  {
     "keyword": "app tactical timer",
     "intent": "commercial",
     "business_potential": 3,
@@ -54,10 +72,46 @@
     "bid_score": 120
   },
   {
+    "keyword": "app crossfit timer",
+    "intent": "commercial",
+    "business_potential": 3,
+    "difficulty": 28,
+    "ai_trap": false,
+    "tool_keyword": false,
+    "bid_score": 120
+  },
+  {
+    "keyword": "app muay thai timer",
+    "intent": "commercial",
+    "business_potential": 3,
+    "difficulty": 28,
+    "ai_trap": false,
+    "tool_keyword": false,
+    "bid_score": 120
+  },
+  {
+    "keyword": "app hiit timer",
+    "intent": "commercial",
+    "business_potential": 3,
+    "difficulty": 29,
+    "ai_trap": false,
+    "tool_keyword": false,
+    "bid_score": 120
+  },
+  {
     "keyword": "app random timer",
     "intent": "commercial",
     "business_potential": 3,
     "difficulty": 29,
+    "ai_trap": false,
+    "tool_keyword": false,
+    "bid_score": 120
+  },
+  {
+    "keyword": "app kickboxing rounds",
+    "intent": "commercial",
+    "business_potential": 3,
+    "difficulty": 32,
     "ai_trap": false,
     "tool_keyword": false,
     "bid_score": 120
@@ -117,10 +171,37 @@
     "bid_score": 98
   },
   {
+    "keyword": "under 20 kickboxing rounds",
+    "intent": "commercial",
+    "business_potential": 2,
+    "difficulty": 0,
+    "ai_trap": false,
+    "tool_keyword": false,
+    "bid_score": 98
+  },
+  {
+    "keyword": "under 20 bjj rounds",
+    "intent": "commercial",
+    "business_potential": 2,
+    "difficulty": 2,
+    "ai_trap": false,
+    "tool_keyword": false,
+    "bid_score": 98
+  },
+  {
     "keyword": "under 20 interval timer",
     "intent": "commercial",
     "business_potential": 2,
     "difficulty": 2,
+    "ai_trap": false,
+    "tool_keyword": false,
+    "bid_score": 98
+  },
+  {
+    "keyword": "vs mma timer",
+    "intent": "commercial",
+    "business_potential": 2,
+    "difficulty": 3,
     "ai_trap": false,
     "tool_keyword": false,
     "bid_score": 98
@@ -135,10 +216,37 @@
     "bid_score": 98
   },
   {
+    "keyword": "vs crossfit timer",
+    "intent": "commercial",
+    "business_potential": 2,
+    "difficulty": 7,
+    "ai_trap": false,
+    "tool_keyword": false,
+    "bid_score": 98
+  },
+  {
     "keyword": "under 20 mental readiness",
     "intent": "commercial",
     "business_potential": 2,
     "difficulty": 8,
+    "ai_trap": false,
+    "tool_keyword": false,
+    "bid_score": 98
+  },
+  {
+    "keyword": "vs hiit timer",
+    "intent": "commercial",
+    "business_potential": 2,
+    "difficulty": 9,
+    "ai_trap": false,
+    "tool_keyword": false,
+    "bid_score": 98
+  },
+  {
+    "keyword": "review muay thai timer",
+    "intent": "commercial",
+    "business_potential": 2,
+    "difficulty": 10,
     "ai_trap": false,
     "tool_keyword": false,
     "bid_score": 98
@@ -162,10 +270,37 @@
     "bid_score": 98
   },
   {
+    "keyword": "review bjj rounds",
+    "intent": "commercial",
+    "business_potential": 2,
+    "difficulty": 11,
+    "ai_trap": false,
+    "tool_keyword": false,
+    "bid_score": 98
+  },
+  {
+    "keyword": "review hiit timer",
+    "intent": "commercial",
+    "business_potential": 2,
+    "difficulty": 11,
+    "ai_trap": false,
+    "tool_keyword": false,
+    "bid_score": 98
+  },
+  {
     "keyword": "best random timer",
     "intent": "commercial",
     "business_potential": 2,
     "difficulty": 13,
+    "ai_trap": false,
+    "tool_keyword": false,
+    "bid_score": 98
+  },
+  {
+    "keyword": "vs muay thai timer",
+    "intent": "commercial",
+    "business_potential": 2,
+    "difficulty": 14,
     "ai_trap": false,
     "tool_keyword": false,
     "bid_score": 98
@@ -189,10 +324,28 @@
     "bid_score": 98
   },
   {
+    "keyword": "best bjj rounds",
+    "intent": "commercial",
+    "business_potential": 2,
+    "difficulty": 19,
+    "ai_trap": false,
+    "tool_keyword": false,
+    "bid_score": 98
+  },
+  {
     "keyword": "under 20 random timer",
     "intent": "commercial",
     "business_potential": 2,
     "difficulty": 19,
+    "ai_trap": false,
+    "tool_keyword": false,
+    "bid_score": 98
+  },
+  {
+    "keyword": "best kickboxing rounds",
+    "intent": "commercial",
+    "business_potential": 2,
+    "difficulty": 20,
     "ai_trap": false,
     "tool_keyword": false,
     "bid_score": 98
@@ -225,7 +378,34 @@
     "bid_score": 90
   },
   {
+    "keyword": "best mma timer",
+    "intent": "commercial",
+    "business_potential": 2,
+    "difficulty": 24,
+    "ai_trap": false,
+    "tool_keyword": false,
+    "bid_score": 90
+  },
+  {
+    "keyword": "vs bjj rounds",
+    "intent": "commercial",
+    "business_potential": 2,
+    "difficulty": 24,
+    "ai_trap": false,
+    "tool_keyword": false,
+    "bid_score": 90
+  },
+  {
     "keyword": "vs focus drills",
+    "intent": "commercial",
+    "business_potential": 2,
+    "difficulty": 24,
+    "ai_trap": false,
+    "tool_keyword": false,
+    "bid_score": 90
+  },
+  {
+    "keyword": "vs kickboxing rounds",
     "intent": "commercial",
     "business_potential": 2,
     "difficulty": 24,
@@ -396,7 +576,34 @@
     "bid_score": 82
   },
   {
+    "keyword": "under 20 muay thai timer",
+    "intent": "commercial",
+    "business_potential": 2,
+    "difficulty": 40,
+    "ai_trap": false,
+    "tool_keyword": false,
+    "bid_score": 82
+  },
+  {
+    "keyword": "best crossfit timer",
+    "intent": "commercial",
+    "business_potential": 2,
+    "difficulty": 41,
+    "ai_trap": false,
+    "tool_keyword": false,
+    "bid_score": 82
+  },
+  {
     "keyword": "best sparring prep",
+    "intent": "commercial",
+    "business_potential": 2,
+    "difficulty": 41,
+    "ai_trap": false,
+    "tool_keyword": false,
+    "bid_score": 82
+  },
+  {
+    "keyword": "review crossfit timer",
     "intent": "commercial",
     "business_potential": 2,
     "difficulty": 41,
@@ -409,6 +616,24 @@
     "intent": "commercial",
     "business_potential": 2,
     "difficulty": 41,
+    "ai_trap": false,
+    "tool_keyword": false,
+    "bid_score": 82
+  },
+  {
+    "keyword": "review mma timer",
+    "intent": "commercial",
+    "business_potential": 2,
+    "difficulty": 43,
+    "ai_trap": false,
+    "tool_keyword": false,
+    "bid_score": 82
+  },
+  {
+    "keyword": "under 20 crossfit timer",
+    "intent": "commercial",
+    "business_potential": 2,
+    "difficulty": 43,
     "ai_trap": false,
     "tool_keyword": false,
     "bid_score": 82
@@ -432,6 +657,33 @@
     "bid_score": 82
   },
   {
+    "keyword": "under 20 hiit timer",
+    "intent": "commercial",
+    "business_potential": 2,
+    "difficulty": 47,
+    "ai_trap": false,
+    "tool_keyword": false,
+    "bid_score": 82
+  },
+  {
+    "keyword": "best hiit timer",
+    "intent": "commercial",
+    "business_potential": 2,
+    "difficulty": 48,
+    "ai_trap": false,
+    "tool_keyword": false,
+    "bid_score": 82
+  },
+  {
+    "keyword": "review kickboxing rounds",
+    "intent": "commercial",
+    "business_potential": 2,
+    "difficulty": 48,
+    "ai_trap": false,
+    "tool_keyword": false,
+    "bid_score": 82
+  },
+  {
     "keyword": "best home workout timer",
     "intent": "commercial",
     "business_potential": 2,
@@ -441,7 +693,25 @@
     "bid_score": 82
   },
   {
+    "keyword": "under 20 mma timer",
+    "intent": "commercial",
+    "business_potential": 2,
+    "difficulty": 49,
+    "ai_trap": false,
+    "tool_keyword": false,
+    "bid_score": 82
+  },
+  {
     "keyword": "best combat conditioning",
+    "intent": "commercial",
+    "business_potential": 2,
+    "difficulty": 50,
+    "ai_trap": false,
+    "tool_keyword": false,
+    "bid_score": 82
+  },
+  {
+    "keyword": "best muay thai timer",
     "intent": "commercial",
     "business_potential": 2,
     "difficulty": 50,
@@ -477,6 +747,15 @@
     "bid_score": 60
   },
   {
+    "keyword": "bjj rounds for beginners",
+    "intent": "mixed",
+    "business_potential": 1,
+    "difficulty": 2,
+    "ai_trap": false,
+    "tool_keyword": false,
+    "bid_score": 60
+  },
+  {
     "keyword": "combat conditioning for beginners",
     "intent": "mixed",
     "business_potential": 1,
@@ -490,6 +769,24 @@
     "intent": "mixed",
     "business_potential": 1,
     "difficulty": 4,
+    "ai_trap": false,
+    "tool_keyword": false,
+    "bid_score": 60
+  },
+  {
+    "keyword": "crossfit timer",
+    "intent": "mixed",
+    "business_potential": 1,
+    "difficulty": 5,
+    "ai_trap": false,
+    "tool_keyword": false,
+    "bid_score": 60
+  },
+  {
+    "keyword": "free muay thai timer",
+    "intent": "mixed",
+    "business_potential": 1,
+    "difficulty": 5,
     "ai_trap": false,
     "tool_keyword": false,
     "bid_score": 60
@@ -540,6 +837,15 @@
     "bid_score": 60
   },
   {
+    "keyword": "muay thai timer",
+    "intent": "mixed",
+    "business_potential": 1,
+    "difficulty": 10,
+    "ai_trap": false,
+    "tool_keyword": false,
+    "bid_score": 60
+  },
+  {
     "keyword": "no ads tactical timer",
     "intent": "mixed",
     "business_potential": 1,
@@ -567,6 +873,15 @@
     "bid_score": 60
   },
   {
+    "keyword": "free mma timer",
+    "intent": "mixed",
+    "business_potential": 1,
+    "difficulty": 12,
+    "ai_trap": false,
+    "tool_keyword": false,
+    "bid_score": 60
+  },
+  {
     "keyword": "free reaction training",
     "intent": "mixed",
     "business_potential": 1,
@@ -585,10 +900,46 @@
     "bid_score": 60
   },
   {
+    "keyword": "no ads crossfit timer",
+    "intent": "mixed",
+    "business_potential": 1,
+    "difficulty": 16,
+    "ai_trap": false,
+    "tool_keyword": false,
+    "bid_score": 60
+  },
+  {
+    "keyword": "no ads hiit timer",
+    "intent": "mixed",
+    "business_potential": 1,
+    "difficulty": 17,
+    "ai_trap": false,
+    "tool_keyword": false,
+    "bid_score": 60
+  },
+  {
     "keyword": "sparring prep for beginners",
     "intent": "mixed",
     "business_potential": 1,
     "difficulty": 17,
+    "ai_trap": false,
+    "tool_keyword": false,
+    "bid_score": 60
+  },
+  {
+    "keyword": "kickboxing rounds for beginners",
+    "intent": "mixed",
+    "business_potential": 1,
+    "difficulty": 18,
+    "ai_trap": false,
+    "tool_keyword": false,
+    "bid_score": 60
+  },
+  {
+    "keyword": "mma timer",
+    "intent": "mixed",
+    "business_potential": 1,
+    "difficulty": 18,
     "ai_trap": false,
     "tool_keyword": false,
     "bid_score": 60
@@ -630,6 +981,15 @@
     "bid_score": 52
   },
   {
+    "keyword": "free bjj rounds",
+    "intent": "mixed",
+    "business_potential": 1,
+    "difficulty": 24,
+    "ai_trap": false,
+    "tool_keyword": false,
+    "bid_score": 52
+  },
+  {
     "keyword": "free random timer",
     "intent": "mixed",
     "business_potential": 1,
@@ -648,6 +1008,24 @@
     "bid_score": 52
   },
   {
+    "keyword": "free hiit timer",
+    "intent": "mixed",
+    "business_potential": 1,
+    "difficulty": 28,
+    "ai_trap": false,
+    "tool_keyword": false,
+    "bid_score": 52
+  },
+  {
+    "keyword": "free kickboxing rounds",
+    "intent": "mixed",
+    "business_potential": 1,
+    "difficulty": 29,
+    "ai_trap": false,
+    "tool_keyword": false,
+    "bid_score": 52
+  },
+  {
     "keyword": "mental readiness for beginners",
     "intent": "mixed",
     "business_potential": 1,
@@ -657,7 +1035,25 @@
     "bid_score": 52
   },
   {
+    "keyword": "no ads kickboxing rounds",
+    "intent": "mixed",
+    "business_potential": 1,
+    "difficulty": 29,
+    "ai_trap": false,
+    "tool_keyword": false,
+    "bid_score": 52
+  },
+  {
     "keyword": "focus drills for beginners",
+    "intent": "mixed",
+    "business_potential": 1,
+    "difficulty": 30,
+    "ai_trap": false,
+    "tool_keyword": false,
+    "bid_score": 52
+  },
+  {
+    "keyword": "no ads mma timer",
     "intent": "mixed",
     "business_potential": 1,
     "difficulty": 30,
@@ -693,7 +1089,25 @@
     "bid_score": 52
   },
   {
+    "keyword": "mma timer for beginners",
+    "intent": "mixed",
+    "business_potential": 1,
+    "difficulty": 33,
+    "ai_trap": false,
+    "tool_keyword": false,
+    "bid_score": 52
+  },
+  {
     "keyword": "free mental readiness",
+    "intent": "mixed",
+    "business_potential": 1,
+    "difficulty": 34,
+    "ai_trap": false,
+    "tool_keyword": false,
+    "bid_score": 52
+  },
+  {
+    "keyword": "muay thai timer for beginners",
     "intent": "mixed",
     "business_potential": 1,
     "difficulty": 34,
@@ -729,6 +1143,24 @@
     "bid_score": 44
   },
   {
+    "keyword": "bjj rounds",
+    "intent": "mixed",
+    "business_potential": 1,
+    "difficulty": 38,
+    "ai_trap": false,
+    "tool_keyword": false,
+    "bid_score": 44
+  },
+  {
+    "keyword": "free crossfit timer",
+    "intent": "mixed",
+    "business_potential": 1,
+    "difficulty": 39,
+    "ai_trap": false,
+    "tool_keyword": false,
+    "bid_score": 44
+  },
+  {
     "keyword": "no ads mental readiness",
     "intent": "mixed",
     "business_potential": 1,
@@ -756,10 +1188,46 @@
     "bid_score": 44
   },
   {
+    "keyword": "kickboxing rounds",
+    "intent": "mixed",
+    "business_potential": 1,
+    "difficulty": 40,
+    "ai_trap": false,
+    "tool_keyword": false,
+    "bid_score": 44
+  },
+  {
+    "keyword": "no ads muay thai timer",
+    "intent": "mixed",
+    "business_potential": 1,
+    "difficulty": 41,
+    "ai_trap": false,
+    "tool_keyword": false,
+    "bid_score": 44
+  },
+  {
     "keyword": "interval timer for beginners",
     "intent": "mixed",
     "business_potential": 1,
     "difficulty": 42,
+    "ai_trap": false,
+    "tool_keyword": false,
+    "bid_score": 44
+  },
+  {
+    "keyword": "no ads bjj rounds",
+    "intent": "mixed",
+    "business_potential": 1,
+    "difficulty": 42,
+    "ai_trap": false,
+    "tool_keyword": false,
+    "bid_score": 44
+  },
+  {
+    "keyword": "hiit timer for beginners",
+    "intent": "mixed",
+    "business_potential": 1,
+    "difficulty": 43,
     "ai_trap": false,
     "tool_keyword": false,
     "bid_score": 44
@@ -778,6 +1246,15 @@
     "intent": "mixed",
     "business_potential": 1,
     "difficulty": 46,
+    "ai_trap": false,
+    "tool_keyword": false,
+    "bid_score": 44
+  },
+  {
+    "keyword": "hiit timer",
+    "intent": "mixed",
+    "business_potential": 1,
+    "difficulty": 47,
     "ai_trap": false,
     "tool_keyword": false,
     "bid_score": 44
@@ -802,6 +1279,15 @@
   },
   {
     "keyword": "boxing drills",
+    "intent": "mixed",
+    "business_potential": 1,
+    "difficulty": 50,
+    "ai_trap": false,
+    "tool_keyword": false,
+    "bid_score": 44
+  },
+  {
+    "keyword": "crossfit timer for beginners",
     "intent": "mixed",
     "business_potential": 1,
     "difficulty": 50,
