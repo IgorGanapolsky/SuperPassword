@@ -1,0 +1,14 @@
+{
+  "experiments": [
+    {
+      "id": "cloud-tinker",
+      "platform": "openresearch_managed_compute"
+    },
+    {
+      "id": "iap-autoresearch",
+      "platform": "local_openresearch",
+      "compute": "local",
+      "metric": "iap_attempt"
+    }
+  ]
+}

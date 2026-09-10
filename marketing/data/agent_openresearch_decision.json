@@ -1,0 +1,33 @@
+{
+  "decision_id": "agent_openresearch_2026-09-10",
+  "source_email": "alphaXiv Introducing OpenResearch + Weekly Paper Recs (2026-09-09)",
+  "sources": [
+    "https://github.com/alphaXiv/OpenResearch",
+    "https://arxiv.org/abs/2609.01481",
+    "Declarative Attention (digest trending paper)"
+  ],
+  "stolen_methods": [
+    "autoresearch_hypothesis_change_run_evidence_next",
+    "isolated_worktree_experiment_arms",
+    "eval_md_domain_kpi",
+    "hoh_plan_code_test_independent_eval",
+    "balance_repair_with_capability_growth",
+    "declarative_attention_scope"
+  ],
+  "denied": [
+    "openresearch_managed_compute",
+    "tinker_cloud",
+    "paper_views_as_north_star",
+    "navier_stokes_product_work"
+  ],
+  "platform": "local_openresearch",
+  "wqtu_trailing_7d": 5,
+  "posthog_project": 299775,
+  "measured_at": "2026-09-10T20:50:00Z",
+  "roi_rank": [
+    {"id": "iap-attempt-path", "metric": "iap_attempt", "score_rule": "non_proxy"},
+    {"id": "alphaxiv-digest", "metric": "paper_views", "score_rule": "proxy_zero"}
+  ],
+  "cli": "scripts/agent_openresearch.py",
+  "note": "paywall_purchase_success is telemetry not ledger revenue"
+}
