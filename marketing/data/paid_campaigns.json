@@ -4,13 +4,17 @@
       "platform": "apple_search_ads",
       "created": "2026-02-20T21:08:11Z",
       "status": "paused",
-      "daily_budget_usd": 30.0,
+      "daily_budget_usd": 0.39,
       "ad_groups": [
         {
           "name": "Exact Match - High Intent",
           "match_type": "exact",
           "max_cpt_usd": 1.75,
           "keywords": [
+            {
+              "text": "app bjj rounds",
+              "bid_score": 128
+            },
             {
               "text": "app sparring prep",
               "bid_score": 128
@@ -32,11 +36,31 @@
               "bid_score": 128
             },
             {
+              "text": "app mma timer",
+              "bid_score": 128
+            },
+            {
               "text": "app tactical timer",
               "bid_score": 120
             },
             {
+              "text": "app crossfit timer",
+              "bid_score": 120
+            },
+            {
+              "text": "app muay thai timer",
+              "bid_score": 120
+            },
+            {
+              "text": "app hiit timer",
+              "bid_score": 120
+            },
+            {
               "text": "app random timer",
+              "bid_score": 120
+            },
+            {
+              "text": "app kickboxing rounds",
               "bid_score": 120
             },
             {
@@ -46,30 +70,6 @@
             {
               "text": "app combat conditioning",
               "bid_score": 112
-            },
-            {
-              "text": "app interval timer",
-              "bid_score": 112
-            },
-            {
-              "text": "review interval timer",
-              "bid_score": 98
-            },
-            {
-              "text": "review reaction training",
-              "bid_score": 98
-            },
-            {
-              "text": "review sparring prep",
-              "bid_score": 98
-            },
-            {
-              "text": "under 20 interval timer",
-              "bid_score": 98
-            },
-            {
-              "text": "vs sparring prep",
-              "bid_score": 98
             }
           ]
         },
@@ -87,6 +87,10 @@
               "bid_score": 52
             },
             {
+              "text": "free bjj rounds",
+              "bid_score": 52
+            },
+            {
               "text": "free random timer",
               "bid_score": 52
             },
@@ -95,11 +99,27 @@
               "bid_score": 52
             },
             {
+              "text": "free hiit timer",
+              "bid_score": 52
+            },
+            {
+              "text": "free kickboxing rounds",
+              "bid_score": 52
+            },
+            {
               "text": "mental readiness for beginners",
               "bid_score": 52
             },
             {
+              "text": "no ads kickboxing rounds",
+              "bid_score": 52
+            },
+            {
               "text": "focus drills for beginners",
+              "bid_score": 52
+            },
+            {
+              "text": "no ads mma timer",
               "bid_score": 52
             },
             {
@@ -115,7 +135,15 @@
               "bid_score": 52
             },
             {
+              "text": "mma timer for beginners",
+              "bid_score": 52
+            },
+            {
               "text": "free mental readiness",
+              "bid_score": 52
+            },
+            {
+              "text": "muay thai timer for beginners",
               "bid_score": 52
             },
             {
@@ -129,34 +157,6 @@
             {
               "text": "random timer for beginners",
               "bid_score": 44
-            },
-            {
-              "text": "no ads mental readiness",
-              "bid_score": 44
-            },
-            {
-              "text": "reaction training for beginners",
-              "bid_score": 44
-            },
-            {
-              "text": "interval timer",
-              "bid_score": 44
-            },
-            {
-              "text": "interval timer for beginners",
-              "bid_score": 44
-            },
-            {
-              "text": "sparring prep",
-              "bid_score": 44
-            },
-            {
-              "text": "combat conditioning",
-              "bid_score": 44
-            },
-            {
-              "text": "boxing drills for beginners",
-              "bid_score": 44
             }
           ]
         },
@@ -165,6 +165,10 @@
           "match_type": "exact",
           "max_cpt_usd": 2.1,
           "keywords": [
+            {
+              "text": "app bjj rounds",
+              "bid_score": 128
+            },
             {
               "text": "app sparring prep",
               "bid_score": 128
@@ -186,24 +190,20 @@
               "bid_score": 128
             },
             {
+              "text": "app mma timer",
+              "bid_score": 128
+            },
+            {
               "text": "app tactical timer",
               "bid_score": 120
             },
             {
-              "text": "app random timer",
+              "text": "app crossfit timer",
               "bid_score": 120
             },
             {
-              "text": "app mental readiness",
-              "bid_score": 112
-            },
-            {
-              "text": "app combat conditioning",
-              "bid_score": 112
-            },
-            {
-              "text": "app interval timer",
-              "bid_score": 112
+              "text": "app muay thai timer",
+              "bid_score": 120
             }
           ]
         }
@@ -222,7 +222,7 @@
       "platform": "google_uac",
       "created": "2026-02-20T21:08:11Z",
       "status": "ready_to_launch",
-      "daily_budget_usd": 30.0,
+      "daily_budget_usd": 0.26,
       "campaign_type": "installs",
       "target_cpa_usd": 3.0,
       "ad_assets": {
@@ -251,16 +251,16 @@
           "de"
         ],
         "keyword_themes": [
+          "app bjj rounds",
           "app sparring prep",
           "app boxing drills",
           "app focus drills",
           "app reaction training",
           "app home workout timer",
+          "app mma timer",
           "app tactical timer",
-          "app random timer",
-          "app mental readiness",
-          "app combat conditioning",
-          "app interval timer"
+          "app crossfit timer",
+          "app muay thai timer"
         ]
       },
       "optimization_goal": "installs"
@@ -268,19 +268,24 @@
     {
       "platform": "reddit_ads",
       "created": "2026-02-23T13:34:00Z",
-      "status": "ready_to_launch",
-      "daily_budget_usd": 10.0,
+      "status": "blocked_budget_guardrail",
+      "daily_budget_usd": 0.0,
       "campaign_type": "app_installs",
       "target_cpi_usd": 2.5,
       "ad_groups": 4,
       "config_file": "marketing/data/reddit_ads_campaign.json",
       "subreddit_targets": 21,
       "keyword_targets": 15,
-      "creative_variants": 3
+      "creative_variants": 3,
+      "budget_guardrail_blocked": true,
+      "budget_guardrail_reason": "unmanaged_paid_channel_requires_explicit_budget_allocation_under_monthly_cap",
+      "daily_budget_requested_usd": 10.0,
+      "monthly_budget_cap_usd": 20.0,
+      "total_managed_daily_budget_usd": 0.65
     }
   ],
   "budget_config": {
-    "daily_budget_usd": 30.0,
+    "daily_budget_usd": 0.65,
     "launch_week_multiplier": 1.5,
     "max_cpt_usd": 1.75,
     "target_cpa_usd": 3.0
@@ -349,10 +354,20 @@
       "daily_budget_requested_usd": 30.0,
       "daily_budget_applied_usd": 30.0,
       "budget_capped": false
+    },
+    {
+      "timestamp": "2026-09-10T12:00:25.980748+00:00",
+      "action": "campaign_refresh",
+      "apple_keywords": 15,
+      "google_themes": 10,
+      "daily_budget_requested_usd": 30.0,
+      "daily_budget_applied_usd": 0.65,
+      "monthly_budget_cap_usd": 20.0,
+      "budget_capped": true
     }
   ],
   "budget_allocation": {
-    "apple_search_ads": 18.0,
-    "google_uac": 12.0
+    "apple_search_ads": 0.39,
+    "google_uac": 0.26
   }
 }
