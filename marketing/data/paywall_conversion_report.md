@@ -1,14 +1,14 @@
 # Paywall Conversion Report
 
-Generated: 2026-09-10T06:34:54+00:00
+Generated: 2026-09-10T12:31:00+00:00
 Window (days): 30
 
 ## Funnel
-- Views: **71**
+- Views: **69**
 - Offer Selects: **6**
 - Purchase Attempts: **1**
 - Purchase Successes: **0**
-- View -> Offer Select: **8.5%**
+- View -> Offer Select: **8.7%**
 - Select -> Purchase Attempt: **16.7%**
 - Attempt -> Purchase Success: **0.0%**
 
@@ -33,14 +33,14 @@ Window (days): 30
 ## Product Catalog Failures
 | Platform | Product ID | Failures | Users |
 |----------|------------|----------|-------|
-| android | pro_base | 28 | 28 |
-| android | elite_tactical | 25 | 25 |
-| android | elite_tactical_monthly | 25 | 25 |
+| android | pro_base | 30 | 30 |
+| android | elite_tactical | 27 | 27 |
+| android | elite_tactical_monthly | 27 | 27 |
 
 ## Entry Point Funnel
 | Entry Point | Views | Attempts | Successes | View->Attempt | Attempt->Success |
 |-------------|-------|----------|-----------|---------------|------------------|
-| unknown | 32 | 0 | 0 | 0.0% | 0.0% |
+| unknown | 30 | 0 | 0 | 0.0% | 0.0% |
 | qualified_training_gate | 17 | 0 | 0 | 0.0% | 0.0% |
 | range_gate | 14 | 0 | 0 | 0.0% | 0.0% |
 | voice_gate | 4 | 0 | 0 | 0.0% | 0.0% |
@@ -48,22 +48,22 @@ Window (days): 30
 | sound_gate | 0 | 1 | 0 | 0.0% | 0.0% |
 
 ## Leaky Entry Points
-- `unknown` had **32** views and **0** purchase attempts.
+- `unknown` had **30** views and **0** purchase attempts.
 
 ## Settings Hotspots
 | Setting | Changes | Users |
 |---------|---------|-------|
-| max_seconds | 3489 | 93 |
-| volume | 1758 | 55 |
-| min_seconds | 1665 | 91 |
-| alarm_duration | 1195 | 87 |
-| sound_type | 761 | 72 |
-| voice_callouts_enabled | 525 | 37 |
-| repeat_enabled | 474 | 82 |
-| repeat_rounds | 197 | 37 |
-| voice_gender | 190 | 65 |
-| vibration_enabled | 164 | 63 |
-| use_extended_range | 124 | 38 |
+| max_seconds | 3410 | 95 |
+| volume | 1774 | 58 |
+| min_seconds | 1610 | 94 |
+| alarm_duration | 1230 | 90 |
+| sound_type | 787 | 76 |
+| voice_callouts_enabled | 536 | 40 |
+| repeat_enabled | 481 | 84 |
+| repeat_rounds | 201 | 39 |
+| voice_gender | 192 | 66 |
+| vibration_enabled | 167 | 65 |
+| use_extended_range | 130 | 41 |
 | unknown | 36 | 2 |
 
 ## Data Quality Warnings
