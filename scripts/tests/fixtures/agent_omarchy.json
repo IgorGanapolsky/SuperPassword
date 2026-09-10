@@ -1,0 +1,16 @@
+{
+  "controls": [
+    {
+      "id": "qemu-desktop",
+      "platform": "try_omarchy_qemu"
+    },
+    {
+      "id": "pin-hash-idle",
+      "platform": "local_omarchy_harness",
+      "revision": "c3d48b7d",
+      "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "bind": "127.0.0.1",
+      "share_paths": ["~/Work"]
+    }
+  ]
+}

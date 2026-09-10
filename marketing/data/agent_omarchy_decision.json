@@ -1,0 +1,28 @@
+{
+  "decision_id": "agent_omarchy_2026-09-10",
+  "source": "https://github.com/omacom/try-omarchy",
+  "stolen_methods": [
+    "pin_revision_with_sha256",
+    "idle_resource_release",
+    "lazy_open_on_demand",
+    "dirty_flag_refresh_only",
+    "loopback_only_forward",
+    "single_shared_path",
+    "typed_reset_confirm"
+  ],
+  "denied": [
+    "try_omarchy_qemu_desktop",
+    "basecamp_omarchy_as_product_infra",
+    "idle_cpu_as_north_star"
+  ],
+  "platform": "local_omarchy_harness",
+  "wqtu_trailing_7d": 5,
+  "posthog_project": 299775,
+  "measured_at": "2026-09-10T20:30:00Z",
+  "roi_rank": [
+    {"id": "iap-attempt-path", "metric": "iap_attempt", "score_rule": "non_proxy"},
+    {"id": "cut-idle-cpu", "metric": "idle_cpu", "score_rule": "proxy_zero"}
+  ],
+  "cli": "scripts/agent_omarchy.py",
+  "note": "paywall_purchase_success is telemetry not ledger revenue"
+}
