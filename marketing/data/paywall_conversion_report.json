@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-11T18:34:23+00:00",
+  "generated_at": "2026-09-11T18:50:48+00:00",
   "window_days": 30,
   "status": "ok",
   "reason": "",
@@ -143,12 +143,12 @@
     },
     {
       "setting_name": "min_seconds",
-      "changes": 1613,
-      "users": 97
+      "changes": 1609,
+      "users": 96
     },
     {
       "setting_name": "alarm_duration",
-      "changes": 1342,
+      "changes": 1338,
       "users": 95
     },
     {
@@ -173,8 +173,8 @@
     },
     {
       "setting_name": "voice_gender",
-      "changes": 208,
-      "users": 72
+      "changes": 206,
+      "users": 71
     },
     {
       "setting_name": "vibration_enabled",
