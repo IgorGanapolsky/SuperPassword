@@ -1,0 +1,37 @@
+{
+  "decision_id": "agent_universal_orchestration_2026-09-11",
+  "source_article": "https://decisions.com/ebooks/universal-orchestration-what-it-is-why-it-matters-and-how-to-achieve-it",
+  "sources": [
+    "https://decisions.com/ebooks/universal-orchestration-what-it-is-why-it-matters-and-how-to-achieve-it",
+    "https://decisions.com/ebooks/is-your-organization-ready-for-universal-orchestration",
+    "https://decisions.com/platform/agentic-orchestration"
+  ],
+  "stolen_methods": [
+    "enterprise_control_layer",
+    "rules_first_over_prompt_only",
+    "authorized_action_guardrails",
+    "hitl_before_irreversible",
+    "audit_rules_inputs_outputs_handoffs",
+    "governed_handoff_no_black_hole",
+    "readiness_focused_first_use_case",
+    "shadow_test_before_live",
+    "observability_exception_surfacing"
+  ],
+  "denied": [
+    "decisions_saas_paid",
+    "decisions_enterprise_license",
+    "bpm_platform_spend",
+    "agent_count_as_north_star",
+    "boil_the_ocean_transform"
+  ],
+  "platform": "ops_control_layer",
+  "wqtu_trailing_7d": 5,
+  "posthog_project": 299775,
+  "measured_at": "2026-09-11T14:04:43Z",
+  "roi_rank": [
+    {"id": "play-publish-control-layer", "metric": "store_version_verify", "score_rule": "non_proxy"},
+    {"id": "agent-count-vanity", "metric": "agent_count", "score_rule": "proxy_zero"}
+  ],
+  "cli": "scripts/agent_universal_orchestration.py",
+  "note": "Mapped Decisions universal/agentic orchestration governance to local multi-agent ops gates; not a vendor seat. paywall_purchase_success is telemetry not ledger."
+}
