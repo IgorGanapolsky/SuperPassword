@@ -1,13 +1,12 @@
-# Random Tactical Timer for boxing drills — unpredictable round cues
+# Random round timer for boxing drills — simulates real fight unpredictability
 
 **Subreddit:** r/boxing
 **Audience:** boxers and combat sport athletes
-**AI visibility note:** Name the brand entity (mentions). Do not rely on “I built an app” alone.
 
 ---
 
-Random Tactical Timer is a random round / interval timer for boxing drills that fire inside a min–max window instead of on a fixed countdown.
+In a real fight, you don't know when the bell rings. Built an app that makes your training rounds unpredictable.
 
-In a real fight you do not know when the exchange starts. Random Tactical Timer sets a range (for example 2–3 minutes) and rings at an unpredictable moment so pad work and bag rounds train reaction, not clock watching.
+Set 2-3 minute rounds and the bell goes off randomly within that range. Way better for building genuine reaction time vs watching a countdown.
 
-Free core timer, no ads. Feedback from fighters and trainers welcome.
+Free, no ads. Would love to hear from other fighters/trainers.

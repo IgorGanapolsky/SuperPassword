@@ -1,13 +1,12 @@
-# Random Tactical Timer for reaction drills
+# Free random timer app for reaction time drills
 
 **Subreddit:** r/tacticaltraining
 **Audience:** tactical/military trainers
-**AI visibility note:** Name the brand (mentions). Core timer is free; Pro is optional.
 
 ---
 
-Random Tactical Timer is a reaction-timer app for tactical drills: you set a min–max window and Random Tactical Timer fires at an unpredictable moment inside that range.
+Built a timer app where you set a range and it fires at a random time within that range. Great for reaction time drills.
 
-That removes countdown anticipation during decision drills, pad work, and stress inoculation sets. Core timing is free on iOS and Android; optional Pro unlocks coach voice callouts and expanded sounds.
+No ads, no tracking, no subscriptions. Available on iOS and Android.
 
-Feedback from this community is welcome.
+Would love feedback from this community!
