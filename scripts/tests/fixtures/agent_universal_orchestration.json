@@ -1,0 +1,19 @@
+{
+  "flows": [
+    {
+      "id": "play-publish-control-layer",
+      "platform": "ops_control_layer",
+      "metric": "store_version_verify",
+      "expected_iap_attempts": 1,
+      "expected_completed_tasks": 4,
+      "effort": 1
+    },
+    {
+      "id": "agent-count-vanity",
+      "platform": "decisions_saas_paid",
+      "metric": "agent_count",
+      "expected_iap_attempts": 0,
+      "effort": 1
+    }
+  ]
+}
