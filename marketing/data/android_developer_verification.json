@@ -1,6 +1,6 @@
 {
   "metric_id": "play_console_oct9_profile_removal",
-  "generated_at_utc": "2026-09-11T17:47:13Z",
+  "generated_at_utc": "2026-09-11T18:47:11Z",
   "developer_account": {
     "name": "Tactical Training Apps",
     "account_id": "8239620436488925047",
@@ -45,23 +45,32 @@
     "us_tax_form_submitted": false,
     "payments_hold_cleared": false,
     "in_progress": [
-      "Opened Payments profile + Tax Center (place=TAX_CENTER)",
-      "Confirmed US: No tax info on file; opened Before you start wizard (Start form)",
-      "Start form triggers Google verify-it's-you; flow stuck on Loading without completing reauth in automation"
+      "Opened Payments Center critical alerts; Verify CTA for Business \u2022\u2022\u2022\u2022623",
+      "Reached \"Verify a deposit from Google\" UI (amount select $0.01\u2013$0.24)",
+      "Confirmed Gmail (ig5973700): Google Payments \"Verify your bank account\" 2026-09-11 10:53 AM \u2014 profile 8278-0314-1551",
+      "Tax Center Start form still blocked on Google verify-it's-you / reauth"
     ],
     "next_required_actions": [
-      "Complete Google verify-it's-you (passkey/Touch ID) when Start form is clicked",
-      "Submit US tax form (W-9) for Max Smith KDP LLC payee \u2014 needs EIN / authorized signer",
-      "Clear merchant payout instrument Verification pending (Business ....623)",
-      "Re-check issue 4989280683529509268 until Oct 9 banner disappears"
-    ]
+      "Read Business \u2022\u2022\u2022\u2022623 bank statement for Google micro-deposit (<$0.25) dated ~2026-09-11 and select exact amount in verify UI",
+      "After bank verified, re-check issue 4989280683529509268 until Oct 9 banner clears",
+      "Submit US tax form (W-9) for Max Smith KDP LLC (still No tax info on file)",
+      "Clear payouts hold + optional Google Cloud Discover \u2022\u2022\u2022\u20225421 overdue (separate from Oct 9 banner)"
+    ],
+    "bank_microdeposit_ui_reached": true,
+    "bank_last4": "623",
+    "microdeposit_window": "less than $0.25 on or around 2026-09-11"
   },
   "evidence_paths": [
-    ".tmp/adv-payment-issue.json",
     ".tmp/adv-cdp-dump.json",
     ".tmp/adv-console-expanded.json",
+    ".tmp/adv-payment-issue.json",
     ".tmp/adv-taxcenter-top.json",
-    ".tmp/taxcenter.png"
+    ".tmp/gmail-verify-bank-email.txt",
+    ".tmp/issue-details-now.txt",
+    ".tmp/pay-center-alerts.txt",
+    ".tmp/taxcenter.png",
+    ".tmp/verify-deposit.png",
+    ".tmp/verify-deposit.txt"
   ],
   "proxy_vs_ground_truth": {
     "note": "Package registration Registered is necessary for Sep 30 ADV rules but does NOT clear the Oct 9 profile-removal banner; ground truth for Oct 9 is account issue merchant payment method verification + tax form."
