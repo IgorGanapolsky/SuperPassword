@@ -1,0 +1,34 @@
+{
+  "decision_id": "agent_context_modes_2026-09-11",
+  "source_article": "https://www.langchain.com/blog/organizing-context-in-a-multi-agent-harness",
+  "sources": [
+    "https://www.langchain.com/blog/organizing-context-in-a-multi-agent-harness"
+  ],
+  "stolen_methods": [
+    "isolated_vs_fork_context_modes",
+    "worker_fork_after_diagnosis",
+    "verifier_isolated_independent_judgment",
+    "researcher_isolated_especially_parallel",
+    "memory_fork_with_write_restrictions",
+    "avoid_rediscovery_waste",
+    "supervisor_outcome_only",
+    "no_mode_monoculture"
+  ],
+  "denied": [
+    "langsmith_paid_seat",
+    "langchain_cloud_spend",
+    "always_fork_everything",
+    "always_isolate_everything",
+    "subagent_count_as_north_star"
+  ],
+  "platform": "supervisor_subagent_harness",
+  "wqtu_trailing_7d": 4,
+  "posthog_project": 299775,
+  "measured_at": "2026-09-11T14:19:00Z",
+  "roi_rank": [
+    {"id": "iap-fixer-fork", "metric": "context_reuse", "score_rule": "non_proxy"},
+    {"id": "langsmith-span-vanity", "metric": "langsmith_spans", "score_rule": "proxy_zero"}
+  ],
+  "cli": "scripts/agent_context_modes.py",
+  "note": "Mapped LangChain isolated/fork context modes to local supervisor-subagent ops; not a LangSmith seat. paywall_purchase_success is telemetry not ledger."
+}

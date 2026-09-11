@@ -1,0 +1,19 @@
+{
+  "harnesses": [
+    {
+      "id": "iap-fixer-fork",
+      "platform": "supervisor_subagent_harness",
+      "metric": "context_reuse",
+      "expected_iap_attempts": 2,
+      "expected_completed_tasks": 3,
+      "effort": 1
+    },
+    {
+      "id": "langsmith-span-vanity",
+      "platform": "langsmith_paid_seat",
+      "metric": "langsmith_spans",
+      "expected_iap_attempts": 0,
+      "effort": 1
+    }
+  ]
+}
