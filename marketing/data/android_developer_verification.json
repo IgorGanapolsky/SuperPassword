@@ -1,6 +1,6 @@
 {
   "metric_id": "play_console_oct9_profile_removal",
-  "generated_at_utc": "2026-09-11T18:47:11Z",
+  "generated_at_utc": "2026-09-11T19:43:25Z",
   "developer_account": {
     "name": "Tactical Training Apps",
     "account_id": "8239620436488925047",
@@ -19,11 +19,11 @@
     "primary": "Google couldn't verify your merchant payment method",
     "issue_id": "4989280683529509268",
     "contributing_factors": [
-      "US tax info missing (No tax info on file) \u2014 Tax Center requires Add tax info / Start form",
-      "Payments account hold: unable to receive payouts",
-      "How you get paid instrument Business ....623 shows Verification pending"
+      "Google Play Apps How you get paid had no instrument (fixed: linked Checking \u2022\u2022\u2022\u20227725)",
+      "Checking \u2022\u2022\u2022\u20227725 Verification pending \u2014 awaiting GOOGLE micro-deposit on Mercury",
+      "Payments account hold / Cloud overdue alerts remain separate from Oct 9 banner"
     ],
-    "not_root_cause": "Android developer package registration \u2014 all 10 packages already Registered including com.iganapolsky.randomtimer"
+    "not_root_cause": "Android developer package registration \u2014 already Registered"
   },
   "package_registration": {
     "status": "complete",
@@ -42,23 +42,28 @@
   "remediation_status": {
     "oct9_banner_cleared": false,
     "merchant_method_verified": false,
-    "us_tax_form_submitted": false,
+    "us_tax_form_submitted": true,
+    "us_tax_info_accepted": true,
     "payments_hold_cleared": false,
+    "play_apps_how_you_get_paid": {
+      "instrument": "Checking \u2022\u2022\u2022\u20227725 Max Smith KDP LLC",
+      "status": "Verification pending",
+      "linked_at_utc": "2026-09-11T19:43:25Z",
+      "source": "Mercury Checking legalBusinessName Max Smith KDP LLC"
+    },
     "in_progress": [
-      "Opened Payments Center critical alerts; Verify CTA for Business \u2022\u2022\u2022\u2022623",
-      "Reached \"Verify a deposit from Google\" UI (amount select $0.01\u2013$0.24)",
-      "Confirmed Gmail (ig5973700): Google Payments \"Verify your bank account\" 2026-09-11 10:53 AM \u2014 profile 8278-0314-1551",
-      "Tax Center Start form still blocked on Google verify-it's-you / reauth"
+      "Linked Mercury Checking \u2022\u2022\u2022\u20227725 as Google Play Apps How you get paid primary instrument",
+      "Opened Verify bank deposit amount UI for Checking ending 7725 around Sep 11",
+      "Mercury API txs through now: no GOOGLE micro-deposit posted yet (do not guess amount)"
     ],
     "next_required_actions": [
-      "Read Business \u2022\u2022\u2022\u2022623 bank statement for Google micro-deposit (<$0.25) dated ~2026-09-11 and select exact amount in verify UI",
-      "After bank verified, re-check issue 4989280683529509268 until Oct 9 banner clears",
-      "Submit US tax form (W-9) for Max Smith KDP LLC (still No tax info on file)",
-      "Clear payouts hold + optional Google Cloud Discover \u2022\u2022\u2022\u20225421 overdue (separate from Oct 9 banner)"
+      "When Mercury shows GOOGLE deposit < $1 on Checking \u2022\u2022\u2022\u20227725, enter exact amount in Verify UI",
+      "Re-check issue 4989280683529509268 until Oct 9 banner clears"
     ],
     "bank_microdeposit_ui_reached": true,
-    "bank_last4": "623",
-    "microdeposit_window": "less than $0.25 on or around 2026-09-11"
+    "bank_last4": "7725",
+    "microdeposit_window": "GOOGLE deposit around 2026-09-11 on Checking ending 7725",
+    "superseded_bank_last4_623": "Prior pending Business \u2022\u2022\u2022\u2022623 was not on Max Smith Play Apps profile; LLC checking is \u2022\u2022\u2022\u20227725"
   },
   "evidence_paths": [
     ".tmp/adv-cdp-dump.json",
@@ -73,6 +78,6 @@
     ".tmp/verify-deposit.txt"
   ],
   "proxy_vs_ground_truth": {
-    "note": "Package registration Registered is necessary for Sep 30 ADV rules but does NOT clear the Oct 9 profile-removal banner; ground truth for Oct 9 is account issue merchant payment method verification + tax form."
+    "note": "oct9_banner_cleared remains false until issue page/banner clears after bank verify. Linking instrument is necessary but not sufficient while Verification pending."
   }
 }
