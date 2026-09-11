@@ -1,0 +1,34 @@
+{
+  "decision_id": "agent_cuda_rust_2026-09-11",
+  "source_article": "https://www.marktechpost.com/2026/09/08/nvidia-announces-cuda-rust-with-cuda-oxide-simt-and-cutile-rs-tile-for-compile-time-safe-gpu-kernels/",
+  "sources": [
+    "https://www.marktechpost.com/2026/09/08/nvidia-announces-cuda-rust-with-cuda-oxide-simt-and-cutile-rs-tile-for-compile-time-safe-gpu-kernels/"
+  ],
+  "stolen_methods": [
+    "tile_before_simt",
+    "plan_time_alias_reject",
+    "disjoint_exclusive_writes",
+    "launch_contract_validate",
+    "doctor_before_launch",
+    "lazy_chain_until_sync",
+    "alpha_not_production",
+    "interop_no_lockin"
+  ],
+  "denied": [
+    "cuda_cloud_gpu_rental",
+    "hf_paid_gpu",
+    "a100_spot_fleet",
+    "gpu_tflops_as_north_star",
+    "alpha_cuda_rust_as_production"
+  ],
+  "platform": "ops_ownership_gate",
+  "wqtu_trailing_7d": 5,
+  "posthog_project": 299775,
+  "measured_at": "2026-09-11T13:58:55Z",
+  "roi_rank": [
+    {"id": "iap-alias-gate", "metric": "alias_reject", "score_rule": "non_proxy"},
+    {"id": "tflops-press", "metric": "gpu_tflops", "score_rule": "proxy_zero"}
+  ],
+  "cli": "scripts/agent_cuda_rust.py",
+  "note": "Mapped CUDA Rust ownership/launch method to agent/ops gates; not GPU product work. paywall_purchase_success is telemetry not ledger."
+}
