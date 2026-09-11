@@ -1,0 +1,19 @@
+{
+  "kernels": [
+    {
+      "id": "iap-alias-gate",
+      "platform": "ops_ownership_gate",
+      "metric": "alias_reject",
+      "expected_iap_attempts": 2,
+      "expected_completed_tasks": 3,
+      "effort": 1
+    },
+    {
+      "id": "tflops-press",
+      "platform": "cuda_cloud_gpu_rental",
+      "metric": "gpu_tflops",
+      "expected_iap_attempts": 0,
+      "effort": 1
+    }
+  ]
+}
