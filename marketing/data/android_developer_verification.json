@@ -1,0 +1,69 @@
+{
+  "metric_id": "play_console_oct9_profile_removal",
+  "generated_at_utc": "2026-09-11T17:47:13Z",
+  "developer_account": {
+    "name": "Tactical Training Apps",
+    "account_id": "8239620436488925047",
+    "account_type": "Organization",
+    "organization": "Max Smith KDP LLC",
+    "owner_email": "ig5973700@gmail.com"
+  },
+  "banner": {
+    "text": "Your developer profile and all apps will be removed from Google Play on October 9, 2026",
+    "deadline_utc": "2026-10-09",
+    "notified_local": "2026-09-11T10:54",
+    "days_remaining_at_check": 28,
+    "issue_details_url": "https://play.google.com/console/u/1/developers/8239620436488925047/account/issues/4989280683529509268/details"
+  },
+  "root_cause": {
+    "primary": "Google couldn't verify your merchant payment method",
+    "issue_id": "4989280683529509268",
+    "contributing_factors": [
+      "US tax info missing (No tax info on file) \u2014 Tax Center requires Add tax info / Start form",
+      "Payments account hold: unable to receive payouts",
+      "How you get paid instrument Business ....623 shows Verification pending"
+    ],
+    "not_root_cause": "Android developer package registration \u2014 all 10 packages already Registered including com.iganapolsky.randomtimer"
+  },
+  "package_registration": {
+    "status": "complete",
+    "count": 10,
+    "random_timer": {
+      "package": "com.iganapolsky.randomtimer",
+      "status": "Registered",
+      "last_updated": "2026-03-05"
+    },
+    "identity_tab": {
+      "legal_name": "Max Smith KDP LLC",
+      "address": "11909 Glenmore Dr, Coral Springs - 33071-7806, United States (US)",
+      "status": "present_from_developer_account"
+    }
+  },
+  "remediation_status": {
+    "oct9_banner_cleared": false,
+    "merchant_method_verified": false,
+    "us_tax_form_submitted": false,
+    "payments_hold_cleared": false,
+    "in_progress": [
+      "Opened Payments profile + Tax Center (place=TAX_CENTER)",
+      "Confirmed US: No tax info on file; opened Before you start wizard (Start form)",
+      "Start form triggers Google verify-it's-you; flow stuck on Loading without completing reauth in automation"
+    ],
+    "next_required_actions": [
+      "Complete Google verify-it's-you (passkey/Touch ID) when Start form is clicked",
+      "Submit US tax form (W-9) for Max Smith KDP LLC payee \u2014 needs EIN / authorized signer",
+      "Clear merchant payout instrument Verification pending (Business ....623)",
+      "Re-check issue 4989280683529509268 until Oct 9 banner disappears"
+    ]
+  },
+  "evidence_paths": [
+    ".tmp/adv-payment-issue.json",
+    ".tmp/adv-cdp-dump.json",
+    ".tmp/adv-console-expanded.json",
+    ".tmp/adv-taxcenter-top.json",
+    ".tmp/taxcenter.png"
+  ],
+  "proxy_vs_ground_truth": {
+    "note": "Package registration Registered is necessary for Sep 30 ADV rules but does NOT clear the Oct 9 profile-removal banner; ground truth for Oct 9 is account issue merchant payment method verification + tax form."
+  }
+}
