@@ -1,0 +1,42 @@
+{
+  "cap_usd": 20.0,
+  "source": "local_ops_context",
+  "note": "Operator-maintained external outlay ledger for Random Timer. Proxy until live bank feeds exist.",
+  "months": {
+    "2026-08": {
+      "ads": 0.0,
+      "tooling": 0.0,
+      "cloud": 0.0,
+      "automation": 0.0
+    },
+    "2026-09": {
+      "ads": 0.0,
+      "tooling": 0.0,
+      "cloud": 0.0,
+      "automation": 0.0
+    }
+  },
+  "recurring": [
+    {
+      "name": "apple_ads",
+      "monthly_usd": 0.0,
+      "previous_monthly_usd": 0.0,
+      "active": true,
+      "last_seen_days": 0
+    },
+    {
+      "name": "posthog",
+      "monthly_usd": 0.0,
+      "previous_monthly_usd": 0.0,
+      "active": true,
+      "last_seen_days": 0
+    },
+    {
+      "name": "github_actions",
+      "monthly_usd": 0.0,
+      "previous_monthly_usd": 0.0,
+      "active": true,
+      "last_seen_days": 0
+    }
+  ]
+}
