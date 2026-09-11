@@ -1,12 +1,12 @@
 {
-  "generated_at": "2026-09-11T19:51:23+00:00",
-  "status": "ok",
+  "generated_at": "2026-09-11T20:35:39+00:00",
+  "status": "degraded",
   "keyword_installs": {},
   "data_quality": {
-    "is_stale": false,
-    "preserved_previous_metrics": false,
-    "last_attempt_generated_at": "2026-09-11T19:51:23+00:00",
-    "last_good_generated_at": "",
-    "reason": ""
+    "is_stale": true,
+    "preserved_previous_metrics": true,
+    "last_attempt_generated_at": "2026-09-11T20:35:39+00:00",
+    "last_good_generated_at": "2026-09-11T19:51:23+00:00",
+    "reason": "request_error: HTTPSConnectionPool(host='us.posthog.com', port=443): Read timed out. (read timeout=30)"
   }
 }
