@@ -1,0 +1,19 @@
+{
+  "workloads": [
+    {
+      "id": "iap-extract-routing",
+      "platform": "hybrid_model_routing",
+      "metric": "cost_per_success",
+      "expected_iap_attempts": 2,
+      "expected_completed_tasks": 4,
+      "effort": 1
+    },
+    {
+      "id": "vendor-independence-vanity",
+      "platform": "gpu_fleet_ideology_spend",
+      "metric": "vendor_independence_score",
+      "expected_iap_attempts": 0,
+      "effort": 1
+    }
+  ]
+}

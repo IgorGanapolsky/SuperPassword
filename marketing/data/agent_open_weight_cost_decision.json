@@ -1,0 +1,35 @@
+{
+  "decision_id": "agent_open_weight_cost_2026-09-11",
+  "source_article": "https://music.youtube.com/watch?v=9DRXbonRtyA",
+  "sources": [
+    "https://music.youtube.com/watch?v=9DRXbonRtyA"
+  ],
+  "stolen_methods": [
+    "workload_baseline",
+    "stable_high_volume_fit",
+    "apples_to_apples_real_eval",
+    "fully_loaded_cost_per_success",
+    "hybrid_model_routing",
+    "strategic_leverage_not_vendor_vanity",
+    "pilot_gates_with_api_fallback",
+    "api_first_until_tco_justifies"
+  ],
+  "denied": [
+    "gpu_fleet_ideology_spend",
+    "a100_self_host_vanity",
+    "benchmark_only_swap",
+    "all_open_or_all_proprietary_monoculture",
+    "vendor_independence_as_north_star"
+  ],
+  "platform": "hybrid_model_routing",
+  "wqtu_trailing_7d": 5,
+  "posthog_project": 299775,
+  "measured_at": "2026-09-11T14:11:20Z",
+  "monthly_cap_usd": 20,
+  "roi_rank": [
+    {"id": "iap-extract-routing", "metric": "cost_per_success", "score_rule": "non_proxy"},
+    {"id": "vendor-independence-vanity", "metric": "vendor_independence_score", "score_rule": "proxy_zero"}
+  ],
+  "cli": "scripts/agent_open_weight_cost.py",
+  "note": "Mapped open-weight cost episode to local unit-economics gates; not GPU product spend. paywall_purchase_success is telemetry not ledger."
+}
