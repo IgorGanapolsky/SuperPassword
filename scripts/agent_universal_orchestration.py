@@ -274,6 +274,169 @@ def evaluate_visibility(
     )
 
 
+def evaluate_capability_pillars(
+    *,
+    runtime_coordination: bool,
+    state_context_intelligence: bool,
+    control_policy_observability: bool,
+) -> ControlDecision:
+    """Gartner/Decisions three capability areas for a universal orchestrator."""
+    if runtime_coordination and state_context_intelligence and control_policy_observability:
+        return ControlDecision(
+            action="allow_three_pillars",
+            ok=True,
+            reason="runtime, state/context, and control/observability pillars are present",
+        )
+    missing = []
+    if not runtime_coordination:
+        missing.append("runtime")
+    if not state_context_intelligence:
+        missing.append("state_context")
+    if not control_policy_observability:
+        missing.append("control_observability")
+    return ControlDecision(
+        action="block_incomplete_pillars",
+        ok=False,
+        reason=f"missing UO capability pillars: {','.join(missing)}",
+    )
+
+
+def evaluate_hard_permissioning(
+    *,
+    reaches_production: bool,
+    hard_permissioning: bool,
+    approval_gate: bool,
+    intervention_control: bool,
+    prompt_instructions_only: bool = False,
+) -> ControlDecision:
+    """Instructions are not control — production reach needs hard perms + HITL + kill switch."""
+    if not reaches_production:
+        return ControlDecision(
+            action="allow_non_production_scope",
+            ok=True,
+            reason="non-production agents may proceed without production hard gates",
+        )
+    if prompt_instructions_only and not hard_permissioning:
+        return ControlDecision(
+            action="block_instructions_only_control",
+            ok=False,
+            reason="prompt instructions are not control for production-reaching agents",
+        )
+    if hard_permissioning and approval_gate and intervention_control:
+        return ControlDecision(
+            action="allow_hard_permissioning",
+            ok=True,
+            reason="production reach gated by hard perms, approval, and intervention control",
+        )
+    return ControlDecision(
+        action="block_unguarded_production_reach",
+        ok=False,
+        reason="production-reaching agents need hard permissioning, approval, and intervention",
+    )
+
+
+def evaluate_process_state(
+    *,
+    state_outside_agent_context: bool,
+    authoritative_process_record: bool,
+) -> ControlDecision:
+    """Long-running process state must live outside any single agent context window."""
+    if state_outside_agent_context and authoritative_process_record:
+        return ControlDecision(
+            action="allow_external_process_state",
+            ok=True,
+            reason="authoritative process state lives outside agent context windows",
+        )
+    return ControlDecision(
+        action="block_state_in_agent_only",
+        ok=False,
+        reason="process state that lives only inside an agent context window is denied",
+    )
+
+
+def evaluate_shadow_ai(
+    *,
+    tool_outside_approved_process: bool,
+    security_model_aligned: bool,
+) -> ControlDecision:
+    if tool_outside_approved_process:
+        return ControlDecision(
+            action="block_shadow_ai",
+            ok=False,
+            reason="AI tools outside approved processes/security models are denied",
+        )
+    if security_model_aligned:
+        return ControlDecision(
+            action="allow_approved_ai_surface",
+            ok=True,
+            reason="AI surface is inside approved process and security model",
+        )
+    return ControlDecision(
+        action="block_shadow_ai",
+        ok=False,
+        reason="AI surface without security-model alignment is denied",
+    )
+
+
+def evaluate_agent_cost_telemetry(
+    *,
+    token_calls: int,
+    retries: int,
+    human_review_volume: int,
+    estimated_usd: float,
+    operating_cap_usd: float = 20.0,
+    telemetry_visible: bool,
+) -> ControlDecision:
+    """Cost/performance visibility for agentic runs under the operating cap."""
+    if not telemetry_visible:
+        return ControlDecision(
+            action="block_opaque_agent_cost",
+            ok=False,
+            reason="agent token/retry/review volume must be visible before scaling",
+        )
+    if estimated_usd > operating_cap_usd:
+        return ControlDecision(
+            action="block_over_operating_cap",
+            ok=False,
+            reason=f"estimated ${estimated_usd:.2f} exceeds ${operating_cap_usd:.2f} operating cap",
+        )
+    _ = (token_calls, retries, human_review_volume)
+    return ControlDecision(
+        action="allow_cost_visible_under_cap",
+        ok=True,
+        reason="agent cost telemetry visible and within operating cap",
+    )
+
+
+def evaluate_five_outcomes(
+    *,
+    governance_at_runtime: bool,
+    interoperability: bool,
+    observability_and_control: bool,
+    cost_and_performance: bool,
+    business_outcomes: bool,
+) -> ControlDecision:
+    """Five enterprise outcomes universal orchestration should deliver."""
+    flags = (
+        governance_at_runtime,
+        interoperability,
+        observability_and_control,
+        cost_and_performance,
+        business_outcomes,
+    )
+    if all(flags):
+        return ControlDecision(
+            action="allow_five_outcomes",
+            ok=True,
+            reason="governance, interoperability, observability, cost, and outcomes covered",
+        )
+    return ControlDecision(
+        action="block_incomplete_outcomes",
+        ok=False,
+        reason="universal orchestration must cover all five enterprise outcomes",
+    )
+
+
 def _flow_clears(raw: Mapping[str, object]) -> bool:
     return evaluate_platform(platform=str(raw.get("platform") or "")).ok
 

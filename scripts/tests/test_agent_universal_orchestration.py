@@ -9,15 +9,21 @@ import unittest
 from pathlib import Path
 
 from scripts.agent_universal_orchestration import (
+    evaluate_agent_cost_telemetry,
     evaluate_audit_trail,
+    evaluate_capability_pillars,
     evaluate_claim,
     evaluate_control_layer,
+    evaluate_five_outcomes,
     evaluate_guardrails,
     evaluate_handoff,
+    evaluate_hard_permissioning,
     evaluate_human_in_loop,
     evaluate_platform,
+    evaluate_process_state,
     evaluate_readiness,
     evaluate_rules_first,
+    evaluate_shadow_ai,
     evaluate_shadow_test,
     evaluate_visibility,
     pick_flow,
@@ -162,6 +168,137 @@ class VisibilityTests(unittest.TestCase):
     def test_blind_fails(self) -> None:
         d = evaluate_visibility(
             real_time_observability=False, exceptions_surfaced=False
+        )
+        self.assertFalse(d.ok)
+
+
+class CapabilityPillarTests(unittest.TestCase):
+    def test_three_pillars_pass(self) -> None:
+        d = evaluate_capability_pillars(
+            runtime_coordination=True,
+            state_context_intelligence=True,
+            control_policy_observability=True,
+        )
+        self.assertTrue(d.ok)
+        self.assertEqual(d.action, "allow_three_pillars")
+
+    def test_missing_state_pillar_fails(self) -> None:
+        d = evaluate_capability_pillars(
+            runtime_coordination=True,
+            state_context_intelligence=False,
+            control_policy_observability=True,
+        )
+        self.assertFalse(d.ok)
+        self.assertIn("state_context", d.reason)
+
+
+class HardPermissioningTests(unittest.TestCase):
+    def test_instructions_only_blocked_for_production(self) -> None:
+        d = evaluate_hard_permissioning(
+            reaches_production=True,
+            hard_permissioning=False,
+            approval_gate=False,
+            intervention_control=False,
+            prompt_instructions_only=True,
+        )
+        self.assertFalse(d.ok)
+        self.assertEqual(d.action, "block_instructions_only_control")
+
+    def test_hard_gates_allow_production(self) -> None:
+        d = evaluate_hard_permissioning(
+            reaches_production=True,
+            hard_permissioning=True,
+            approval_gate=True,
+            intervention_control=True,
+        )
+        self.assertTrue(d.ok)
+
+
+class ProcessStateTests(unittest.TestCase):
+    def test_external_state_passes(self) -> None:
+        d = evaluate_process_state(
+            state_outside_agent_context=True,
+            authoritative_process_record=True,
+        )
+        self.assertTrue(d.ok)
+
+    def test_agent_only_state_fails(self) -> None:
+        d = evaluate_process_state(
+            state_outside_agent_context=False,
+            authoritative_process_record=False,
+        )
+        self.assertFalse(d.ok)
+
+
+class ShadowAiTests(unittest.TestCase):
+    def test_outside_approved_process_fails(self) -> None:
+        d = evaluate_shadow_ai(
+            tool_outside_approved_process=True,
+            security_model_aligned=False,
+        )
+        self.assertFalse(d.ok)
+        self.assertEqual(d.action, "block_shadow_ai")
+
+    def test_approved_surface_passes(self) -> None:
+        d = evaluate_shadow_ai(
+            tool_outside_approved_process=False,
+            security_model_aligned=True,
+        )
+        self.assertTrue(d.ok)
+
+
+class AgentCostTelemetryTests(unittest.TestCase):
+    def test_opaque_cost_fails(self) -> None:
+        d = evaluate_agent_cost_telemetry(
+            token_calls=10,
+            retries=1,
+            human_review_volume=0,
+            estimated_usd=1.0,
+            telemetry_visible=False,
+        )
+        self.assertFalse(d.ok)
+
+    def test_over_cap_fails(self) -> None:
+        d = evaluate_agent_cost_telemetry(
+            token_calls=1000,
+            retries=50,
+            human_review_volume=20,
+            estimated_usd=25.0,
+            operating_cap_usd=20.0,
+            telemetry_visible=True,
+        )
+        self.assertFalse(d.ok)
+        self.assertEqual(d.action, "block_over_operating_cap")
+
+    def test_visible_under_cap_passes(self) -> None:
+        d = evaluate_agent_cost_telemetry(
+            token_calls=5,
+            retries=0,
+            human_review_volume=1,
+            estimated_usd=0.0,
+            telemetry_visible=True,
+        )
+        self.assertTrue(d.ok)
+
+
+class FiveOutcomesTests(unittest.TestCase):
+    def test_all_five_pass(self) -> None:
+        d = evaluate_five_outcomes(
+            governance_at_runtime=True,
+            interoperability=True,
+            observability_and_control=True,
+            cost_and_performance=True,
+            business_outcomes=True,
+        )
+        self.assertTrue(d.ok)
+
+    def test_incomplete_fails(self) -> None:
+        d = evaluate_five_outcomes(
+            governance_at_runtime=True,
+            interoperability=True,
+            observability_and_control=True,
+            cost_and_performance=False,
+            business_outcomes=True,
         )
         self.assertFalse(d.ok)
 

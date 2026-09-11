@@ -13,6 +13,12 @@ Adapted from Decisions’ [Universal Orchestration](https://decisions.com/ebooks
 | Readiness + focused first use case | `evaluate_readiness` |
 | Shadow-test before live | `evaluate_shadow_test` |
 | Observability + exceptions | `evaluate_visibility` |
+| Three UO capability pillars | `evaluate_capability_pillars` |
+| Instructions ≠ control (hard perms) | `evaluate_hard_permissioning` |
+| Process state outside agent context | `evaluate_process_state` |
+| Shadow AI outside approved process | `evaluate_shadow_ai` |
+| Cost/performance under $20 cap | `evaluate_agent_cost_telemetry` |
+| Five enterprise outcomes | `evaluate_five_outcomes` |
 
 ## Mapped to our product (not Decisions SaaS)
 
@@ -22,9 +28,11 @@ Example control layer for Play publish:
 2. Rules-first: production track only; no prompt-only “just ship it”
 3. Guardrails: authorized = production publish after gates; unauthorized = open testing without CEO request
 4. HITL: managed publish is irreversible → approval / environment sign-off
-5. Handoff: each step persists evidence and routes next job
-6. Shadow: dry-run / API read-back before claiming live
-7. Audit + visibility: log rule, inputs, outputs, handoffs; surface exceptions
+5. Hard permissioning: production reach needs hard perms + approval + intervention (not prompt text alone)
+6. Process state: authoritative record outside any single agent context window
+7. Handoff: each step persists evidence and routes next job
+8. Shadow: dry-run / API read-back before claiming live; no shadow AI outside approved surfaces
+9. Audit + visibility + cost telemetry: log rule/inputs/outputs/handoffs; surface exceptions; stay under operating cap
 
 ## What we deliberately did *not* copy
 
@@ -57,6 +65,7 @@ WQTU `5`. Ranker puts store/IAP control-layer work ahead of agent-count vanity.
 
 ## Source
 
+- Sanity CDN PDF (ebook asset): `cdn.sanity.io/files/a9zf4mro/production/3a1a4f21b38cef8a635d7f6487d7bfa95fb05de2.pdf`
 - https://decisions.com/ebooks/universal-orchestration-what-it-is-why-it-matters-and-how-to-achieve-it
 - https://decisions.com/ebooks/is-your-organization-ready-for-universal-orchestration
 - https://decisions.com/platform/agentic-orchestration
