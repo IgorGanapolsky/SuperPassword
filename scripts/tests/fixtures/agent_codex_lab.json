@@ -1,0 +1,19 @@
+{
+  "loops": [
+    {
+      "id": "play-release-calibration",
+      "platform": "ops_calibration_loop",
+      "metric": "store_version_verify",
+      "expected_iap_attempts": 1,
+      "expected_completed_tasks": 3,
+      "effort": 1
+    },
+    {
+      "id": "qubit-press",
+      "platform": "quantum_hardware_spend",
+      "metric": "qubit_count",
+      "expected_iap_attempts": 0,
+      "effort": 1
+    }
+  ]
+}

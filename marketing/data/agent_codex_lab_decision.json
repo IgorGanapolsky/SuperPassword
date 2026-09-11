@@ -1,0 +1,33 @@
+{
+  "decision_id": "agent_codex_lab_2026-09-11",
+  "source_article": "https://openai.com/index/codex-quantum-computing-experiments/",
+  "sources": [
+    "https://openai.com/index/codex-quantum-computing-experiments/",
+    "https://cdn.openai.com/pdf/case-study-agentic-calibration-of-superconducting-qubits.pdf"
+  ],
+  "stolen_methods": [
+    "measurement_specific_skills",
+    "interdependent_calibration_chain",
+    "persist_results_for_next_step",
+    "clear_signal_autonomy_noisy_escalate",
+    "routine_vs_novel_goal_width",
+    "unattended_with_steer_hook",
+    "agent_routine_human_design_pairing"
+  ],
+  "denied": [
+    "quantum_hardware_spend",
+    "dilution_fridge_rental",
+    "openai_ultra_paid_lab",
+    "qubit_count_as_north_star"
+  ],
+  "platform": "ops_calibration_loop",
+  "wqtu_trailing_7d": "not_verified",
+  "posthog_project": 299775,
+  "measured_at": "2026-09-11T13:40:11Z",
+  "roi_rank": [
+    {"id": "play-release-calibration", "metric": "store_version_verify", "score_rule": "non_proxy"},
+    {"id": "qubit-press", "metric": "qubit_count", "score_rule": "proxy_zero"}
+  ],
+  "cli": "scripts/agent_codex_lab.py",
+  "note": "Mapped lab method to store/ops calibration; not quantum product work. WQTU not re-verified this turn (PostHog MCP unavailable). paywall_purchase_success is telemetry not ledger."
+}
