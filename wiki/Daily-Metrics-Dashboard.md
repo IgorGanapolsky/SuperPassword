@@ -38,7 +38,7 @@
 <!-- ATTRIBUTION_START -->
 # Attribution Feedback Report
 
-**Generated:** 2026-09-11T19:51:23+00:00
+**Generated:** 2026-09-12T00:52:27+00:00
 
 ## Onboarding Funnel
 - First Open: **131**
@@ -80,8 +80,6 @@
 | First Open | 131 | — |
 | First Timer Configured | 107 | 81.7% of opens |
 | First Timer Completed | 52 | 39.7% of opens |
-
-_Data quality: stale; showing last good metrics from `2026-09-11T19:51:23+00:00`; latest read issue: `request_error: HTTPSConnectionPool(host='us.posthog.com', port=443): Read timed out. (read timeout=30)`._
 <!-- FUNNEL_END -->
 
 ## Review Velocity
@@ -157,18 +155,18 @@ _Data quality: stale; showing last good metrics from `2026-09-11T19:51:23+00:00`
 ```mermaid
 xychart-beta
     title "Downloads (30d rolling)"
-    x-axis ["2026-09-10" , "2026-09-11" , "2026-09-11" , "2026-09-11" , "2026-09-11" , "2026-09-11" , "2026-09-11" , "2026-09-11" , "2026-09-11" , "2026-09-11" , "2026-09-11" , "2026-09-11" , "2026-09-11" , "2026-09-11"]
+    x-axis ["2026-09-11" , "2026-09-11" , "2026-09-11" , "2026-09-11" , "2026-09-11" , "2026-09-11" , "2026-09-11" , "2026-09-11" , "2026-09-11" , "2026-09-11" , "2026-09-11" , "2026-09-11" , "2026-09-11" , "2026-09-12"]
     y-axis "Downloads"
-    line [47 , 47 , 47 , 47 , 47 , 47 , 47 , 47 , 47 , 47 , 47 , 46 , 46 , 46]
-    line [76 , 76 , 76 , 76 , 76 , 76 , 76 , 76 , 76 , 81 , 81 , 81 , 81 , 81]
+    line [47 , 47 , 47 , 47 , 47 , 47 , 47 , 47 , 47 , 47 , 46 , 46 , 46 , 46]
+    line [76 , 76 , 76 , 76 , 76 , 76 , 76 , 76 , 81 , 81 , 81 , 81 , 81 , 81]
 ```
 
 ```mermaid
 xychart-beta
     title "WQTU (7d)"
-    x-axis ["2026-09-10" , "2026-09-11" , "2026-09-11" , "2026-09-11" , "2026-09-11" , "2026-09-11" , "2026-09-11" , "2026-09-11" , "2026-09-11" , "2026-09-11" , "2026-09-11" , "2026-09-11" , "2026-09-11" , "2026-09-11"]
+    x-axis ["2026-09-11" , "2026-09-11" , "2026-09-11" , "2026-09-11" , "2026-09-11" , "2026-09-11" , "2026-09-11" , "2026-09-11" , "2026-09-11" , "2026-09-11" , "2026-09-11" , "2026-09-11" , "2026-09-11" , "2026-09-12"]
     y-axis "Users"
-    line [5 , 5 , 5 , 5 , 5 , 5 , 5 , 4 , 4 , 3 , 3 , 3 , 3 , 3]
+    line [5 , 5 , 5 , 5 , 5 , 5 , 4 , 4 , 3 , 3 , 3 , 3 , 3 , 3]
 ```
 
 ```mermaid
@@ -196,4 +194,4 @@ xychart-beta
 
 ---
 
-_Dashboard generated at: `2026-09-11T20:35:40+00:00`. Data refreshed daily by [`wiki-sync.yml`](https://github.com/IgorGanapolsky/Random-Timer/actions/workflows/wiki-sync.yml)._
+_Dashboard generated at: `2026-09-12T00:52:29+00:00`. Data refreshed daily by [`wiki-sync.yml`](https://github.com/IgorGanapolsky/Random-Timer/actions/workflows/wiki-sync.yml)._
