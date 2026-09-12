@@ -1,21 +1,25 @@
 {
-  "generated_at": "2026-09-12T00:51:55+00:00",
+  "generated_at": "2026-09-12T06:31:14+00:00",
   "window_days": 30,
   "status": "ok",
   "reason": "",
   "funnel": {
-    "views": 67,
+    "views": 68,
     "offer_selects": 6,
-    "purchase_attempts": 0,
+    "purchase_attempts": 1,
     "purchase_successes": 0,
-    "view_to_select_rate": 0.0896,
-    "select_to_attempt_rate": 0.0,
+    "view_to_select_rate": 0.0882,
+    "select_to_attempt_rate": 0.1667,
     "attempt_to_success_rate": 0.0
   },
   "top_failure_reasons": [
     {
       "reason": "failed",
       "count": 26
+    },
+    {
+      "reason": "user_cancelled",
+      "count": 1
     }
   ],
   "failure_breakdown": [
@@ -25,9 +29,25 @@
       "reason": "failed",
       "failures": 26,
       "users": 5
+    },
+    {
+      "platform": "ios",
+      "product_id": "com.iganapolsky.randomtimer.elite",
+      "reason": "user_cancelled",
+      "failures": 1,
+      "users": 1
     }
   ],
   "product_funnel": [
+    {
+      "platform": "ios",
+      "product_id": "com.iganapolsky.randomtimer.elite",
+      "offer_selects": 0,
+      "attempts": 1,
+      "successes": 0,
+      "select_to_attempt_rate": 0.0,
+      "attempt_to_success_rate": 0.0
+    },
     {
       "platform": "android",
       "product_id": "elite_tactical",
@@ -81,7 +101,7 @@
   "entry_points": [
     {
       "entry_point": "unknown",
-      "views": 25,
+      "views": 26,
       "attempts": 0,
       "successes": 0,
       "view_to_attempt_rate": 0.0,
@@ -118,12 +138,20 @@
       "successes": 0,
       "view_to_attempt_rate": 0.0,
       "attempt_to_success_rate": 0.0
+    },
+    {
+      "entry_point": "sound_gate",
+      "views": 0,
+      "attempts": 1,
+      "successes": 0,
+      "view_to_attempt_rate": 0.0,
+      "attempt_to_success_rate": 0.0
     }
   ],
   "leaky_entry_points": [
     {
       "entry_point": "unknown",
-      "views": 25,
+      "views": 26,
       "attempts": 0,
       "successes": 0,
       "view_to_attempt_rate": 0.0,
@@ -188,8 +216,8 @@
     },
     {
       "setting_name": "unknown",
-      "changes": 20,
-      "users": 1
+      "changes": 27,
+      "users": 2
     }
   ],
   "data_quality_warnings": [
