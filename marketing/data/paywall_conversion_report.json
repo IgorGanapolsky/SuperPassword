@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-12T06:31:14+00:00",
+  "generated_at": "2026-09-12T12:26:25+00:00",
   "window_days": 30,
   "status": "ok",
   "reason": "",
@@ -62,40 +62,40 @@
     {
       "platform": "android",
       "product_id": "pro_base",
-      "failures": 35,
-      "users": 35
+      "failures": 37,
+      "users": 37
     },
     {
       "platform": "android",
       "product_id": "elite_tactical",
-      "failures": 31,
-      "users": 31
+      "failures": 33,
+      "users": 33
     },
     {
       "platform": "android",
       "product_id": "elite_tactical_monthly",
-      "failures": 31,
-      "users": 31
+      "failures": 33,
+      "users": 33
     }
   ],
   "product_catalog_failures_play_store": [
     {
       "platform": "android",
       "product_id": "pro_base",
-      "failures": 35,
-      "users": 35
+      "failures": 37,
+      "users": 37
     },
     {
       "platform": "android",
       "product_id": "elite_tactical",
-      "failures": 31,
-      "users": 31
+      "failures": 33,
+      "users": 33
     },
     {
       "platform": "android",
       "product_id": "elite_tactical_monthly",
-      "failures": 31,
-      "users": 31
+      "failures": 33,
+      "users": 33
     }
   ],
   "entry_points": [
@@ -161,48 +161,48 @@
   "settings_hotspots": [
     {
       "setting_name": "max_seconds",
-      "changes": 3330,
-      "users": 98
+      "changes": 3334,
+      "users": 100
     },
     {
       "setting_name": "volume",
-      "changes": 1787,
-      "users": 61
+      "changes": 1946,
+      "users": 63
     },
     {
       "setting_name": "min_seconds",
-      "changes": 1609,
-      "users": 96
+      "changes": 1613,
+      "users": 98
     },
     {
       "setting_name": "alarm_duration",
-      "changes": 1338,
-      "users": 95
+      "changes": 1359,
+      "users": 96
     },
     {
       "setting_name": "sound_type",
-      "changes": 858,
-      "users": 82
+      "changes": 867,
+      "users": 85
     },
     {
       "setting_name": "voice_callouts_enabled",
-      "changes": 583,
-      "users": 44
+      "changes": 588,
+      "users": 46
     },
     {
       "setting_name": "repeat_enabled",
-      "changes": 520,
-      "users": 88
+      "changes": 523,
+      "users": 89
     },
     {
       "setting_name": "repeat_rounds",
-      "changes": 220,
-      "users": 43
+      "changes": 223,
+      "users": 44
     },
     {
       "setting_name": "voice_gender",
-      "changes": 206,
-      "users": 71
+      "changes": 210,
+      "users": 73
     },
     {
       "setting_name": "vibration_enabled",
@@ -211,8 +211,8 @@
     },
     {
       "setting_name": "use_extended_range",
-      "changes": 144,
-      "users": 45
+      "changes": 146,
+      "users": 47
     },
     {
       "setting_name": "unknown",
