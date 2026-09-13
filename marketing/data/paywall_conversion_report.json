@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-13T00:59:52+00:00",
+  "generated_at": "2026-09-13T06:35:56+00:00",
   "window_days": 30,
   "status": "ok",
   "reason": "",
@@ -161,8 +161,8 @@
   "settings_hotspots": [
     {
       "setting_name": "max_seconds",
-      "changes": 3327,
-      "users": 99
+      "changes": 3260,
+      "users": 98
     },
     {
       "setting_name": "volume",
